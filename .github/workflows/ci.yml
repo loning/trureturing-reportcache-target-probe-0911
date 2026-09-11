@@ -166,6 +166,17 @@ jobs:
         shell: bash
         run: /bin/bash candidate/tools/scripts/workflow/engineering-test-execution-harness.sh "$GITHUB_WORKSPACE/candidate"
 
+      - name: Disposable report-cache boundary probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' 'REPORT_CACHE_BOUNDARY_PROBE_START'
+          /bin/bash "$GITHUB_WORKSPACE/candidate/tools/scripts/dotnet-test.sh" \
+            "$GITHUB_WORKSPACE/candidate/tools/tests/StrataLint.ScriptTests/StrataLint.ScriptTests.csproj" \
+            --no-build --no-restore \
+            --filter 'FullyQualifiedName~LeanReportIncrementalReuseTests|FullyQualifiedName~LeanReportMaterialAddressTests|FullyQualifiedName~LeanReportSelectionTests|FullyQualifiedName~TransportStageRejectsNonobjectProvenanceWithCurrentAttestation|FullyQualifiedName~TransportStageRequiresCompleteReadableMaterials|FullyQualifiedName~TransportStageValidatesTheSelectedEntry|FullyQualifiedName~LocalExactMaterialDamageRegeneratesAfterAValidHit'
+          printf '%s\n' 'REPORT_CACHE_BOUNDARY_PROBE_END wrapper_exit=0'
+
       - name: Run candidate selftest twice and compare bytes
         shell: bash
         run: make -C candidate/tools selftest
