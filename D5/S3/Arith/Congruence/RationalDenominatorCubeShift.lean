@@ -2,10 +2,11 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/RationalDenominatorCubeShift
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Data.Rat.Lemmas, Mathlib.Data.Nat.GCD.Basic, Mathlib.Tactic]
+   anchors: [Mathlib.Data.Int.NatAbs, Mathlib.Data.Rat.Lemmas, Mathlib.Data.Nat.GCD.Basic, Mathlib.Tactic]
    utility: none
    digest: Residue classes modulo four identify the denominator of a shifted rational cube. -/
 
+import Mathlib.Data.Int.NatAbs
 import Mathlib.Data.Rat.Lemmas
 import Mathlib.Data.Nat.GCD.Basic
 import Mathlib.Tactic
@@ -77,5 +78,42 @@ private lemma gcd_cube_shift_nat (n : ℕ) (hn : 2 ≤ n) :
     have hcop8 : Nat.Coprime (n ^ 2) 8 := by
       simpa using hc2.pow 2 3
     rw [hcop.gcd_eq_one, hcop8.gcd_eq_one]
+
+/-- Cicuttin's 2017 conjectured formula for OEIS A152020. -/
+theorem cicuttin_a152020 : ∀ n : ℕ, 1 ≤ n →
+    a n = (((((n : ℤ) - 2) ^ 3 : ℤ) : ℚ) / (n : ℚ) ^ 2).den := by
+  intro n hn
+  have hn0 : (n : ℤ) ^ 2 ≠ 0 := by positivity
+  have hlq : (8 : ℚ) / (9 * (n : ℚ) ^ 2) =
+      Rat.divInt 8 (9 * (n : ℤ) ^ 2) := by
+    rw [Rat.divInt_eq_div]
+    norm_num
+  have hrq : (((((n : ℤ) - 2) ^ 3 : ℤ) : ℚ) / (n : ℚ) ^ 2) =
+      Rat.divInt (((n : ℤ) - 2) ^ 3) ((n : ℤ) ^ 2) := by
+    rw [Rat.divInt_eq_div]
+    norm_num
+  rw [a, hlq, hrq, Rat.den_divInt, Rat.den_divInt]
+  simp only [mul_eq_zero, OfNat.ofNat_ne_zero, false_or, hn0, ↓reduceIte,
+    Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast]
+  have hgcd : Int.gcd ((n : ℤ) ^ 2) (((n : ℤ) - 2) ^ 3) =
+      Nat.gcd (n ^ 2) 8 := by
+    rcases Nat.eq_or_lt_of_le hn with h | hn'
+    · subst n
+      norm_num
+    · have hn2 : 2 ≤ n := by omega
+      have habs : ((n : ℤ) - 2).natAbs = n - 2 := by
+        simpa using (Int.natAbs_natCast_sub_natCast_of_ge hn2)
+      simp only [Int.gcd_eq_natAbs, Int.natAbs_pow, Int.natAbs_natCast, habs]
+      exact gcd_cube_shift_nat n hn2
+  rw [hgcd]
+  have hg9 : Nat.gcd (9 * n ^ 2) 8 = Nat.gcd (n ^ 2) 8 :=
+    (show Nat.Coprime 9 8 by norm_num).gcd_mul_left_cancel (n ^ 2)
+  rw [Int.gcd_eq_natAbs]
+  norm_num only [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast] at *
+  rw [hg9]
+  rw [Nat.mul_div_assoc 9 (Nat.gcd_dvd_left (n ^ 2) 8)]
+  exact Nat.mul_div_cancel_left (n ^ 2 / Nat.gcd (n ^ 2) 8) (by norm_num)
+
+#print axioms cicuttin_a152020
 
 end D5.S3.Arith.Congruence.RationalDenominatorCubeShift
