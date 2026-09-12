@@ -110,7 +110,7 @@ internal static class LeanReportCiBaselineScriptContract
         b["imports"] = new JsonArray();
         WriteBundle(bundle, string.Join(", ", a, b.ToJsonString()));
         File.AppendAllText(Path.Combine(temporary.Path, "D5/A.lean"), "-- changed\n");
-        var provenance = JsonNode.Parse(File.ReadAllText(bundle + ".provenance.json"))!.AsObject();
+        var provenance = JsonNode.Parse(FixtureFile.ReadAllText(bundle + ".provenance.json"))!.AsObject();
         var attestation = File.ReadAllLines(bundle + ".input.attestation");
         switch (damage)
         {
@@ -142,7 +142,7 @@ internal static class LeanReportCiBaselineScriptContract
         else
         {
             StageBundle(bundle, cache, provenance["input_address"]!.GetValue<string>()[7..]);
-            using var plan = JsonDocument.Parse(File.ReadAllText(RunDeltaPlan(temporary.Path, cache,
+            using var plan = JsonDocument.Parse(FixtureFile.ReadAllText(RunDeltaPlan(temporary.Path, cache,
                 "D5.A\tD5/A.lean\nD5.B\tD5/B.lean\n")));
             Assert.Equal("fallback", plan.RootElement.GetProperty("status").GetString());
             Assert.False(plan.RootElement.TryGetProperty("baseline", out _));
@@ -174,7 +174,7 @@ internal static class LeanReportCiBaselineScriptContract
         File.AppendAllText(source, "-- changed\n");
         var planPath = RunDeltaPlan(temporary.Path, cache,
             "D5.A\tD5/A.lean\nD5.B\tD5/B.lean\nD5.C\tD5/C.lean\nD5.Unrelated\tD5/Unrelated.lean\n");
-        using var plan = JsonDocument.Parse(File.ReadAllText(planPath));
+        using var plan = JsonDocument.Parse(FixtureFile.ReadAllText(planPath));
         Assert.Equal("delta", plan.RootElement.GetProperty("status").GetString());
         Assert.Equal(new[] { "D5.A" }, Names("changed"));
         Assert.Equal(new[] { "D5.A", "D5.B", "D5.C" }, Names("recheck"));

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using StrataLint.Engine;
+using FixtureFile = StrataLint.TestSupport.TemporaryFileSystem.File;
 
 namespace StrataLint.Tests;
 
@@ -330,7 +331,7 @@ public sealed class LeanReportPairScriptTests
             Directory.CreateDirectory(Path.Combine(candidateReport + ".materials", "sha256"));
 
         internal JsonDocument ReadCandidateProvenance() =>
-            JsonDocument.Parse(File.ReadAllBytes(candidateReport + ".provenance.json"));
+            JsonDocument.Parse(FixtureFile.ReadAllBytes(candidateReport + ".provenance.json"));
 
         internal string ReadCandidateLogText() => string.Join(
             '\n',
