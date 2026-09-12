@@ -2,7 +2,7 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators]
+   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators, Mathlib.Data.Finset.Sum]
    utility: none
    digest: Marked set partitions and the odd-even mixed-block product conjecture. -/
 
@@ -10,6 +10,7 @@ import Mathlib.Order.Partition.Finpartition
 import Mathlib.Data.Fintype.Powerset
 import Mathlib.Data.Fintype.Sigma
 import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Data.Finset.Sum
 
 namespace D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
 
@@ -65,13 +66,19 @@ theorem markedPartitions_eq_A049020 (r k : ℕ) :
 /-- The canonical `n`-element parity-labelled set: the left summand labels odd entries. -/
 abbrev ParityIndex (n : ℕ) := Fin ((n + 1) / 2) ⊕ Fin (n / 2)
 
-/-- Set partitions of the parity-labelled `n`-element set. -/
+/-- A block after transporting along `Finset.sumEquiv`: its two coordinates are the
+odd and even restrictions of the original block. -/
+abbrev ParityBlock (n : ℕ) :=
+  Finset (Fin ((n + 1) / 2)) × Finset (Fin (n / 2))
+
+/-- Set partitions of the parity-labelled `n`-element set, transported along
+`Finset.sumEquiv` to the product lattice of odd and even subsets. -/
 abbrev ParityPartition (n : ℕ) :=
-  Finpartition (univ : Finset (ParityIndex n))
+  Finpartition ((univ : Finset (Fin ((n + 1) / 2))), (univ : Finset (Fin (n / 2))))
 
 /-- A block is mixed when it contains both an odd-labelled and an even-labelled entry. -/
-def IsMixedBlock {n : ℕ} (b : Finset (ParityIndex n)) : Prop :=
-  (∃ i, Sum.inl i ∈ b) ∧ (∃ j, Sum.inr j ∈ b)
+def IsMixedBlock {n : ℕ} (b : ParityBlock n) : Prop :=
+  b.1.Nonempty ∧ b.2.Nonempty
 
 /-- Number of odd-even mixed blocks in a parity-labelled set partition. -/
 noncomputable def mixedBlockCount {n : ℕ} (P : ParityPartition n) : ℕ := by
