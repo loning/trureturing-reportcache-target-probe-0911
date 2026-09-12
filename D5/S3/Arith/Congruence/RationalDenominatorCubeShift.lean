@@ -2,13 +2,11 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/RationalDenominatorCubeShift
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Data.Int.NatAbs, Mathlib.Data.Rat.Lemmas, Mathlib.Data.Nat.GCD.Basic, Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Data.Int.NatAbs, mathlib/module/Mathlib.Tactic]
    utility: none
    digest: Residue classes modulo four identify the denominator of a shifted rational cube. -/
 
 import Mathlib.Data.Int.NatAbs
-import Mathlib.Data.Rat.Lemmas
-import Mathlib.Data.Nat.GCD.Basic
 import Mathlib.Tactic
 
 namespace D5.S3.Arith.Congruence.RationalDenominatorCubeShift
