@@ -92,9 +92,6 @@ theorem cicuttin_a152020 : ∀ n : ℕ, 1 ≤ n →
       Rat.divInt (((n : ℤ) - 2) ^ 3) ((n : ℤ) ^ 2) := by
     rw [Rat.divInt_eq_div]
     norm_num
-  rw [a, hlq, hrq, Rat.den_divInt, Rat.den_divInt]
-  simp only [mul_eq_zero, OfNat.ofNat_ne_zero, false_or, hn0, ↓reduceIte,
-    Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast]
   have hgcd : Int.gcd ((n : ℤ) ^ 2) (((n : ℤ) - 2) ^ 3) =
       Nat.gcd (n ^ 2) 8 := by
     rcases Nat.eq_or_lt_of_le hn with h | hn'
@@ -105,14 +102,28 @@ theorem cicuttin_a152020 : ∀ n : ℕ, 1 ≤ n →
         simpa using (Int.natAbs_natCast_sub_natCast_of_ge hn2)
       simp only [Int.gcd_eq_natAbs, Int.natAbs_pow, Int.natAbs_natCast, habs]
       exact gcd_cube_shift_nat n hn2
-  rw [hgcd]
   have hg9 : Nat.gcd (9 * n ^ 2) 8 = Nat.gcd (n ^ 2) 8 :=
     (show Nat.Coprime 9 8 by norm_num).gcd_mul_left_cancel (n ^ 2)
-  rw [Int.gcd_eq_natAbs]
-  norm_num only [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast] at *
-  rw [hg9]
-  rw [Nat.mul_div_assoc 9 (Nat.gcd_dvd_left (n ^ 2) 8)]
-  exact Nat.mul_div_cancel_left (n ^ 2 / Nat.gcd (n ^ 2) 8) (by norm_num)
+  have hleft : ((8 : ℚ) / (9 * (n : ℚ) ^ 2)).den =
+      9 * (n ^ 2 / Nat.gcd (n ^ 2) 8) := by
+    rw [hlq, Rat.den_divInt]
+    simp only [mul_eq_zero, OfNat.ofNat_ne_zero, false_or, hn0, ↓reduceIte,
+      Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast]
+    rw [Int.gcd_eq_natAbs]
+    norm_num only [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast]
+    rw [hg9]
+    exact Nat.mul_div_assoc 9 (Nat.gcd_dvd_left (n ^ 2) 8)
+  have hright : (((((n : ℤ) - 2) ^ 3 : ℤ) : ℚ) / (n : ℚ) ^ 2).den =
+      n ^ 2 / Nat.gcd (n ^ 2) 8 := by
+    rw [hrq, Rat.den_divInt]
+    simp only [hn0, ↓reduceIte, Int.natAbs_pow, Int.natAbs_natCast]
+    rw [hgcd]
+  have h9 : 9 ∣ ((8 : ℚ) / (9 * (n : ℚ) ^ 2)).den := by
+    rw [hleft]
+    exact dvd_mul_right 9 _
+  rw [a]
+  apply (Nat.div_eq_iff_eq_mul_right (by norm_num) h9).mpr
+  rw [hleft, hright]
 
 #print axioms cicuttin_a152020
 
