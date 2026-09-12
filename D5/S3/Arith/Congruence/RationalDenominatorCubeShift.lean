@@ -1,0 +1,81 @@
+/- GID: D5/S3/Arith/Congruence/RationalDenominatorCubeShift
+   generality: G
+   mirror-B: D5/B/S3/Arith/Congruence/RationalDenominatorCubeShift
+   mirror-E: none(waiver:unbounded-symbolic-proof)
+   anchors: [Mathlib.Data.Rat.Lemmas, Mathlib.Data.Nat.GCD.Basic, Mathlib.Tactic]
+   utility: none
+   digest: Residue classes modulo four identify the denominator of a shifted rational cube. -/
+
+import Mathlib.Data.Rat.Lemmas
+import Mathlib.Data.Nat.GCD.Basic
+import Mathlib.Tactic
+
+namespace D5.S3.Arith.Congruence.RationalDenominatorCubeShift
+
+/-- OEIS A152020: the denominator of `8 / (9 * n^2)`, divided by nine. -/
+def a (n : ℕ) : ℕ :=
+  (((8 : ℚ) / (9 * (n : ℚ) ^ 2)).den) / 9
+
+private lemma gcd_cube_shift_nat (n : ℕ) (hn : 2 ≤ n) :
+    Nat.gcd (n ^ 2) ((n - 2) ^ 3) = Nat.gcd (n ^ 2) 8 := by
+  have hlt : n % 4 < 4 := Nat.mod_lt n (by norm_num)
+  interval_cases hmod : n % 4
+  · let m := n / 4
+    have hm : 1 ≤ m := by dsimp [m]; omega
+    have hnform : n = 4 * m := by dsimp [m]; omega
+    have hshift : n - 2 = 2 * (2 * m - 1) := by omega
+    have hconsecutive : Nat.Coprime m (m - 1) :=
+      (Nat.coprime_self_sub_right hm).mpr (Nat.coprime_one_right m)
+    have hnear : Nat.Coprime m (2 * m - 1) := by
+      apply Nat.Coprime.symm
+      exact (Nat.coprime_sub_self_left (show m ≤ 2 * m - 1 by omega)).mp
+        (by simpa only [show 2 * m - 1 - m = m - 1 by omega] using hconsecutive.symm)
+    have hcop : Nat.Coprime (2 * m ^ 2) ((2 * m - 1) ^ 3) := by
+      apply Nat.Coprime.mul_left
+      · exact (Nat.coprime_two_left.mpr ⟨m - 1, by omega⟩).pow_right 3
+      · exact hnear.pow 2 3
+    rw [hshift, hnform]
+    have hsq : (4 * m) ^ 2 = 8 * (2 * m ^ 2) := by ring
+    have hcube : (2 * (2 * m - 1)) ^ 3 = 8 * ((2 * m - 1) ^ 3) := by ring
+    rw [hsq, hcube, Nat.gcd_mul_left, hcop.gcd_eq_one]
+    norm_num [Nat.gcd_eq_right_iff_dvd]
+  · let m := n / 4
+    have hnform : n = 4 * m + 1 := by dsimp [m]; omega
+    have hnodd : Odd n := by rw [hnform]; exact ⟨2 * m, by omega⟩
+    have hc2 : Nat.Coprime n 2 := Nat.coprime_two_right.mpr hnodd
+    have hshift : Nat.Coprime n (n - 2) :=
+      (Nat.coprime_self_sub_right hn).mpr hc2
+    have hcop : Nat.Coprime (n ^ 2) ((n - 2) ^ 3) := hshift.pow 2 3
+    have hcop8 : Nat.Coprime (n ^ 2) 8 := by
+      simpa using hc2.pow 2 3
+    rw [hcop.gcd_eq_one, hcop8.gcd_eq_one]
+  · let m := n / 2
+    have hnform : n = 2 * m := by dsimp [m]; omega
+    have hmodd : Odd m := by dsimp [m]; exact ⟨n / 4, by omega⟩
+    have hm : 1 ≤ m := by dsimp [m]; omega
+    have hshift : n - 2 = 2 * (m - 1) := by omega
+    have hconsecutive : Nat.Coprime m (m - 1) :=
+      (Nat.coprime_self_sub_right hm).mpr (Nat.coprime_one_right m)
+    have hcop2 : Nat.Coprime (m ^ 2) 2 :=
+      (Nat.coprime_two_right.mpr hmodd).pow_left 2
+    have hcop : Nat.Coprime (m ^ 2) (2 * (m - 1) ^ 3) := by
+      apply Nat.Coprime.mul_right
+      · exact hcop2
+      · exact hconsecutive.pow 2 3
+    rw [hshift, hnform]
+    have hsq : (2 * m) ^ 2 = 4 * m ^ 2 := by ring
+    have hcube : (2 * (m - 1)) ^ 3 = 4 * (2 * (m - 1) ^ 3) := by ring
+    rw [hsq, hcube, Nat.gcd_mul_left, hcop.gcd_eq_one]
+    rw [show 8 = 4 * 2 by norm_num, Nat.gcd_mul_left, hcop2.gcd_eq_one]
+  · let m := n / 4
+    have hnform : n = 4 * m + 3 := by dsimp [m]; omega
+    have hnodd : Odd n := by rw [hnform]; exact ⟨2 * m + 1, by omega⟩
+    have hc2 : Nat.Coprime n 2 := Nat.coprime_two_right.mpr hnodd
+    have hshift : Nat.Coprime n (n - 2) :=
+      (Nat.coprime_self_sub_right hn).mpr hc2
+    have hcop : Nat.Coprime (n ^ 2) ((n - 2) ^ 3) := hshift.pow 2 3
+    have hcop8 : Nat.Coprime (n ^ 2) 8 := by
+      simpa using hc2.pow 2 3
+    rw [hcop.gcd_eq_one, hcop8.gcd_eq_one]
+
+end D5.S3.Arith.Congruence.RationalDenominatorCubeShift
