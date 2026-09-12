@@ -100,6 +100,170 @@ abbrev RestrictionPairingData (n k : ℕ) :=
   Σ odd : MarkedPartition ((n + 1) / 2) k,
     Σ even : MarkedPartition (n / 2) k, MarkedBlocks odd ≃ MarkedBlocks even
 
+private noncomputable def leftRestriction {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    Finpartition (univ : Finset α) := by
+  refine Finpartition.ofExistsUnique
+    ((P.parts.image Prod.fst).erase ∅) (by simp) ?_ (by simp)
+  intro a _
+  have hsup : P.parts.sup Prod.fst = (univ : Finset α) := by
+    simpa using P.sup_parts_apply (fun _ _ => rfl) rfl
+  have ha : a ∈ P.parts.sup Prod.fst := by simp [hsup]
+  obtain ⟨q, hq, haq⟩ := Finset.mem_sup.mp ha
+  refine ⟨q.1, ⟨Finset.mem_erase.mpr ⟨Finset.nonempty_iff_ne_empty.mp ⟨a, haq⟩,
+    Finset.mem_image.mpr ⟨q, hq, rfl⟩⟩, haq⟩, ?_⟩
+  rintro t ⟨ht, hat⟩
+  have htimage : t ∈ P.parts.image Prod.fst := (Finset.mem_erase.mp ht).2
+  obtain ⟨r, hr, hrt⟩ := Finset.mem_image.mp htimage
+  subst t
+  have hqr : q = r := by
+    by_contra hne
+    have hd := P.disjoint hq hr hne
+    change Disjoint q r at hd
+    rw [Prod.disjoint_iff] at hd
+    exact (Finset.not_disjoint_iff.mpr ⟨a, haq, hat⟩) hd.1
+  exact (congrArg Prod.fst hqr).symm
+
+private noncomputable def rightRestriction {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    Finpartition (univ : Finset β) := by
+  refine Finpartition.ofExistsUnique
+    ((P.parts.image Prod.snd).erase ∅) (by simp) ?_ (by simp)
+  intro b _
+  have hsup : P.parts.sup Prod.snd = (univ : Finset β) := by
+    simpa using P.sup_parts_apply (fun _ _ => rfl) rfl
+  have hb : b ∈ P.parts.sup Prod.snd := by simp [hsup]
+  obtain ⟨q, hq, hbq⟩ := Finset.mem_sup.mp hb
+  refine ⟨q.2, ⟨Finset.mem_erase.mpr ⟨Finset.nonempty_iff_ne_empty.mp ⟨b, hbq⟩,
+    Finset.mem_image.mpr ⟨q, hq, rfl⟩⟩, hbq⟩, ?_⟩
+  rintro t ⟨ht, hbt⟩
+  have htimage : t ∈ P.parts.image Prod.snd := (Finset.mem_erase.mp ht).2
+  obtain ⟨r, hr, hrt⟩ := Finset.mem_image.mp htimage
+  subst t
+  have hqr : q = r := by
+    by_contra hne
+    have hd := P.disjoint hq hr hne
+    change Disjoint q r at hd
+    rw [Prod.disjoint_iff] at hd
+    exact (Finset.not_disjoint_iff.mpr ⟨b, hbq, hbt⟩) hd.2
+  exact (congrArg Prod.snd hqr).symm
+
+private def mixedParts {α β : Type*} [DecidableEq α] [DecidableEq β]
+    {s : Finset α} {t : Finset β} (P : Finpartition (s, t)) :
+    Finset (Finset α × Finset β) :=
+  P.parts.filter fun p => p.1.Nonempty ∧ p.2.Nonempty
+
+private noncomputable def mixedToLeftEmbedding {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    {p // p ∈ mixedParts P} ↪ (leftRestriction P).parts where
+  toFun p := ⟨p.1.1, by
+    change p.1.1 ∈ (P.parts.image Prod.fst).erase ∅
+    exact Finset.mem_erase.mpr ⟨(Finset.mem_filter.mp p.2).2.1.ne_empty,
+      Finset.mem_image.mpr ⟨p.1, (Finset.mem_filter.mp p.2).1, rfl⟩⟩⟩
+  inj' := by
+    intro p q h
+    apply Subtype.ext
+    have hpq : p.1.1 = q.1.1 := congrArg Subtype.val h
+    by_contra hpq'
+    have hd := P.disjoint (Finset.mem_filter.mp p.2).1
+      (Finset.mem_filter.mp q.2).1 hpq'
+    change Disjoint p.1 q.1 at hd
+    rw [Prod.disjoint_iff] at hd
+    obtain ⟨a, ha⟩ := (Finset.mem_filter.mp p.2).2.1
+    exact (Finset.not_disjoint_iff.mpr ⟨a, ha, hpq ▸ ha⟩) hd.1
+
+private noncomputable def mixedToRightEmbedding {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    {p // p ∈ mixedParts P} ↪ (rightRestriction P).parts where
+  toFun p := ⟨p.1.2, by
+    change p.1.2 ∈ (P.parts.image Prod.snd).erase ∅
+    exact Finset.mem_erase.mpr ⟨(Finset.mem_filter.mp p.2).2.2.ne_empty,
+      Finset.mem_image.mpr ⟨p.1, (Finset.mem_filter.mp p.2).1, rfl⟩⟩⟩
+  inj' := by
+    intro p q h
+    apply Subtype.ext
+    have hpq : p.1.2 = q.1.2 := congrArg Subtype.val h
+    by_contra hpq'
+    have hd := P.disjoint (Finset.mem_filter.mp p.2).1
+      (Finset.mem_filter.mp q.2).1 hpq'
+    change Disjoint p.1 q.1 at hd
+    rw [Prod.disjoint_iff] at hd
+    obtain ⟨b, hb⟩ := (Finset.mem_filter.mp p.2).2.2
+    exact (Finset.not_disjoint_iff.mpr ⟨b, hb, hpq ▸ hb⟩) hd.2
+
+private noncomputable def leftMarkedParts {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    Finset (leftRestriction P).parts :=
+  (mixedParts P).attach.map (mixedToLeftEmbedding P)
+
+private noncomputable def rightMarkedParts {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    Finset (rightRestriction P).parts :=
+  (mixedParts P).attach.map (mixedToRightEmbedding P)
+
+private noncomputable def mixedLeftEquiv {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    {p // p ∈ mixedParts P} ≃ {b // b ∈ leftMarkedParts P} :=
+  Equiv.ofBijective
+    (fun p => ⟨mixedToLeftEmbedding P p, by simp [leftMarkedParts]⟩)
+    ⟨fun _ _ h => (mixedToLeftEmbedding P).injective (congrArg Subtype.val h), by
+      intro b
+      obtain ⟨p, hp, hpb⟩ := Finset.mem_map.mp b.2
+      exact ⟨p, Subtype.ext hpb⟩⟩
+
+private noncomputable def mixedRightEquiv {α β : Type*}
+    [Fintype α] [Fintype β] [DecidableEq α] [DecidableEq β]
+    (P : Finpartition ((univ : Finset α), (univ : Finset β))) :
+    {p // p ∈ mixedParts P} ≃ {b // b ∈ rightMarkedParts P} :=
+  Equiv.ofBijective
+    (fun p => ⟨mixedToRightEmbedding P p, by simp [rightMarkedParts]⟩)
+    ⟨fun _ _ h => (mixedToRightEmbedding P).injective (congrArg Subtype.val h), by
+      intro b
+      obtain ⟨p, hp, hpb⟩ := Finset.mem_map.mp b.2
+      exact ⟨p, Subtype.ext hpb⟩⟩
+
+private noncomputable def leftMarkedPartition {n k : ℕ}
+    (P : MixedParityPartition n k) : MarkedPartition ((n + 1) / 2) k := by
+  classical
+  refine ⟨leftRestriction P.1, leftMarkedParts P.1, ?_⟩
+  ·
+    rw [leftMarkedParts, Finset.card_map, Finset.card_attach]
+    have hm : mixedParts P.1 = P.1.parts.filter IsMixedBlock := by
+      ext p
+      simp only [mixedParts, Finset.mem_filter]
+      change (p ∈ P.1.parts ∧ p.1.Nonempty ∧ p.2.Nonempty) ↔
+        (p ∈ P.1.parts ∧ p.1.Nonempty ∧ p.2.Nonempty)
+      rfl
+    rw [hm]
+    exact P.2
+
+private noncomputable def rightMarkedPartition {n k : ℕ}
+    (P : MixedParityPartition n k) : MarkedPartition (n / 2) k := by
+  classical
+  refine ⟨rightRestriction P.1, rightMarkedParts P.1, ?_⟩
+  ·
+    rw [rightMarkedParts, Finset.card_map, Finset.card_attach]
+    have hm : mixedParts P.1 = P.1.parts.filter IsMixedBlock := by
+      ext p
+      simp only [mixedParts, Finset.mem_filter]
+      change (p ∈ P.1.parts ∧ p.1.Nonempty ∧ p.2.Nonempty) ↔
+        (p ∈ P.1.parts ∧ p.1.Nonempty ∧ p.2.Nonempty)
+      rfl
+    rw [hm]
+    exact P.2
+
+private noncomputable def restrictionData {n k : ℕ}
+    (P : MixedParityPartition n k) : RestrictionPairingData n k :=
+  ⟨leftMarkedPartition P, rightMarkedPartition P,
+    (mixedLeftEquiv P.1).symm.trans (mixedRightEquiv P.1)⟩
+
 #print axioms markedPartitions_eq_A049020
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
