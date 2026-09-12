@@ -13,6 +13,8 @@ license: Apache-2.0 source; citation-only article
 triage: anchor
 ---
 
+## Locator
+
 The article appears in Annals of Formalized Mathematics, volume 2, published
 13 March 2026. The publisher and Crossref metadata agree on the title, authors,
 DOI and publication date. The locator retains the initial preprint year 2024;
