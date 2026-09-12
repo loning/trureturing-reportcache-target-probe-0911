@@ -41,9 +41,11 @@ The preregistration search on 2026-09-13 read all 29 OEIS revisions and
 searched arXiv (`all:A208342`), OpenAlex autocomplete, MathOverflow, and
 GitHub code and issues. It also checked the exact string
 `binomial(k-1-j,j)` and the Google Scholar results for the sequence number.
-A proof was not found in the checked surfaces. The GitHub raw matches were
-dominated by hexadecimal false positives; the inspected joeis and loda hits
-implemented the recurrence but supplied no proof. The two Scholar results
+A proof was not found in the checked surfaces. GitHub code search returned
+434 raw matches; only the joeis and loda hits were inspected, and they
+implemented the recurrence but supplied no proof. The remaining matches were
+not classified; the sampled ones were hexadecimal string coincidences, and no
+count of that category was measured. The two Scholar results
 were unrelated references rather than proofs of the conjecture.
 
 ## Route
