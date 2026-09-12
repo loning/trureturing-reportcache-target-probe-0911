@@ -49,11 +49,6 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
         child["LAKE_CONFIG"] = Path.Combine(root, ".lake", "config.toml");
         child["LAKE_RESTORE_ARTIFACTS"] = "true";
         child["MATHLIB_CACHE_DIR"] = Path.Combine(root, ".lake", "mathlib-cache");
-        var check = runner.RunWithEnvironment(lake, ["--version"], root,
-            BoundedProcessRunner.HangDetectionBudget, child);
-        if (check.ExitCode != 0 || !Encoding.UTF8.GetString(check.StandardOutput)
-            .Contains("(Lean version " + version.Groups[1].Value + ")", StringComparison.Ordinal))
-            throw new InvalidOperationException("Lake executable does not match lean-toolchain: " + lake);
         var common = Git(root, runner, "rev-parse", "--path-format=absolute", "--git-common-dir");
         var sharedRoot = LeanCacheGuard.PhysicalPath(Path.Combine(common, "stratalint-lake"));
         if (sharedRoot != Path.Combine(LeanCacheGuard.PhysicalPath(common), "stratalint-lake"))
@@ -67,7 +62,13 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
         RequireGuard(sharedRoot);
         var cache = Directory.Exists(sharedCache) ? sharedCache : Path.Combine(root, ".lake", "artifact-cache");
         child["LAKE_CACHE_DIR"] = cache;
-        return new(root, sharedRoot, sharedCache, cache, lake, runner, child);
+        var policy = new LeanProcessPolicy(root, sharedRoot, sharedCache, cache, lake, runner, child);
+        // Even version/config startup is a child boundary: admit topology and contain it first.
+        var check = policy.Run(lake, ["--version"], root, BoundedProcessRunner.HangDetectionBudget);
+        if (check.ExitCode != 0 || !Encoding.UTF8.GetString(check.StandardOutput)
+            .Contains("(Lean version " + version.Groups[1].Value + ")", StringComparison.Ordinal))
+            throw new InvalidOperationException("Lake executable does not match lean-toolchain: " + lake);
+        return policy;
     }
 
     internal LeanProcessPolicy StageWriter(string stage)
@@ -120,7 +121,7 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
         foreach (var ancestor in new[] { SharedRoot, Path.GetDirectoryName(SharedCache)! })
             if (new DirectoryInfo(ancestor).LinkTarget is not null)
                 throw new InvalidOperationException("Shared cache ancestors must not be symlinks: " + ancestor);
-        RequireNoSharedLinks(SharedCache);
+        RequireNoSharedLinks(SharedRoot);
         if (OperatingSystem.IsMacOS() && File.Exists("/usr/bin/sandbox-exec"))
         {
             var literal = SharedRoot.Replace("\\", "\\\\", StringComparison.Ordinal)
@@ -136,7 +137,8 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
     {
         var result = runner is LeanProcessPolicy policy
             ? policy.Run("git", arguments, root, BoundedProcessRunner.HangDetectionBudget)
-            : runner.RunWithEnvironment("git", arguments, root, BoundedProcessRunner.HangDetectionBudget,
+            : runner.RunWithEnvironment("git", ["-c", "trace2.normalTarget=0", "-c", "trace2.eventTarget=0",
+                "-c", "trace2.perfTarget=0", .. arguments], root, BoundedProcessRunner.HangDetectionBudget,
                 PhysicalGitEnvironment());
         if (result.ExitCode != 0)
             throw new InvalidOperationException("git " + arguments[0] + ": " + Encoding.UTF8.GetString(result.StandardError));
@@ -148,9 +150,12 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
         var child = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>()
             .ToDictionary(entry => (string)entry.Key, entry => (string)entry.Value!, StringComparer.Ordinal);
         // Git's repository-local variables (git rev-parse --local-env-vars), plus discovery
-        // and config-selection overrides. Transport, credentials, tracing and optional locks
-        // remain the caller's environment. The same context reaches Lake's child Git calls.
+        // and config-selection overrides. Disable diagnostic destinations before bootstrap
+        // discovery can write them; raw Git also disables config-based Trace2 targets above.
+        // Transport, credentials and optional locks remain the caller's environment.
+        // The same context reaches Lake's child Git calls.
         foreach (var name in child.Keys.Where(name => name.StartsWith("GIT_CONFIG_", StringComparison.Ordinal)
+            || name.StartsWith("GIT_TRACE", StringComparison.Ordinal)
             || name is "GIT_ALTERNATE_OBJECT_DIRECTORIES" or "GIT_CONFIG" or "GIT_OBJECT_DIRECTORY"
                 or "GIT_DIR" or "GIT_WORK_TREE" or "GIT_IMPLICIT_WORK_TREE" or "GIT_GRAFT_FILE"
                 or "GIT_INDEX_FILE" or "GIT_NO_REPLACE_OBJECTS" or "GIT_REPLACE_REF_BASE"
@@ -166,11 +171,17 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
         if (directory.LinkTarget is not null)
             throw new InvalidOperationException("Shared cache entries must not be symlinks: " + path);
         if (!directory.Exists) return;
-        foreach (var item in directory.EnumerateFileSystemInfos())
-        {
-            if ((item.Attributes & FileAttributes.ReparsePoint) != 0)
-                throw new InvalidOperationException("Shared cache entries must not be symlinks: " + item.FullName);
-            if (item is DirectoryInfo) RequireNoSharedLinks(item.FullName);
-        }
+        // One native metadata walk replaces the symlink-only walk. Never hash cache bytes
+        // or spawn per entry. nlink > 1 also detects aliases outside this entire shared root.
+        // Reader-side unlink/chmod/detach would itself change shared ctime/nlink.
+        var result = BoundedProcessRunner.Run("/usr/bin/find",
+            [path, "(", "-type", "l", "-o", "-type", "f", "-links", "+1", ")", "-print", "-quit"],
+            directory.Parent!.FullName, BoundedProcessRunner.HangDetectionBudget, 64 * 1024);
+        if (result.ExitCode != 0)
+            throw new InvalidOperationException("Cannot admit shared cache topology: " + Encoding.UTF8.GetString(result.StandardError));
+        if (result.StandardOutput.Length != 0)
+            throw new InvalidOperationException("Shared cache must have no symlinks or hardlinks: "
+                + Encoding.UTF8.GetString(result.StandardOutput).Trim()
+                + ". Stop cache users and have the cache owner detach stale aliases before retrying; readers never repair shared metadata.");
     }
 }

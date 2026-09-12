@@ -3,8 +3,8 @@ using StrataLint.Engine;
 namespace StrataLint.Cli;
 
 // The cache command owns a POSIX session. Its existing lock files retain the
-// session ID until every descendant exits, even if .NET or Lake dies. This is a kernel
-// liveness check, with no expiry, service, lease or assumption that Lean inherits fds.
+// session ID and instance identity until every supported descendant exits, even if
+// .NET or Lake dies. No expiry, service, lease or assumption that Lean inherits fds.
 internal static class LeanCacheProcessLifetime
 {
     private const string Launcher = """
@@ -18,9 +18,10 @@ internal static class LeanCacheProcessLifetime
             push @guards, $guard;
         }
         setsid() > 0 or die "cannot establish cache writer session: $!";
+        my $identity = $ENV{'STRATALINT_LAKE_WRITER_INSTANCE'} // die "missing cache writer identity";
         for my $guard (@guards) {
             sysseek($guard, 0, 0) == 0 or die "cache guard seek: $!";
-            my $record = "$$\n";
+            my $record = "$$ $identity\n";
             syswrite($guard, $record) == length($record) or die "cache guard write: $!";
             truncate($guard, length($record)) or die "cache guard truncate: $!";
             fcntl($guard, F_SETFD, FD_CLOEXEC) or die "cache guard close-on-exec: $!";
@@ -40,6 +41,10 @@ internal static class LeanCacheProcessLifetime
         foreach (var guard in guards)
             if (guard.HasWriterSession())
                 throw new InvalidOperationException("cache command still has writer descendants; writer guard is busy");
+        var child = new Dictionary<string, string>(environment)
+        {
+            [LeanCacheWriterIdentity.EnvironmentName] = LeanCacheWriterIdentity.Create(),
+        };
         var previous = BoundedProcessRunner.StartProcess.Value;
         BoundedProcessRunner.StartProcess.Value = process =>
         {
@@ -58,7 +63,7 @@ internal static class LeanCacheProcessLifetime
             var result = runner.RunWithEnvironment("/usr/bin/perl",
                 ["-e", Launcher, guards.Length.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     .. guards.Select(guard => guard.Descriptor.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                    file, .. arguments], root, timeout, environment);
+                    file, .. arguments], root, timeout, child);
             foreach (var guard in guards)
                 if (guard.HasWriterSession())
                     throw new InvalidOperationException("cache command exited with live writer descendants; writer guard remains busy");

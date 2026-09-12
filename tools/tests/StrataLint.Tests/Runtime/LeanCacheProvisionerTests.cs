@@ -145,7 +145,8 @@ public sealed partial class LeanCacheProvisionerTests(Xunit.Abstractions.ITestOu
         public ProcessOutput RunWithEnvironment(string file, IReadOnlyList<string> args, string root,
             TimeSpan budget, IReadOnlyDictionary<string, string> environment)
         {
-            if (file != "git" && args.FirstOrDefault() != "--version")
+            var targetArgs = file == "/usr/bin/sandbox-exec" ? args.Skip(3) : args;
+            if (file != "git" && targetArgs.FirstOrDefault() != "--version")
                 Budgets.Add(budget);
             return inner.RunWithEnvironment(file, args, root, budget, environment);
         }

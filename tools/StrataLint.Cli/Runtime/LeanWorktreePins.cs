@@ -238,12 +238,14 @@ internal sealed class LeanCacheGuard : IDisposable
         using var reader = new StreamReader(stream, leaveOpen: true);
         var line = reader.ReadLine();
         if (line is null) return false;
-        if (!int.TryParse(line, System.Globalization.NumberStyles.None,
+        var fields = line.Split(' ');
+        if (fields.Length != 2 || !int.TryParse(fields[0], System.Globalization.NumberStyles.None,
             System.Globalization.CultureInfo.InvariantCulture, out var group) || group <= 1)
-            throw new InvalidOperationException("invalid cache writer session in " + stream.Name);
-        if (Kill(-group, 0) == 0) return true;
-        if (Marshal.GetLastPInvokeError() != 3) // ESRCH: the original process group is gone.
-            throw new InvalidOperationException("cannot inspect cache writer session " + group);
+            throw new InvalidOperationException("invalid cache writer instance identity in " + stream.Name
+                + "; stop cache users before removing an obsolete reservation");
+        if (!LeanCacheWriterIdentity.IsCurrentBoot(fields[1])) return false;
+        // A numeric session can be reused. Its living members must also carry this
+        // dispatch's boot/process identity, inherited through the supported Lake exec tree.
         // Foreground tools such as timeout can start another group in the same session.
         // A departed leader does not release the reservation while that writer remains.
         var processes = System.Diagnostics.Process.GetProcesses();
@@ -252,7 +254,7 @@ internal sealed class LeanCacheGuard : IDisposable
             foreach (var process in processes)
             {
                 var session = GetSession(process.Id);
-                if (session == group) return true;
+                if (session == group && LeanCacheWriterIdentity.IsMember(process.Id, fields[1])) return true;
                 if (session < 0 && Marshal.GetLastPInvokeError() != 3)
                     throw new InvalidOperationException("cannot inspect cache writer session membership");
             }
@@ -368,9 +370,6 @@ internal sealed class LeanCacheGuard : IDisposable
 
     [DllImport("libc", EntryPoint = "fcntl", SetLastError = true)]
     private static extern int Fcntl(int descriptor, int command, int flags);
-
-    [DllImport("libc", EntryPoint = "kill", SetLastError = true)]
-    private static extern int Kill(int process, int signal);
 
     [DllImport("libc", EntryPoint = "getsid", SetLastError = true)]
     private static extern int GetSession(int process);

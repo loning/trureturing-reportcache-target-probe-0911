@@ -32,13 +32,14 @@ internal static class LeanCacheProvisioner
         var stamp = LeanCacheStamp.Inspect(lake, pins);
         var archive = LeanArchiveAttempt.Skipped("native shared cache available");
         string? warning = null;
+        // The durable stamp records pins, not current source availability. Native Lake
+        // validates/materializes the pinned Git dependencies on every standalone ensure.
+        var dependencies = policy.Run(policy.LakeExecutable,
+            ["env", OperatingSystem.IsWindows() ? "cmd" : "/usr/bin/true", .. OperatingSystem.IsWindows() ? new[] { "/c", "exit", "0" } : Array.Empty<string>()],
+            root, DependencyFetchBudget);
+        RequireSuccess(dependencies, "Lake dependency materialization");
         if (stamp.State != LeanCacheStampState.Match)
         {
-            // Loading the pinned manifest materializes private package sources without a project build.
-            var dependencies = policy.Run(policy.LakeExecutable,
-                ["env", OperatingSystem.IsWindows() ? "cmd" : "/usr/bin/true", .. OperatingSystem.IsWindows() ? new[] { "/c", "exit", "0" } : Array.Empty<string>()],
-                root, DependencyFetchBudget);
-            RequireSuccess(dependencies, "Lake dependency materialization");
             if (!policy.SharedReader && HasMathlib(pins))
             {
                 try
