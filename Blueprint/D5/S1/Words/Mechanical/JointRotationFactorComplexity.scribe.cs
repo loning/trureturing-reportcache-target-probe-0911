@@ -15,15 +15,15 @@ internal sealed class JointRotationFactorComplexityDocument : IScribeDocumentDef
                 StatementSource.WithoutFormula(),
                 AssessedProvenance.FromRepo(),
                 Blocks(Paragraph(Text(
-                    "Let A be a finite nonempty set of positive integer scales, let alpha be real, "
+                    "Let A be a finite nonempty set of positive integer scales, let alpha be irrational, "
                     + "and choose an integer offset b(a) at each scale. At phase x and time j, the "
                     + "coordinate at scale a is b(a) minus the indicator that the fractional part "
                     + "of a(x + j alpha) + alpha is at least one minus the fractional part of a alpha. "
-                    + "The set of length h vector words realized by x in [0,1) is finite and has "
+                    + "For positive h, the set of length h vector words realized by x in [0,1) is finite and has "
                     + "cardinality at most (h + 1) times the sum of the scales in A. "
                     + "All coordinates use the same circle phase. Cutting the circle at one of "
                     + "the floor discontinuities allows the h + 1 floor samples at every scale "
                     + "to be counted together; equal cumulative counts determine equal vector words. "
-                    + "The bound includes boundary phases and length zero."))),
+                    + "The bound includes boundary phases."))),
                 DescribeRole.Theorem))));
 }

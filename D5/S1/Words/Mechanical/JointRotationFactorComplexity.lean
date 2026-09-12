@@ -6,7 +6,6 @@
    utility: none
    digest: Simultaneous integer-scale rotation words have complexity at most the total circular boundary count. -/
 
-import D5.S1.Words.Mechanical.MechanicalFactorComplexity
 import D5.S1.Words.Mechanical.FloorFractShift
 
 set_option autoImplicit false
@@ -29,10 +28,11 @@ def jointRotationFactorSet (α : ℝ) (b : ℕ → ℤ) (A : Finset ℕ) (h : �
     Set (Fin h → A → ℤ) :=
   jointRotationFactor α b A h '' Set.Ico 0 1
 
-/-- For nonempty positive scales, the number of simultaneous rotation words of length `h`
-is at most `(h + 1) * ∑ a ∈ A, a`. -/
-theorem joint_rotation_factor_complexity (α : ℝ) (b : ℕ → ℤ)
-    (A : Finset ℕ) (hA : A.Nonempty) (hpos : ∀ a ∈ A, 0 < a) (h : ℕ) :
+/-- For an irrational rotation and nonempty positive scales, the number of simultaneous
+rotation words of positive length `h` is at most `(h + 1) * ∑ a ∈ A, a`. -/
+theorem joint_rotation_factor_complexity (α : {r : ℝ // Irrational r}) (b : ℕ → ℤ)
+    (A : Finset ℕ) (hA : A.Nonempty) (hpos : ∀ a ∈ A, 0 < a)
+    (h : {n : ℕ // 1 ≤ n}) :
     (jointRotationFactorSet α b A h).Finite ∧
       (jointRotationFactorSet α b A h).ncard ≤ (h + 1) * ∑ a ∈ A, a := by
   classical
@@ -42,7 +42,7 @@ theorem joint_rotation_factor_complexity (α : ℝ) (b : ℕ → ℤ)
   have ht : (a₀ : ℝ) * t + α = 0 := by
     dsimp [t]
     field_simp
-    <;> ring
+    ring
   let I := A × Fin (h + 1)
   let f (i : I) (x : ℝ) : ℤ :=
     ⌊(i.1 : ℝ) * (x + (i.2 : ℝ) * α) + α⌋
@@ -51,7 +51,7 @@ theorem joint_rotation_factor_complexity (α : ℝ) (b : ℕ → ℤ)
   let K : ℕ := (h + 1) * ∑ a ∈ A, a
   have hK : (∑ i : I, (i.1 : ℤ)) = (K : ℤ) := by
     simp [I, K, Fintype.sum_prod_type, Finset.mul_sum]
-    exact Finset.sum_attach _ _
+    exact Finset.sum_attach A (fun a => ((h : ℤ) + 1) * (a : ℤ))
   have hy (x : ℝ) : t ≤ y x ∧ y x < t + 1 := by
     dsimp [y]
     constructor
@@ -59,7 +59,7 @@ theorem joint_rotation_factor_complexity (α : ℝ) (b : ℕ → ℤ)
     · linarith [Int.fract_lt_one (x - t)]
   have hmono (i : I) {u v : ℝ} (huv : u ≤ v) : f i u ≤ f i v := by
     apply Int.floor_mono
-    nlinarith [Nat.cast_nonneg (R := ℝ) i.1.val]
+    nlinarith [Nat.cast_nonneg (α := ℝ) i.1.val]
   have hstep (i : I) : f i (t + 1) = f i t + (i.1 : ℤ) := by
     dsimp [f]
     have heq : (i.1 : ℝ) * (t + 1 + (i.2 : ℝ) * α) + α =
