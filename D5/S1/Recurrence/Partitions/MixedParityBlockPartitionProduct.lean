@@ -264,6 +264,241 @@ private noncomputable def restrictionData {n k : ℕ}
   ⟨leftMarkedPartition P, rightMarkedPartition P,
     (mixedLeftEquiv P.1).symm.trans (mixedRightEquiv P.1)⟩
 
+private noncomputable def markedValues {α : Type*} [Fintype α] [DecidableEq α]
+    {P : Finpartition (univ : Finset α)} (M : Finset P.parts) : Finset (Finset α) :=
+  M.image Subtype.val
+
+private noncomputable def gluedSumParts {n k : ℕ} (D : RestrictionPairingData n k) :
+    Finset (Finset (ParityIndex n)) :=
+  ((D.1.1.parts \ markedValues D.1.2.1).image fun b => b.disjSum ∅) ∪
+    (((D.2.1.1.parts \ markedValues D.2.1.2.1).image fun b => (∅ : Finset _).disjSum b) ∪
+      D.1.2.1.attach.image fun b => b.1.1.disjSum (D.2.2 b).1.1)
+
+private noncomputable def gluedSumPartition {n k : ℕ} (D : RestrictionPairingData n k) :
+    Finpartition (univ : Finset (ParityIndex n)) := by
+  classical
+  refine Finpartition.ofExistsUnique (gluedSumParts D) (by simp) ?_ ?_
+  · intro x _
+    cases x with
+    | inl a =>
+        let ob : D.1.1.parts := ⟨D.1.1.part a, by simp⟩
+        by_cases hm : ob ∈ D.1.2.1
+        · let block := ob.1.disjSum (D.2.2 ⟨ob, hm⟩).1.1
+          refine ⟨block, ⟨?_, by simp [block, ob]⟩, ?_⟩
+          · simp only [gluedSumParts, Finset.mem_union]
+            right
+            right
+            apply Finset.mem_image.mpr
+            exact ⟨⟨ob, hm⟩, by simp, rfl⟩
+          · rintro t ⟨ht, hat⟩
+            simp only [gluedSumParts, Finset.mem_union] at ht
+            rcases ht with hodd | heven | hmixed
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp hodd
+              have hap : a ∈ p := by simpa using hat
+              have hpo : p = ob.1 := (D.1.1.part_eq_of_mem (Finset.mem_sdiff.mp hp).1 hap).symm
+              exfalso
+              apply (Finset.mem_sdiff.mp hp).2
+              apply Finset.mem_image.mpr
+              exact ⟨ob, hm, hpo.symm⟩
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp heven
+              simp at hat
+            · obtain ⟨p, hp, hpt⟩ := Finset.mem_image.mp hmixed
+              subst t
+              have hap : a ∈ p.1.1 := by simpa using hat
+              have hpo : p.1.1 = ob.1 :=
+                (D.1.1.part_eq_of_mem p.1.2 hap).symm
+              have hpe : p = (⟨ob, hm⟩ : MarkedBlocks D.1) := by
+                apply Subtype.ext
+                apply Subtype.ext
+                exact hpo
+              subst p
+              rfl
+        · let block := ob.1.disjSum (∅ : Finset (Fin (n / 2)))
+          refine ⟨block, ⟨?_, by simp [block, ob]⟩, ?_⟩
+          · simp only [gluedSumParts, Finset.mem_union]
+            left
+            apply Finset.mem_image.mpr
+            exact ⟨ob.1, Finset.mem_sdiff.mpr ⟨ob.2, by
+              intro hv
+              obtain ⟨p, hp, hpo⟩ := Finset.mem_image.mp hv
+              apply hm
+              have hpeq : p = ob := Subtype.ext hpo
+              simpa [hpeq] using hp⟩, rfl⟩
+          · rintro t ⟨ht, hat⟩
+            simp only [gluedSumParts, Finset.mem_union] at ht
+            rcases ht with hodd | heven | hmixed
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp hodd
+              have hap : a ∈ p := by simpa using hat
+              have hpo : p = ob.1 := (D.1.1.part_eq_of_mem (Finset.mem_sdiff.mp hp).1 hap).symm
+              simp [block, hpo]
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp heven
+              simp at hat
+            · obtain ⟨p, hp, hpt⟩ := Finset.mem_image.mp hmixed
+              subst t
+              have hap : a ∈ p.1.1 := by simpa using hat
+              have hpo : p.1.1 = ob.1 :=
+                (D.1.1.part_eq_of_mem p.1.2 hap).symm
+              exfalso
+              apply hm
+              have hpob : p.1 = ob := Subtype.ext hpo
+              simpa [hpob] using p.2
+    | inr b =>
+        let eb : D.2.1.1.parts := ⟨D.2.1.1.part b, by simp⟩
+        by_cases hm : eb ∈ D.2.1.2.1
+        · let pre : MarkedBlocks D.1 := D.2.2.symm ⟨eb, hm⟩
+          let block := pre.1.1.disjSum eb.1
+          refine ⟨block, ⟨?_, by simp [block, eb]⟩, ?_⟩
+          · simp only [gluedSumParts, Finset.mem_union]
+            right
+            right
+            apply Finset.mem_image.mpr
+            exact ⟨pre, by simp, by simp [block, pre]⟩
+          · rintro t ⟨ht, hbt⟩
+            simp only [gluedSumParts, Finset.mem_union] at ht
+            rcases ht with hodd | heven | hmixed
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp hodd
+              simp at hbt
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp heven
+              have hbp : b ∈ p := by simpa using hbt
+              have hpe : p = eb.1 := (D.2.1.1.part_eq_of_mem (Finset.mem_sdiff.mp hp).1 hbp).symm
+              exfalso
+              apply (Finset.mem_sdiff.mp hp).2
+              apply Finset.mem_image.mpr
+              exact ⟨eb, hm, hpe.symm⟩
+            · obtain ⟨p, hp, hpt⟩ := Finset.mem_image.mp hmixed
+              subst t
+              have hbp : b ∈ (D.2.2 p).1.1 := by simpa using hbt
+              have hpe : (D.2.2 p).1.1 = eb.1 :=
+                (D.2.1.1.part_eq_of_mem (D.2.2 p).1.2 hbp).symm
+              have hpeq : D.2.2 p = (⟨eb, hm⟩ : MarkedBlocks D.2.1) := by
+                apply Subtype.ext
+                apply Subtype.ext
+                exact hpe
+              have hp : p = pre := by
+                apply D.2.2.injective
+                simpa [pre] using hpeq
+              subst p
+              simp [block, pre]
+        · let block := (∅ : Finset (Fin ((n + 1) / 2))).disjSum eb.1
+          refine ⟨block, ⟨?_, by simp [block, eb]⟩, ?_⟩
+          · simp only [gluedSumParts, Finset.mem_union]
+            right
+            left
+            apply Finset.mem_image.mpr
+            exact ⟨eb.1, Finset.mem_sdiff.mpr ⟨eb.2, by
+              intro hv
+              obtain ⟨p, hp, hpe⟩ := Finset.mem_image.mp hv
+              apply hm
+              have hpeq : p = eb := Subtype.ext hpe
+              simpa [hpeq] using hp⟩, rfl⟩
+          · rintro t ⟨ht, hbt⟩
+            simp only [gluedSumParts, Finset.mem_union] at ht
+            rcases ht with hodd | heven | hmixed
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp hodd
+              simp at hbt
+            · obtain ⟨p, hp, rfl⟩ := Finset.mem_image.mp heven
+              have hbp : b ∈ p := by simpa using hbt
+              have hpe : p = eb.1 := (D.2.1.1.part_eq_of_mem (Finset.mem_sdiff.mp hp).1 hbp).symm
+              simp [block, hpe]
+            · obtain ⟨p, hp, hpt⟩ := Finset.mem_image.mp hmixed
+              subst t
+              have hbp : b ∈ (D.2.2 p).1.1 := by simpa using hbt
+              have hpe : (D.2.2 p).1.1 = eb.1 :=
+                (D.2.1.1.part_eq_of_mem (D.2.2 p).1.2 hbp).symm
+              exfalso
+              apply hm
+              have heq : (D.2.2 p).1 = eb := Subtype.ext hpe
+              simpa [heq] using (D.2.2 p).2
+  · simp only [gluedSumParts, Finset.mem_union]
+    rintro h
+    rcases h with hodd | heven | hmixed
+    · obtain ⟨p, hp, h⟩ := Finset.mem_image.mp hodd
+      have hpe : p = ∅ := (Finset.disjSum_eq_empty.mp h).1
+      have hempty : (∅ : Finset (Fin ((n + 1) / 2))) ∈ D.1.1.parts := by
+        rw [← hpe]
+        exact (Finset.mem_sdiff.mp hp).1
+      exact D.1.1.bot_notMem hempty
+
+    · obtain ⟨p, hp, h⟩ := Finset.mem_image.mp heven
+      have hpe : p = ∅ := (Finset.disjSum_eq_empty.mp h).2
+      have hempty : (∅ : Finset (Fin (n / 2))) ∈ D.2.1.1.parts := by
+        rw [← hpe]
+        exact (Finset.mem_sdiff.mp hp).1
+      exact D.2.1.1.bot_notMem hempty
+    · obtain ⟨p, hp, h⟩ := Finset.mem_image.mp hmixed
+      have hpe : p.1.1 = ∅ := (Finset.disjSum_eq_empty.mp h).1
+      have hempty : (∅ : Finset (Fin ((n + 1) / 2))) ∈ D.1.1.parts := by
+        rw [← hpe]
+        exact p.1.2
+      exact D.1.1.bot_notMem hempty
+
+private noncomputable def gluedPartition {n k : ℕ} (D : RestrictionPairingData n k) :
+    ParityPartition n :=
+  ((gluedSumPartition D).map Finset.sumEquiv).copy (by
+    apply Prod.ext <;> simp)
+
+private noncomputable def gluedMixedEmbedding {n k : ℕ}
+    (D : RestrictionPairingData n k) : MarkedBlocks D.1 ↪ ParityBlock n where
+  toFun b := (b.1.1, (D.2.2 b).1.1)
+  inj' := by
+    intro p q h
+    apply Subtype.ext
+    apply Subtype.ext
+    exact congrArg Prod.fst h
+
+private noncomputable def gluedMixedPartition {n k : ℕ}
+    (D : RestrictionPairingData n k) : MixedParityPartition n k := by
+  classical
+  refine ⟨gluedPartition D, ?_⟩
+  rw [mixedBlockCount]
+  have hparts : (gluedPartition D).parts.filter IsMixedBlock =
+      D.1.2.1.attach.map (gluedMixedEmbedding D) := by
+    ext p
+    simp only [gluedPartition, Finpartition.copy_parts, Finpartition.parts_map,
+      Finset.mem_filter, Finset.mem_map]
+    constructor
+    · rintro ⟨⟨b, hb, hbp⟩, hp⟩
+      subst p
+      simp only [gluedSumPartition, Finpartition.ofExistsUnique_parts] at hb
+      simp only [gluedSumParts, Finset.mem_union] at hb
+      rcases hb with hodd | heven | hmixed
+      · obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp hodd
+        have hp' := hp.2
+        change (a.disjSum (∅ : Finset (Fin (n / 2)))).toRight.Nonempty at hp'
+        rw [Finset.toRight_disjSum] at hp'
+        exact (Finset.not_nonempty_empty hp').elim
+      · obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp heven
+        have hp' := hp.1
+        change ((∅ : Finset (Fin ((n + 1) / 2))).disjSum a).toLeft.Nonempty at hp'
+        rw [Finset.toLeft_disjSum] at hp'
+        exact (Finset.not_nonempty_empty hp').elim
+      · obtain ⟨a, ha, hab⟩ := Finset.mem_image.mp hmixed
+        subst b
+        refine ⟨a, by simp, ?_⟩
+        apply Prod.ext
+        · change a.1.1 = (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).1
+          simp
+        · change (D.2.2 a).1.1 = (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).2
+          simp
+    · rintro ⟨a, ha, hap⟩
+      subst p
+      refine ⟨?_, ?_⟩
+      · refine ⟨a.1.1.disjSum (D.2.2 a).1.1, ?_, ?_⟩
+        · simp only [gluedSumPartition, Finpartition.ofExistsUnique_parts, gluedSumParts,
+            Finset.mem_union]
+          right
+          right
+          exact Finset.mem_image.mpr ⟨a, by simp, rfl⟩
+        · apply Prod.ext
+          · change (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).1 = a.1.1
+            simp
+          · change (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).2 = (D.2.2 a).1.1
+            simp
+      · exact ⟨D.1.1.nonempty_of_mem_parts a.1.2,
+          D.2.1.1.nonempty_of_mem_parts (D.2.2 a).1.2⟩
+  rw [hparts, Finset.card_map, Finset.card_attach]
+  exact D.1.2.2
+
 #print axioms markedPartitions_eq_A049020
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
