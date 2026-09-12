@@ -48,4 +48,43 @@ def distance [Fintype P] (a b : P → ℕ) : ℕ :=
 def TowardEndpoint (a b : P → ℕ) (w : List (Instruction P)) (p : P) : Prop :=
   ((p, true) ∈ w → a p < b p) ∧ ((p, false) ∈ w → b p < a p)
 
+/-- Successful guarded evaluation gives the signed difference of the two instruction counts. -/
+theorem endpoint_counts (A a b : P → ℕ) (w : List (Instruction P))
+    (h : eval A a w = some b) (p : P) :
+    (b p : ℤ) - (a p : ℤ) =
+      (w.count (p, true) : ℤ) - (w.count (p, false) : ℤ) := by
+  induction w generalizing a with
+  | nil =>
+    simp only [eval, Option.some.injEq] at h
+    subst b
+    simp
+  | cons s w ih =>
+    obtain ⟨x, hx, hw⟩ := Option.bind_eq_some_iff.mp h
+    rcases s with ⟨q, up⟩
+    cases up with
+    | false =>
+      by_cases hg : 0 < a q
+      · simp only [step, Bool.false_eq_true, ↓reduceIte, hg, Option.some.injEq] at hx
+        subst x
+        have tail := ih _ hw
+        by_cases hp : p = q
+        · subst p
+          simp only [Function.update_self] at tail
+          simp_all [List.count_cons]
+          omega
+        · simpa [Function.update_of_ne hp, List.count_cons, hp, Ne.symm hp] using tail
+      · simp [step, hg] at hx
+    | true =>
+      by_cases hg : a q < A q
+      · simp only [step, ↓reduceIte, hg, Option.some.injEq] at hx
+        subst x
+        have tail := ih _ hw
+        by_cases hp : p = q
+        · subst p
+          simp only [Function.update_self] at tail
+          simp_all [List.count_cons]
+          omega
+        · simpa [Function.update_of_ne hp, List.count_cons, hp, Ne.symm hp] using tail
+      · simp [step, hg] at hx
+
 end D5.S0.Rewriting.GuardedBoxPaths
