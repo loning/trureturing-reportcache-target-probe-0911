@@ -2,7 +2,7 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Invariants/JointPolynomialPairBinomialCoefficients
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Data.Nat.Choose.Sum]
+   anchors: [mathlib/module/Mathlib.Data.Nat.Choose.Sum]
    utility: none
    digest: The joint polynomial recursion has Schulte's conjectured binomial coefficients. -/
 
