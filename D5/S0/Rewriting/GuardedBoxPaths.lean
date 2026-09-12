@@ -6,6 +6,7 @@
    utility: none
    digest: Guarded unit words obey coordinate distance bounds with equality precisely for endpoint-directed instructions. -/
 
+import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.List.Count
 import Mathlib.Data.Int.Basic
 import Mathlib.Logic.Function.Basic
@@ -44,7 +45,7 @@ def coordinateCount (w : List (Instruction P)) (p : P) : ℕ :=
 def distance [Fintype P] (a b : P → ℕ) : ℕ :=
   ∑ p, ((b p : ℤ) - (a p : ℤ)).natAbs
 
-/-- Every instruction on this coordinate strictly approaches its final coordinate value. -/
+/-- Every instruction on this coordinate has the direction from its initial to its final value. -/
 def TowardEndpoint (a b : P → ℕ) (w : List (Instruction P)) (p : P) : Prop :=
   ((p, true) ∈ w → a p < b p) ∧ ((p, false) ∈ w → b p < a p)
 
@@ -70,7 +71,7 @@ theorem endpoint_counts (A a b : P → ℕ) (w : List (Instruction P))
         by_cases hp : p = q
         · subst p
           simp only [Function.update_self] at tail
-          simp_all [List.count_cons]
+          simp_all
           omega
         · simpa [Function.update_of_ne hp, List.count_cons, hp, Ne.symm hp] using tail
       · simp [step, hg] at hx
@@ -82,9 +83,55 @@ theorem endpoint_counts (A a b : P → ℕ) (w : List (Instruction P))
         by_cases hp : p = q
         · subst p
           simp only [Function.update_self] at tail
-          simp_all [List.count_cons]
+          simp_all
           omega
         · simpa [Function.update_of_ne hp, List.count_cons, hp, Ne.symm hp] using tail
       · simp [step, hg] at hx
+
+/-- Legal paths satisfy the coordinate and total distance bounds, with equality exactly
+when every coordinate uses only its endpoint direction and its prescribed number of steps. -/
+theorem path_lower_bound [Fintype P] (A a b : P → ℕ) (w : List (Instruction P))
+    (h : LegalPath A a b w) :
+    (∀ p, ((b p : ℤ) - (a p : ℤ)).natAbs ≤ coordinateCount w p) ∧
+    w.length = (∑ p, coordinateCount w p) ∧
+    distance a b ≤ w.length ∧
+    (w.length = distance a b ↔ ∀ p,
+      TowardEndpoint a b w p ∧ coordinateCount w p = ((b p : ℤ) - (a p : ℤ)).natAbs) := by
+  have balance := endpoint_counts A a b w h.2
+  have bound (p : P) : ((b p : ℤ) - (a p : ℤ)).natAbs ≤ coordinateCount w p := by
+    rw [balance p]
+    simpa [coordinateCount] using
+      Int.natAbs_sub_le (w.count (p, true)) (w.count (p, false))
+  have total : (∑ p, coordinateCount w p) = w.length := by
+    calc
+      _ = ∑ s : P × Bool, w.count s := by
+        simp [Fintype.sum_prod_type, coordinateCount]
+      _ = w.length := by
+        simpa [List.count, Bool.beq_eq_decide_eq] using (Multiset.sum_count_eq_card
+          (s := Finset.univ) (m := (w : Multiset (P × Bool))) (by simp))
+  refine ⟨bound, total.symm, ?_, ?_⟩
+  · exact (Finset.sum_le_sum (fun p _ => bound p)).trans total.le
+  · constructor
+    · intro heq p
+      have each : coordinateCount w p = ((b p : ℤ) - (a p : ℤ)).natAbs := by
+        have sums : (∑ q, ((b q : ℤ) - (a q : ℤ)).natAbs) =
+            ∑ q, coordinateCount w q := by
+          rw [total]
+          exact heq.symm
+        exact ((Finset.sum_eq_sum_iff_of_le (fun q _ => bound q)).mp sums p
+          (Finset.mem_univ p)).symm
+      refine ⟨?_, each⟩
+      have signed := balance p
+      unfold coordinateCount at each
+      constructor
+      · intro hup
+        have up_pos := List.count_pos_iff.mpr hup
+        rcases Int.natAbs_eq ((b p : ℤ) - (a p : ℤ)) with habs | habs <;> omega
+      · intro hdown
+        have down_pos := List.count_pos_iff.mpr hdown
+        rcases Int.natAbs_eq ((b p : ℤ) - (a p : ℤ)) with habs | habs <;> omega
+    · intro htoward
+      rw [← total]
+      exact Finset.sum_congr rfl (fun p _ => (htoward p).2)
 
 end D5.S0.Rewriting.GuardedBoxPaths
