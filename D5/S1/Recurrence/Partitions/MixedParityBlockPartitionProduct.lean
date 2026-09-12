@@ -2,7 +2,7 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators, Mathlib.Data.Fintype.Perm]
+   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators]
    utility: none
    digest: Marked set partitions and the odd-even mixed-block product conjecture. -/
 
@@ -10,7 +10,6 @@ import Mathlib.Order.Partition.Finpartition
 import Mathlib.Data.Fintype.Powerset
 import Mathlib.Data.Fintype.Sigma
 import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Fintype.Perm
 
 namespace D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
 
@@ -66,11 +65,6 @@ theorem markedPartitions_eq_A049020 (r k : ℕ) :
 /-- The canonical `n`-element parity-labelled set: the left summand labels odd entries. -/
 abbrev ParityIndex (n : ℕ) := Fin ((n + 1) / 2) ⊕ Fin (n / 2)
 
-/-- The parity-labelled carrier has exactly `n` elements. -/
-theorem parityIndex_card (n : ℕ) : Fintype.card (ParityIndex n) = n := by
-  simp only [ParityIndex, Fintype.card_sum, Fintype.card_fin]
-  omega
-
 /-- Set partitions of the parity-labelled `n`-element set. -/
 abbrev ParityPartition (n : ℕ) :=
   Finpartition (univ : Finset (ParityIndex n))
@@ -99,28 +93,6 @@ abbrev RestrictionPairingData (n k : ℕ) :=
   Σ odd : MarkedPartition ((n + 1) / 2) k,
     Σ even : MarkedPartition (n / 2) k, MarkedBlocks odd ≃ MarkedBlocks even
 
-/-- The restriction-pairing data have the cardinality on the right side of Hanna's formula. -/
-theorem card_restrictionPairingData (n k : ℕ) :
-    Fintype.card (RestrictionPairingData n k) =
-      k.factorial * A049020 (n / 2) k * A049020 ((n + 1) / 2) k := by
-  classical
-  rw [Fintype.card_sigma]
-  simp_rw [Fintype.card_sigma]
-  have pairingCard (odd : MarkedPartition ((n + 1) / 2) k)
-      (even : MarkedPartition (n / 2) k) :
-      Fintype.card (MarkedBlocks odd ≃ MarkedBlocks even) = k.factorial := by
-    let e : MarkedBlocks odd ≃ MarkedBlocks even := Fintype.equivOfCardEq (by
-      simp only [MarkedBlocks, Fintype.card_coe, odd.2.2, even.2.2])
-    rw [Fintype.card_equiv e, Fintype.card_coe, odd.2.2]
-  simp_rw [pairingCard]
-  simp only [sum_const, card_univ, Nat.nsmul_eq_mul]
-  change markedPartitions ((n + 1) / 2) k *
-      (markedPartitions (n / 2) k * k.factorial) = _
-  rw [markedPartitions_eq_A049020, markedPartitions_eq_A049020]
-  ac_rfl
-
 #print axioms markedPartitions_eq_A049020
-#print axioms parityIndex_card
-#print axioms card_restrictionPairingData
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
