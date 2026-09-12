@@ -1,8 +1,8 @@
 /- GID: D5/S3/Arith/Lattices/FourGridCollinearTriples
    generality: G
    mirror-B: D5/B/S3/Arith/Lattices/FourGridCollinearTriples
-   mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
-   anchors: [Mathlib.Data.Fintype.BigOperators, Mathlib.Data.Finset.Powerset, Mathlib.Tactic.LinearCombination, Mathlib.Tactic.Linarith, Mathlib.Tactic.Ring]
+   mirror-E: none(waiver:unbounded-symbolic-proof)
+   anchors: [mathlib/module/Mathlib.Data.Finset.Powerset, mathlib/module/Mathlib.Data.Fintype.BigOperators, mathlib/module/Mathlib.Tactic.LinearCombination, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.Ring]
    utility: none
    digest: Coordinatewise endpoint codes count arithmetic and four-point line candidates. -/
 import Mathlib.Data.Finset.Powerset
