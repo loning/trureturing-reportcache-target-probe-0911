@@ -10,6 +10,8 @@ import D5.S0.Conventions.WDigits
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
 import Mathlib.Tactic.Linarith
+import Mathlib.Data.Fintype.Pi
+import Mathlib.Data.Set.Finite.Lemmas
 
 set_option autoImplicit false
 
@@ -30,6 +32,10 @@ def windowProduct {k : ℕ} (L : Fin k → ℕ) : ℕ :=
 def ExtremalShape {k : ℕ} (B : ℕ) (L : Fin k → ℕ) : Prop :=
   (B ≤ k → ∀ i, L i ≤ 1) ∧
   (k ≤ B → ∃ i, L i = B - k + 1 ∧ ∀ j, j ≠ i → L j = 1)
+
+/-- The explicit capacity for a positive number of registers and a total width budget. -/
+def capacity (k B : ℕ) : ℕ :=
+  if B ≤ k then 2 ^ B else 2 ^ (k - 1) * wValue (B - k + 1)
 
 /-- Every width vector maximizing the window product at fixed total width has the stated extremal shape. -/
 theorem maximizer_has_extremal_shape {k B : ℕ} (hk : 1 ≤ k) (L : Fin k → ℕ)
@@ -154,5 +160,72 @@ theorem maximizer_has_extremal_shape {k B : ℕ} (hk : 1 ≤ k) (L : Fin k → �
     omega
 
 #print axioms maximizer_has_extremal_shape
+
+/-- The explicit capacity is attained and is the greatest window product; equality holds exactly
+for the extremal width shapes. -/
+theorem capacity_isGreatest_and_eq_iff {k B : ℕ} (hk : 1 ≤ k) :
+    IsGreatest (windowProduct '' feasibleWidths k B) (capacity k B) ∧
+      ∀ L ∈ feasibleWidths k B, windowProduct L = capacity k B ↔ ExtremalShape B L := by
+  classical
+  have evaluate (L : Fin k → ℕ) (hL : L ∈ feasibleWidths k B)
+      (hshape : ExtremalShape B L) : windowProduct L = capacity k B := by
+    have hsum : ∑ i, L i = B := hL
+    by_cases hBk : B ≤ k
+    · have hfactor (i : Fin k) : wValue (L i) = 2 ^ L i := by
+        have hi := hshape.1 hBk i
+        have hi01 : L i = 0 ∨ L i = 1 := by omega
+        rcases hi01 with h | h <;> simp [h]
+      calc
+        windowProduct L = ∏ i, 2 ^ L i := Finset.prod_congr rfl fun i _ => hfactor i
+        _ = 2 ^ B := by rw [Finset.prod_pow_eq_pow_sum, hsum]
+        _ = capacity k B := by simp [capacity, hBk]
+    · obtain ⟨i, hi, hrest⟩ := hshape.2 (by omega)
+      have htail : (∏ j ∈ Finset.univ.erase i, wValue (L j)) = 2 ^ (k - 1) := by
+        calc
+          _ = ∏ _j ∈ Finset.univ.erase i, (2 : ℕ) :=
+            Finset.prod_congr rfl fun j hj => by
+              rw [hrest j (Finset.mem_erase.mp hj).1, wValue_one]
+          _ = 2 ^ (k - 1) := by simp
+      unfold windowProduct
+      rw [← Finset.mul_prod_erase _ _ (Finset.mem_univ i), hi, htail]
+      simp [capacity, hBk, Nat.mul_comm]
+  have hfinite : (feasibleWidths k B).Finite := by
+    apply (Set.Finite.pi' (t := fun _ : Fin k => Set.Iic B)
+      (fun _ => Set.finite_le_nat B)).subset
+    intro L hL i
+    have hsum : ∑ j, L j = B := hL
+    have hi := Finset.single_le_sum (fun j (_ : j ∈ (Finset.univ : Finset (Fin k))) =>
+      Nat.zero_le (L j)) (Finset.mem_univ i)
+    change L i ≤ B
+    omega
+  have hnonempty : (feasibleWidths k B).Nonempty := by
+    let i : Fin k := ⟨0, by omega⟩
+    refine ⟨fun j => if j = i then B else 0, ?_⟩
+    change (∑ j : Fin k, if j = i then B else 0) = B
+    rw [Finset.sum_eq_single i]
+    · simp
+    · intro j _ hji
+      simp [hji]
+    · simp
+  obtain ⟨M, hM, hmax⟩ := Set.exists_max_image (feasibleWidths k B) windowProduct
+    hfinite hnonempty
+  have hvalue := evaluate M hM (maximizer_has_extremal_shape hk M hM hmax)
+  have hbound (L : Fin k → ℕ) (hL : L ∈ feasibleWidths k B) :
+      windowProduct L ≤ capacity k B := by
+    rw [← hvalue]
+    exact hmax L hL
+  refine ⟨⟨⟨M, hM, hvalue⟩, ?_⟩, ?_⟩
+  · rintro _ ⟨L, hL, rfl⟩
+    exact hbound L hL
+  · intro L hL
+    constructor
+    · intro heq
+      apply maximizer_has_extremal_shape hk L hL
+      intro N hN
+      rw [heq]
+      exact hbound N hN
+    · exact evaluate L hL
+
+#print axioms capacity_isGreatest_and_eq_iff
 
 end D5.S1.Digit.Admissibility.WindowCapacityExtrema
