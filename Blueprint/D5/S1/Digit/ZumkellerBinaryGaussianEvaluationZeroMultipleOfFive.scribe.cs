@@ -27,13 +27,18 @@ internal sealed class ZumkellerBinaryGaussianEvaluationZeroMultipleOfFiveDocumen
                 + "uses the fact that the Gaussian unit behaves as 2 modulo 5 because "
                 + "2 squared is congruent to minus one. Therefore z(m) = 0 forces m to be "
                 + "divisible by five, including the case m = 0.",
-                DescribeRole.Theorem, AssessedProvenance.FromRepo()))));
+                DescribeRole.Theorem, AssessedProvenance.FromRepo(),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a131853-binary-gaussian-evaluation-zero-multiple-of-five"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
-        string prose, DescribeRole role, AssessedProvenance provenance) => Describe.Lean(
+        string prose, DescribeRole role, AssessedProvenance provenance,
+        OpenProblemResolutionClaim? claim = null) => Describe.Lean(
         DescribeId.Create("a131853-" + name.Replace('_', '-').ToLowerInvariant()),
         DeclarationHandle.Create(Prefix + name), H(title), StatementSource.FromAuthor(formula),
-        provenance, Blocks(Paragraph(Text(prose))), role);
+        provenance, Blocks(Paragraph(Text(prose))), role, claim);
 
     private static Formula RecurrenceFormula()
     {

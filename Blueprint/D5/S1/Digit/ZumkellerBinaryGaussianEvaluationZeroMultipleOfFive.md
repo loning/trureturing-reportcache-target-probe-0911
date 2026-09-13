@@ -22,6 +22,10 @@ $$\forall m \in Nat,\; z\left(m\right) = 0 \Rightarrow 5 \mid m$$
 
 *Proof.* Machine-checked in Lean as `D5/S1/Digit/ZumkellerBinaryGaussianEvaluationZeroMultipleOfFive.zumkeller_a131853` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a131853-binary-gaussian-evaluation-zero-multiple-of-five` (proved) by `D5/S1/Digit/ZumkellerBinaryGaussianEvaluationZeroMultipleOfFive.zumkeller_a131853`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a131853-binary-gaussian-evaluation-zero-multiple-of-five","declaration_gid":"D5/S1/Digit/ZumkellerBinaryGaussianEvaluationZeroMultipleOfFive.zumkeller_a131853","resolution_kind":"proved"} -->
+
 *Source.* Repository-derived.
 
 *Commentary.*
