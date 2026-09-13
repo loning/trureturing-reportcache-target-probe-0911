@@ -162,4 +162,66 @@ private theorem card_divisors_mul_factorization_le_of_odd
       simpa only [Nat.support_factorization] using hp
     simp [hz]
 
+private theorem D_factorization_even
+    (n p : ℕ) (hn : 1 ≤ n) (hp : p.Prime) :
+    Even ((D n).factorization p) := by
+  let t := (Nat.divisors n).card
+  have hn0 : n ≠ 0 := by omega
+  have hleft : Even (t * n.factorization p) := by
+    rcases Nat.even_or_odd t with ht | ht
+    · exact ht.mul_right _
+    · exact (factorization_even_of_card_divisors_odd n p hn0 ht).mul_left t
+  rw [D_factorization n p hn]
+  change Even (t * n.factorization p - n * t.factorization p)
+  rcases Nat.even_or_odd n with hnEven | hnOdd
+  · have hright : Even (n * t.factorization p) := hnEven.mul_right _
+    by_cases hle : n * t.factorization p ≤ t * n.factorization p
+    · exact (Nat.even_sub hle).mpr ⟨fun _ => hright, fun _ => hleft⟩
+    · rw [Nat.sub_eq_zero_of_le (Nat.le_of_not_ge hle)]
+      exact Even.zero
+  · by_cases hpt : p ∣ t
+    · have htfPos : 0 < t.factorization p := by
+        apply hp.factorization_pos_of_dvd
+        · exact Finset.card_ne_zero.mpr ⟨1, Nat.one_mem_divisors.mpr hn0⟩
+        · exact hpt
+      have hle : t * n.factorization p ≤ n :=
+        card_divisors_mul_factorization_le_of_odd n p hnOdd
+      have hle' : t * n.factorization p ≤ n * t.factorization p :=
+        hle.trans (Nat.le_mul_of_pos_right n htfPos)
+      rw [Nat.sub_eq_zero_of_le hle']
+      exact Even.zero
+    · have htfZero : t.factorization p = 0 :=
+        Nat.factorization_eq_zero_of_not_dvd hpt
+      simpa [htfZero] using hleft
+
+/-- OEIS A302975: for every positive `n`, the reduced denominator of
+`tau(n)^n / n^tau(n)` is a perfect square. -/
+theorem krizek_a302975 : ∀ n : ℕ, 1 ≤ n → IsSquare (D n) := by
+  intro n hn
+  have hD0 : D n ≠ 0 := by
+    unfold D
+    exact Rat.den_nz _
+  let r := (D n).factorization.prod fun p e => p ^ (e / 2)
+  refine ⟨r, ?_⟩
+  rw [← Nat.prod_factorization_pow_eq_self hD0]
+  change (D n).factorization.prod (fun p e => p ^ e) = r * r
+  rw [← Finsupp.prod_mul]
+  apply Finsupp.prod_congr
+  intro p hp
+  have hpPrime : p.Prime :=
+    Nat.prime_of_mem_primeFactors (by
+      simpa only [Nat.support_factorization] using hp)
+  have he := D_factorization_even n p hn hpPrime
+  have hhalf : (D n).factorization p / 2 + (D n).factorization p / 2 =
+      (D n).factorization p := by
+    calc
+      (D n).factorization p / 2 + (D n).factorization p / 2 =
+          2 * ((D n).factorization p / 2) := by omega
+      _ = (D n).factorization p := Nat.two_mul_div_two_of_even he
+  change p ^ (D n).factorization p =
+    p ^ ((D n).factorization p / 2) * p ^ ((D n).factorization p / 2)
+  rw [← pow_add, hhalf]
+
+#print axioms krizek_a302975
+
 end D5.S3.Arith.KrizekDivisorCountPowerRatioDenominatorSquare
