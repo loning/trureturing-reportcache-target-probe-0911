@@ -14,17 +14,16 @@ set_option relaxedAutoImplicit false
 
 namespace D5.S0.Certificates.KrizekIntegralityGcdRecordRefutation
 
+open ArithmeticFunction
 open scoped ArithmeticFunction.sigma
 
 def IsMember (n : ℕ) : Prop :=
   ∃ z : ℤ,
-    ((n : ℚ) / (ArithmeticFunction.sigma 0 n : ℚ) +
-      (ArithmeticFunction.sigma 1 n : ℚ) / (n : ℚ)) = z
+    ((n : ℚ) / (σ 0 n : ℚ) + (σ 1 n : ℚ) / (n : ℚ)) = z
 
 def IsRecord (n : ℕ) : Prop :=
   ∀ m : ℕ, 0 < m → m < n →
-    Nat.gcd (ArithmeticFunction.sigma 1 m) m <
-      Nat.gcd (ArithmeticFunction.sigma 1 n) n
+    Nat.gcd (σ 1 m) m < Nat.gcd (σ 1 n) n
 
 def claim : Prop := ∀ n : ℕ, 0 < n → IsMember n → IsRecord n
 
