@@ -2,14 +2,12 @@
    generality: G
    mirror-B: D5/B/S1/Digit/ZumkellerBinaryGaussianEvaluationZeroMultipleOfFive
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.NumberTheory.Zsqrtd.GaussianInt, mathlib/module/Mathlib.Data.Nat.BinaryRec, mathlib/module/Mathlib.Data.ZMod.Basic]
+   anchors: [mathlib/module/Mathlib.NumberTheory.Zsqrtd.GaussianInt, mathlib/module/Mathlib.Data.ZMod.Basic]
    utility: none
    digest: Zumkeller's binary Gaussian evaluation zero implies divisibility by five. -/
 
 import Mathlib.NumberTheory.Zsqrtd.GaussianInt
-import Mathlib.Data.Nat.BinaryRec
 import Mathlib.Data.ZMod.Basic
-import Mathlib.Tactic
 
 namespace D5.S1.Digit.ZumkellerBinaryGaussianEvaluationZeroMultipleOfFive
 
