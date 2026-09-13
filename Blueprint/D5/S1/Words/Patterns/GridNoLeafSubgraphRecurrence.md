@@ -86,6 +86,10 @@ $$\forall n \in N,\; 4 < n \Rightarrow int\left(a\left(n\right)\right) = 12 \cdo
 
 *Proof.* Machine-checked in Lean as `D5/S1/Words/Patterns/GridNoLeafSubgraphRecurrence.barker_a301976` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a301976-grid-no-leaf-recurrence` (proved) by `D5/S1/Words/Patterns/GridNoLeafSubgraphRecurrence.barker_a301976`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a301976-grid-no-leaf-recurrence","declaration_gid":"D5/S1/Words/Patterns/GridNoLeafSubgraphRecurrence.barker_a301976","resolution_kind":"proved"} -->
+
 *Citation.* Peter Kagey; Colin Barker (2018). *OEIS A301976, Number of no-leaf subgraphs of the 3 X n grid*. URL: <https://oeis.org/A301976>.
 
 *Commentary.*
@@ -97,6 +101,10 @@ A bijection sends edge sets to compatible column-mask paths. Their eight-state t
 $$\forall n \in N,\; 2 < n \Rightarrow a\left(n\right) \bmod 10 = 3$$
 
 *Proof.* Machine-checked in Lean as `D5/S1/Words/Patterns/GridNoLeafSubgraphRecurrence.kagey_a301976_mod10` (`✓ std3`). ∎
+
+*Resolves.* `Problems/oeis-a301976-grid-no-leaf-mod-ten` (proved) by `D5/S1/Words/Patterns/GridNoLeafSubgraphRecurrence.kagey_a301976_mod10`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a301976-grid-no-leaf-mod-ten","declaration_gid":"D5/S1/Words/Patterns/GridNoLeafSubgraphRecurrence.kagey_a301976_mod10","resolution_kind":"proved"} -->
 
 *Citation.* Peter Kagey; Colin Barker (2018). *OEIS A301976, Number of no-leaf subgraphs of the 3 X n grid*. URL: <https://oeis.org/A301976>.
 
