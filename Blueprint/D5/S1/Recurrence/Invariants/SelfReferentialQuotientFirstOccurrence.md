@@ -34,6 +34,10 @@ $$\forall m \in \mathbb{N}, 1 \le m \Rightarrow (\operatorname{a}\left(\operator
 
 *Proof.* Machine-checked in Lean as `D5/S1/Recurrence/Invariants/SelfReferentialQuotientFirstOccurrence.alkan_a335925` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a335925-self-referential-quotient-first-occurrence` (proved) by `D5/S1/Recurrence/Invariants/SelfReferentialQuotientFirstOccurrence.alkan_a335925`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a335925-self-referential-quotient-first-occurrence","declaration_gid":"D5/S1/Recurrence/Invariants/SelfReferentialQuotientFirstOccurrence.alkan_a335925","resolution_kind":"proved"} -->
+
 *Citation.* Altug Alkan (2020). *OEIS A335925, a(n) = a(floor((n-1)/a(n-1))) + 1 with a(1) = 1*. URL: <https://oeis.org/A335925>.
 
 *Commentary.*

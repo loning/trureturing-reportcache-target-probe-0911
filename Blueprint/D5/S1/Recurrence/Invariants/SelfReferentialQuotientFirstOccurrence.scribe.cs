@@ -29,13 +29,18 @@ internal sealed class SelfReferentialQuotientFirstOccurrenceDocument : IScribeDo
                 + "shows that a(T(r))=r+1, that values on [T(r),T(r+1)) belong to {r,r+1}, "
                 + "and that an occurrence of r in this block lies below r*T(r). These bounds give "
                 + "both the hit and its minimality.",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)))));
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a335925-self-referential-quotient-first-occurrence"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
-        string prose, DescribeRole role, AssessedProvenance provenance) => Describe.Lean(
+        string prose, DescribeRole role, AssessedProvenance provenance,
+        OpenProblemResolutionClaim? claim = null) => Describe.Lean(
         DescribeId.Create("a335925-" + name.Replace('_', '-').ToLowerInvariant()),
         DeclarationHandle.Create(Prefix + name), H(title), StatementSource.FromAuthor(formula),
-        provenance, Blocks(Paragraph(Text(prose))), role);
+        provenance, Blocks(Paragraph(Text(prose))), role, claim);
 
     private static Formula SequenceFormula()
     {
