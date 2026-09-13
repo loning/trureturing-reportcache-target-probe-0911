@@ -292,4 +292,57 @@ theorem jovovic_a097602_positions : ∀ n : ℕ, 1 ≤ n →
   rw [(block_invariant k).2.2.2.2.2 j hj]
   omega
 
+/-- The square values occurring in A097602 are exactly `m ^ 2` with `m` not divisible by three. -/
+theorem zumkeller_a097602 : ∀ m : ℕ, 1 ≤ m →
+    ((∃ n, 1 ≤ n ∧ a n = m ^ 2) ↔ m % 3 ≠ 0) := by
+  intro m _
+  constructor
+  · rintro ⟨n, hn, han⟩
+    have hsq : IsSquare (a n) := by
+      rw [han]
+      exact ⟨m, pow_two _⟩
+    rcases (jovovic_a097602_positions n hn).1 hsq with hpos | hpos
+    · let k := n / 9
+      have hn_repr : n = 9 * k + 1 := by
+        dsimp only [k]
+        have hdiv := Nat.mod_add_div n 9
+        omega
+      rw [hn_repr] at han
+      have hm : 3 * k + 1 = m :=
+        Nat.pow_left_injective (by omega) ((block_invariant k).1.symm.trans han)
+      rw [← hm]
+      omega
+    · let k := n / 9
+      have hn_repr : n = 9 * k + 4 := by
+        dsimp only [k]
+        have hdiv := Nat.mod_add_div n 9
+        omega
+      rw [hn_repr] at han
+      have hm : 3 * k + 2 = m :=
+        Nat.pow_left_injective (by omega) ((block_invariant k).2.2.1.symm.trans han)
+      rw [← hm]
+      omega
+  · intro hm
+    have hrem_lt : m % 3 < 3 := Nat.mod_lt _ (by omega)
+    have hrem_cases : m % 3 = 0 ∨ m % 3 = 1 ∨ m % 3 = 2 := by omega
+    rcases hrem_cases with hzero | hone | htwo
+    · exact (hm hzero).elim
+    · let k := m / 3
+      have hm_repr : m = 3 * k + 1 := by
+        dsimp only [k]
+        have hdiv := Nat.mod_add_div m 3
+        omega
+      refine ⟨9 * k + 1, by omega, ?_⟩
+      rw [(block_invariant k).1, hm_repr]
+    · let k := m / 3
+      have hm_repr : m = 3 * k + 2 := by
+        dsimp only [k]
+        have hdiv := Nat.mod_add_div m 3
+        omega
+      refine ⟨9 * k + 4, by omega, ?_⟩
+      rw [(block_invariant k).2.2.1, hm_repr]
+
+#print axioms jovovic_a097602_positions
+#print axioms zumkeller_a097602
+
 end D5.S1.Recurrence.Invariants.SquareCountingRecurrenceSquarePositions
