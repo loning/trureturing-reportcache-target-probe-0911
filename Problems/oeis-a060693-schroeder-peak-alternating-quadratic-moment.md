@@ -47,12 +47,10 @@ Represent a path by a U/D/H word with U and D of weight one, H of weight two,
 total weight 2n, equal U and D counts, and every prefix having at least as
 many U as D. The public `mem_schroeder_iff` identifies the first-return
 generator `schroeder n` with exactly this `%C` path predicate. The public
-`firstReturnEquiv` is the peak-respecting first-return bijection; the peak law
-`first_return_peaks` is public and states `peaks (U :: q ++ D :: p) = peaks q + peaks p + [i = 0]`.
+`firstReturnEquiv` is the first-return decomposition, and the public
+`first_return_peaks` is the peak law it carries: `peaks (U :: q ++ D :: p) = peaks q + peaks p + [i = 0]`.
 Its injective case is discharged by the private `first_return_unique`. `T_first_return_recurrence`
-then follows by `Fintype.card_congr` and finite-fiber counting. The signed
-zeroth, first, and second falling-moment recurrences derived from that
-recurrence give the alternating quadratic identity.
+then follows by `Fintype.card_congr` and finite-fiber counting. The signed zeroth, first, and second falling-moment recurrences are obtained directly from `firstReturnEquiv` and `first_return_peaks` through the local `hsum`, and they yield the alternating quadratic identity.
 
 ## Falsifier
 
@@ -66,15 +64,15 @@ substitutes for the universal theorem.
 
 - Lean module: `D5/S1/Recurrence/Invariants/SchroederPeakAlternatingQuadraticMoment.lean`.
 - Public definitions: `Step`, `stepWeight`, `weight`, `PrefixNonnegative`,
-  `schroeder`, `peaks`, `T`, and `SchroederPath`.
-- Public theorems: `mem_schroeder_iff`, `T_first_return_recurrence`,
-  `schulte_a060693`, and the public `firstReturnEquiv` equivalence.
+  `schroeder`, `peaks`, `T`, `SchroederPath`, and `firstReturnEquiv`.
+- Public theorems: `mem_schroeder_iff`, `first_return_peaks`,
+  `T_first_return_recurrence`, and `schulte_a060693`.
 - The probe's exact integer check for n=0..30 had zero mismatches; it found
   `T(2,·)=[2,3,1]`, matching the `%C` example `T(2,1)=3`.
 - The sympy generating-function check gave
   `F(x,-1)=1`, `F_y(x,-1)=x/(1-x)`, and
   `F_yy(x,-1)=2x^2/(1-x)^3`.
-- The three public theorem axiom reports are std3:
+- The four public theorem axiom reports are std3:
   `propext`, `Classical.choice`, and `Quot.sound`.
 
 ## Triage

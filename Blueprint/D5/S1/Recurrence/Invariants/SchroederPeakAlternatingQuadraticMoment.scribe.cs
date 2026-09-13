@@ -172,13 +172,13 @@ internal sealed class SchroederPeakAlternatingQuadraticMomentDocument : IScribeD
 
     private static Formula PathFormula() => Disp(Bound("n", Nat(),
         Eq(Call("SchroederPath", N()), Call("Subtype", Words(),
-            Seq(W(), Sp, InMacro, Sp, Call("schroeder", N()))))));
+            Seq(W(), Sp, Mapsto, Sp, W(), Sp, InMacro, Sp, Call("schroeder", N()))))));
 
     private static Formula FirstReturnFormula() => Disp(Bound("n", Nat(),
-        Seq(Call("firstReturnEquiv", N()), Sp, FormulaDsl.Eq, Sp,
+        Seq(Call("firstReturnEquiv", N()), Sp, FormulaDsl.Colon, Sp,
             Call("Equiv", Call("SchroederPath", Add(N(), D(1))),
                 Call("Sum", Call("SchroederPath", N()),
-                    Call("Sigma", Call("Fin", Add(N(), D(1))),
+                    Call("Sigma", Seq(I(), Sp, InMacro, Sp, Call("Fin", Add(N(), D(1)))),
                         Call("Product", Call("SchroederPath", I()),
                             Call("SchroederPath", Sub(N(), I())))))))));
 

@@ -122,7 +122,7 @@ T(n,k) is the cardinality of the generated words of semilength n having k peaks.
 
 **Definition 1.10 (A generated Schroeder path).**
 
-$$\forall n \in \mathbb{N}, \operatorname{SchroederPath}\left(n\right) = \operatorname{Subtype}\left(\operatorname{List}\left(\operatorname{Step}\left(\right)\right), w \in \operatorname{schroeder}\left(n\right)\right)$$
+$$\forall n \in \mathbb{N}, \operatorname{SchroederPath}\left(n\right) = \operatorname{Subtype}\left(\operatorname{List}\left(\operatorname{Step}\left(\right)\right), w \mapsto w \in \operatorname{schroeder}\left(n\right)\right)$$
 
 *Formalization.* `D5/S1/Recurrence/Invariants/SchroederPeakAlternatingQuadraticMoment.SchroederPath` (`✓ std3`).
 
@@ -134,7 +134,7 @@ A SchroederPath is a word together with a proof that it belongs to the generator
 
 **Definition 1.11 (First-return decomposition).**
 
-$$\forall n \in \mathbb{N}, \operatorname{firstReturnEquiv}\left(n\right) = \operatorname{Equiv}\left(\operatorname{SchroederPath}\left(n + 1\right), \operatorname{Sum}\left(\operatorname{SchroederPath}\left(n\right), \operatorname{Sigma}\left(\operatorname{Fin}\left(n + 1\right), \operatorname{Product}\left(\operatorname{SchroederPath}\left(i\right), \operatorname{SchroederPath}\left(n - i\right)\right)\right)\right)\right)$$
+$$\forall n \in \mathbb{N}, \operatorname{firstReturnEquiv}\left(n\right) : \operatorname{Equiv}\left(\operatorname{SchroederPath}\left(n + 1\right), \operatorname{Sum}\left(\operatorname{SchroederPath}\left(n\right), \operatorname{Sigma}\left(i \in \operatorname{Fin}\left(n + 1\right), \operatorname{Product}\left(\operatorname{SchroederPath}\left(i\right), \operatorname{SchroederPath}\left(n - i\right)\right)\right)\right)\right)$$
 
 *Formalization.* `D5/S1/Recurrence/Invariants/SchroederPeakAlternatingQuadraticMoment.firstReturnEquiv` (`✓ std3`).
 
