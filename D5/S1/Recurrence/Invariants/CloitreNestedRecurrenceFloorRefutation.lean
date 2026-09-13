@@ -2,17 +2,13 @@
    generality: I
    mirror-B: D5/B/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.Algebra.Order.Archimedean.Real.Basic, mathlib/module/Mathlib.Algebra.Order.Floor.Ring, mathlib/module/Mathlib.Data.Finset.Interval, mathlib/module/Mathlib.Data.Real.Basic, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Positivity, mathlib/module/Mathlib.Tactic.Ring, mathlib/module/Mathlib.Topology.Instances.Real.Lemmas, mathlib/module/Mathlib.Topology.Order.IntermediateValue]
+   anchors: [mathlib/module/Mathlib.Algebra.Order.Archimedean.Real.Basic, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Ring, mathlib/module/Mathlib.Topology.Instances.Real.Lemmas, mathlib/module/Mathlib.Topology.Order.IntermediateValue]
    utility: kind=certified-instance; basis=refutes=gid:D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.claim; result=D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.result; claim=D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.claim
    digest: At n = 1167, the literal nested recurrence is 664 while the conjectured cubic-root floor is 665. -/
 
 import Mathlib.Algebra.Order.Archimedean.Real.Basic
-import Mathlib.Algebra.Order.Floor.Ring
-import Mathlib.Data.Finset.Interval
-import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.Ring
 import Mathlib.Topology.Instances.Real.Lemmas
 import Mathlib.Topology.Order.IntermediateValue
