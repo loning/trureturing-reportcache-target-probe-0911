@@ -312,3 +312,40 @@ private theorem fullScan : scan 1 2 77741 = true := by
   refine scan_prepend (n := 7741) sc13 ?_
   refine scan_prepend (n := 2741) sc14 ?_
   exact sc15.1
+
+private theorem endpointMember : 6298 ∣ 2 ^ 77742 - 77742 := by
+  set_option exponentiation.threshold 100000 in
+  set_option maxRecDepth 1000000 in
+  decide
+
+private theorem noSmaller (k : ℕ) (hk : 0 < k) (hklt : k < 77742) :
+    ¬6298 ∣ 2 ^ k - k := by
+  exact scan_sound fullScan (by decide) k (by omega) (by omega)
+
+private theorem aCertificate : a 6298 = 77742 := by
+  have hmember : 0 < 77742 ∧ 6298 ∣ 2 ^ 77742 - 77742 :=
+    ⟨by decide, endpointMember⟩
+  unfold a
+  apply le_antisymm (Nat.sInf_le hmember)
+  by_contra hnot
+  have hslt : sInf {k : ℕ | 0 < k ∧ 6298 ∣ 2 ^ k - k} < 77742 := by omega
+  have hsMem := Nat.sInf_mem (s := {k : ℕ | 0 < k ∧ 6298 ∣ 2 ^ k - k})
+    ⟨77742, hmember⟩
+  exact noSmaller _ hsMem.1 hslt hsMem.2
+
+private theorem primeIndexCertificate : Nat.nth Nat.Prime 6297 = 62753 := by
+  have hp : Nat.Prime 62753 := by norm_num
+  simpa [primeCountCertificate] using Nat.nth_count hp
+
+/-- The certified counterexample `n = 6298` refutes Cloitre's conjecture. -/
+theorem result : ¬ claim := by
+  intro hclaim
+  have hbound := hclaim 6298 (by decide)
+  rw [aCertificate, primeIndexCertificate] at hbound
+  omega
+
+#print axioms a
+#print axioms claim
+#print axioms result
+
+end D5.S3.Arith.Congruence.CloitrePowerMinusIndexPrimeBoundRefutation
