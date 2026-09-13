@@ -9,7 +9,7 @@ internal sealed class SquareCountingRecurrenceSquarePositionsDocument : IScribeD
     private const string Prefix =
         "D5/S1/Recurrence/Invariants/SquareCountingRecurrenceSquarePositions.";
     private static readonly LibraryNoteRef Source =
-        LibraryNoteRef.Create("D5/L/Words/zumkeller2004a097602");
+        LibraryNoteRef.Create("D5/L/zumkeller2004a097602");
 
     public DocumentDefinition Create() => DocumentDefinition.Create(ScribeNode.Create(
         "The square positions and square values in Zumkeller's recurrence follow a nine-term pattern.",
