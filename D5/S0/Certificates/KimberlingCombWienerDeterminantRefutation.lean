@@ -44,11 +44,10 @@ claim first discovery. The entry and revision history were checked on
 and the right vertex at each index is pendant from the corresponding left
 vertex. `fromRel` adds reverse edges and excludes loops. -/
 def comb (m : ℕ) : SimpleGraph (Fin m ⊕ Fin m) :=
-  SimpleGraph.fromRel fun u v =>
-    match u, v with
-    | Sum.inl i, Sum.inl j => i.val + 1 = j.val
-    | Sum.inl i, Sum.inr j => i = j
-    | _, _ => False
+  SimpleGraph.fromRel fun u =>
+    Sum.elim
+      (fun i => Sum.elim (fun j => i.val + 1 = j.val) (fun j => i = j))
+      (fun _ => fun _ => False) u
 
 /-- Sum of graph distances over unordered pairs of distinct vertices,
 encoded as the non-diagonal elements of the symmetric square. -/
@@ -79,7 +78,7 @@ theorem result : ¬ claim := by
   have hwiener : wienerIndex (comb 1) = 1 := by
     rw [wienerIndex, hpairs, Finset.sum_singleton, Sym2.lift_mk]
     apply SimpleGraph.dist_eq_one_iff_adj.mpr
-    simp [comb, SimpleGraph.fromRel]
+    simp [comb, SimpleGraph.fromRel, Sum.elim]
   have hcount : matrixCount 3 = 2 := by decide
   intro hclaim
   have hbad := hclaim 3 (by norm_num)
