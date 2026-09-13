@@ -2,7 +2,7 @@
    generality: I
    mirror-B: D5/B/S0/Certificates/KimberlingCombWienerDeterminantRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.Combinatorics.SimpleGraph.Metric, mathlib/module/Mathlib.Data.Int.Interval, mathlib/module/Mathlib.Data.Fintype.Prod, mathlib/module/Mathlib.Algebra.BigOperators.Group.Finset.Basic, mathlib/module/Mathlib.Tactic.NormNum]
+   anchors: [mathlib/module/Mathlib.Combinatorics.SimpleGraph.Metric, mathlib/module/Mathlib.Data.Int.Interval, mathlib/module/Mathlib.Data.Fintype.Prod, mathlib/module/Mathlib.Algebra.BigOperators.Group.Finset.Basic]
    utility: kind=certified-instance; basis=refutes=gid:D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.claim; result=D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.result; claim=D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.claim
    digest: At n = 3, a literal comb Wiener index is 1 but the determinant-2n matrix count is 2, refuting the OEIS A192023 comment. -/
 
@@ -10,7 +10,6 @@ import Mathlib.Combinatorics.SimpleGraph.Metric
 import Mathlib.Data.Int.Interval
 import Mathlib.Data.Fintype.Prod
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Tactic.NormNum
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
@@ -76,13 +75,16 @@ theorem result : ¬ claim := by
       (Finset.univ : Finset (Sym2 (Fin 1 ⊕ Fin 1))).filter (fun p => ¬ p.IsDiag) =
         {s(Sum.inl 0, Sum.inr 0)} := by decide
   have hwiener : wienerIndex (comb 1) = 1 := by
-    rw [wienerIndex, hpairs, Finset.sum_singleton, Sym2.lift_mk]
+    change (∑ p ∈ (Finset.univ : Finset (Sym2 (Fin 1 ⊕ Fin 1))).filter
+      (fun p => ¬ p.IsDiag), Sym2.lift _ p) = 1
+    rw [hpairs, Finset.sum_singleton, Sym2.lift_mk]
     apply SimpleGraph.dist_eq_one_iff_adj.mpr
     simp [comb, SimpleGraph.fromRel, Sum.elim]
   have hcount : matrixCount 3 = 2 := by decide
   intro hclaim
-  have hbad := hclaim 3 (by norm_num)
-  norm_num [hwiener, hcount] at hbad
+  have hbad : wienerIndex (comb 1) = matrixCount 3 := hclaim 3 (by decide)
+  have hneq : (1 : ℕ) ≠ 2 := by decide
+  exact hneq (hwiener.symm.trans (hbad.trans hcount))
 
 #print axioms comb
 #print axioms wienerIndex
