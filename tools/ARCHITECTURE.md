@@ -5,10 +5,10 @@ Production harness projects, scripts, manifests, and architecture material live 
 `Meta/` is the data side of this boundary and contains no harness program directory.
 
 The admission judge is selected before candidate policy, assemblies, or helpers are read.
-The steady-state workflow is the native read-only `pull_request` event and runs the
-candidate workflow on GitHub's post-merge tree; candidate checkout credentials are not
-persisted. GitHub supplies `github.sha` as the merge commit `M`; conflicted pull
-requests do not emit this event.
+The steady-state workflow uses the native `pull_request` event and is configured for
+read-only PR behavior. It runs the candidate workflow on GitHub's post-merge tree;
+candidate checkout credentials are not persisted. GitHub supplies `github.sha` as the
+merge commit `M`; merge conflicts suppress `pull_request` workflow runs.
 The baseline is resolved from the checked object itself, never from the event payload:
 both PR merge commits and `dev` push commits carry their protected base as the first parent,
 so the baseline is `git -C candidate rev-parse HEAD^1` and the candidate is
