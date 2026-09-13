@@ -130,7 +130,7 @@ theorem certificate_extension (Q N : ℕ) (T : Finset ℕ)
       simpa using (Nat.cast_le.mpr (hT p hp).2.2.1 : (p : ℝ) ≤ N)
     · apply (div_lt_iff₀ hp0).mpr
       exact_mod_cast (hT p hp).2.1
-  have hsum (P : ℕ → Prop) (hP1 : P 1) (hPT : ∀ p ∈ T, P p) :
+  have hsum (P : ℕ → Prop) [DecidablePred P] (hP1 : P 1) (hPT : ∀ p ∈ T, P p) :
       (∑ d ∈ Icc 1 N, if d.Coprime Q ∧ P d then |(B Q ((N : ℝ) / d) : ℝ)| else 0) -
         (∑ d ∈ Icc 1 N, if d.Coprime (Q * R) ∧ P d then
           |(B (Q * R) ((N : ℝ) / d) : ℝ)| else 0) =
@@ -153,8 +153,8 @@ theorem certificate_extension (Q N : ℕ) (T : Finset ℕ)
           simp [hdt, hP1, hBtop]
         · have hd2 : 2 ≤ d := by omega
           have hdc : d.Coprime (Q * R) ↔ d.Coprime Q := by
-            rw [Nat.coprime_mul_iff_right]
-            simp [hcop d hd1 hdN hdt]
+            exact ⟨fun h => (Nat.coprime_mul_iff_right.mp h).1,
+              fun h => Nat.coprime_mul_iff_right.mpr ⟨h, hcop d hd1 hdN hdt⟩⟩
           simp [hdt, hdEq, hdc, hlow d hd2]
     have ht : (Icc 1 N).filter (fun d => d ∈ T) = T := by
       ext d
@@ -176,7 +176,9 @@ theorem certificate_extension (Q N : ℕ) (T : Finset ℕ)
     by_cases hq : q = 1
     · subst q
       rw [U, if_pos rfl]
-      simp only [Nat.coprime_one_right, filter_true]
+      have hf : (Icc 1 N).filter (fun d => d.Coprime 1) = Icc 1 N :=
+        filter_eq_self.mpr (fun d _ => Nat.coprime_one_right d)
+      rw [hf]
       calc
         (N : ℝ) = ∑ d ∈ Icc 1 N, (1 : ℝ) := by simp
         _ = _ := by
@@ -186,14 +188,19 @@ theorem certificate_extension (Q N : ℕ) (T : Finset ℕ)
           have hd0 : (0 : ℝ) < d := Nat.cast_pos.mpr (by omega)
           have hu : (1 : ℝ) ≤ (N : ℝ) / d := (le_div_iff₀ hd0).mpr
             (by simpa using (Nat.cast_le.mpr hdN : (d : ℝ) ≤ N))
-          simp [B, hu]
+          have hf1 : (1 : ℕ).divisors.filter
+              (fun a : ℕ => (a : ℝ) ≤ (N : ℝ) / d) = {1} := by
+            rw [Nat.divisors_one]
+            apply filter_eq_self.mpr
+            intro a ha
+            simpa only [mem_singleton.mp ha, Nat.cast_one] using hu
+          rw [B, hf1]
+          simp
     · rw [U, if_neg hq]
   constructor
-  · dsimp only
-    rw [hU Q, hU (Q * R)]
+  · rw [hU Q, hU (Q * R)]
     simpa only [sum_filter, and_true] using hsum (fun _ => True) trivial (by simp)
-  · dsimp only
-    simpa only [W, sum_filter] using hsum Squarefree squarefree_one
+  · simpa only [W, sum_filter] using hsum Squarefree squarefree_one
       (fun p hp => (hT p hp).1.squarefree)
 
 end D5.S3.Weil.Mertens.UpperHalfPrimeCertificateExtension
