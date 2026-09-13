@@ -70,7 +70,9 @@ theorem square_opposite_edges_same_colour {B : Nat}
       rw [hsd] at ht
       simpa using ht
     exact had this
-  have hp : p ∈ ({p} : Finset (Fin B)) ∆ {q} := by simp [hpq]
+  have hp : p ∈ ({p} : Finset (Fin B)) ∆ {q} := by
+    rw [Finset.mem_symmDiff]
+    exact Or.inl ⟨by simp, by simpa using hpq⟩
   rw [hxor] at hp
   have hcases : p = r ∨ p = s := by
     rcases Finset.mem_symmDiff.mp hp with h | h
@@ -131,8 +133,9 @@ structure OneBitEmbedding (A : P → ℕ) (n : ℕ) where
     hammingDist (toFun a) (toFun b) = 1
 
 /-- Increase a coordinate whose current value is strictly below its capacity. -/
-noncomputable def raise (a : TailBox A) (p : P) (h : (a p).val < A p) : TailBox A :=
-  Function.update a p ⟨(a p).val + 1, Nat.add_lt_add_right h 1⟩
+noncomputable def raise (a : TailBox A) (p : P) (h : (a p).val < A p) : TailBox A := by
+  classical
+  exact Function.update a p ⟨(a p).val + 1, Nat.add_lt_add_right h 1⟩
 
 /-- The colour of the edge increasing the indicated coordinate. -/
 noncomputable def unitEdgeColour {n : ℕ} (φ : OneBitEmbedding A n)
