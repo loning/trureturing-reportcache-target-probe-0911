@@ -30,7 +30,7 @@ For a finite vertex type V with decidable equality, the filter removes diagonal 
 
 **Definition 1.3 (Determinant-constrained matrix count).**
 
-$$\begin{aligned}\forall n: \mathrm{Nat},\\entries = Finset.Icc\left((1: \mathbb{Z}), (n: \mathbb{Z})\right), entries : \operatorname{Finset}\left(\mathbb{Z}\right)\\\operatorname{matrixCount}\left(n\right): \mathrm{Nat} = Finset.card\left(Finset.filter\left((entries \times^{s} (entries \times^{s} (entries \times^{s} entries))), (\lambda q \mapsto q.1 \cdot q.2.2.2 - q.2.1 \cdot q.2.2.1 = 2 \cdot (n: \mathbb{Z}))\right)\right)\end{aligned}$$
+$$\forall n: \mathrm{Nat}, \operatorname{matrixCount}\left(n\right): \mathrm{Nat} = Finset.card\left(Finset.filter\left((Finset.Icc\left((1: \mathbb{Z}), (n: \mathbb{Z})\right) \times^{s} (Finset.Icc\left((1: \mathbb{Z}), (n: \mathbb{Z})\right) \times^{s} (Finset.Icc\left((1: \mathbb{Z}), (n: \mathbb{Z})\right) \times^{s} Finset.Icc\left((1: \mathbb{Z}), (n: \mathbb{Z})\right)))), (\lambda q \mapsto q.1 \cdot q.2.2.2 - q.2.1 \cdot q.2.2.1 = 2 \cdot (n: \mathbb{Z}))\right)\right)$$
 
 *Formalization.* `D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.matrixCount` (`✓ std3`).
 
@@ -38,7 +38,7 @@ $$\begin{aligned}\forall n: \mathrm{Nat},\\entries = Finset.Icc\left((1: \mathbb
 
 *Commentary.*
 
-The nested finite Cartesian product has row-major coordinates q = (a,(b,(c,d))) and denotes the matrix [[a,b],[c,d]]. Matrix.det_fin_two is the row-major formula a*d-b*c. The integer interval entries contains 1 through n; the filter requires determinant 2n.
+The nested finite Cartesian product has row-major coordinates q = (a,(b,(c,d))) and denotes the matrix [[a,b],[c,d]]. Matrix.det_fin_two is the row-major formula a*d-b*c. The integer interval Icc(1, n) taken four times contains 1 through n; the filter requires determinant 2n.
 
 **Definition 1.4 (The printed matrix-count conjecture).**
 

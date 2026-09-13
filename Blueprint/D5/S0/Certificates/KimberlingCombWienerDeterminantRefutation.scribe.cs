@@ -46,7 +46,7 @@ internal sealed class KimberlingCombWienerDeterminantRefutationDocument : IScrib
                     "The nested finite Cartesian product has row-major coordinates "
                         + "q = (a,(b,(c,d))) and denotes the matrix [[a,b],[c,d]]. "
                         + "Matrix.det_fin_two is the row-major formula a*d-b*c. The integer "
-                        + "interval entries contains 1 through n; the filter requires "
+                        + "interval Icc(1, n) taken four times contains 1 through n; the filter requires "
                         + "determinant 2n."))),
                 DescribeRole.Definition),
             Describe.Lean(DescribeId.Create("a192023-printed-conjecture"),
@@ -129,23 +129,24 @@ internal sealed class KimberlingCombWienerDeterminantRefutationDocument : IScrib
     {
         var n = F.Id("n");
         var q = F.Id("q");
-        var entries = F.Id("entries");
-        var product = FinsetProduct(entries, FinsetProduct(entries,
-            FinsetProduct(entries, entries)));
+        var product = FinsetProduct(
+            QualifiedCall("Finset", "Icc", Coerce(D(1), Integers()), Coerce(n, Integers())),
+            FinsetProduct(
+                QualifiedCall("Finset", "Icc", Coerce(D(1), Integers()), Coerce(n, Integers())),
+                FinsetProduct(
+                    QualifiedCall("Finset", "Icc", Coerce(D(1), Integers()), Coerce(n, Integers())),
+                    QualifiedCall("Finset", "Icc", Coerce(D(1), Integers()), Coerce(n, Integers())))));
         var ad = Multiply(Project(q, 1), Project(q, 2, 2, 2));
         var bc = Multiply(Project(q, 2, 1), Project(q, 2, 2, 1));
         var condition = Equal(Subtract(ad, bc),
             Multiply(D(2), Coerce(n, Integers())));
-        return Disp(new Formula.Aligned([
-            Seq(Forall, Sp, n, Colon, Sp, Naturals(), Comma),
-            Seq(entries, Sp, Eq, Sp,
-                QualifiedCall("Finset", "Icc", Coerce(D(1), Integers()),
-                    Coerce(n, Integers())),
-                Comma, Sp, entries, Sp, Colon, Sp, Call("Finset", Integers())),
-            Seq(Call("matrixCount", n), Colon, Sp, Naturals(), Sp, Eq, Sp,
+        return Disp(Seq(
+            Forall, Sp, n, Colon, Sp, Naturals(), Comma, Sp,
+            new Formula.Relation(
+                Seq(Call("matrixCount", n), Colon, Sp, Naturals()),
+                FormulaRelationOperator.Equal,
                 QualifiedCall("Finset", "card",
-                    QualifiedCall("Finset", "filter", product, Lam(q, condition)))),
-        ]));
+                    QualifiedCall("Finset", "filter", product, Lam(q, condition))))));
     }
 
     private static Formula ClaimFormula()
