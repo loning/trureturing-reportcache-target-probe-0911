@@ -2,12 +2,12 @@
    generality: I
    mirror-B: D5/B/S0/Certificates/KrizekAntisigmaDecreaseRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc, mathlib/module/Mathlib.Tactic.NormNum]
+   anchors: [mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc, mathlib/module/Mathlib.Tactic.NormNum.Prime]
    utility: kind=certified-instance; basis=refutes=gid:D5/S0/Certificates/KrizekAntisigmaDecreaseRefutation.claim; result=D5/S0/Certificates/KrizekAntisigmaDecreaseRefutation.result; claim=D5/S0/Certificates/KrizekAntisigmaDecreaseRefutation.claim
    digest: The instance n = 332640 refutes Krizek's A231548 conjecture about antisigma at gap three. -/
 
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
-import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.NormNum.Prime
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
@@ -72,5 +72,32 @@ private theorem antisigma_eq_triangular_sub_sigma (n : ℕ) :
     have hsplit := Finset.sum_filter_add_sum_filter_not
       (s := Finset.Icc 1 n) (p := fun d => d ∣ n) (f := fun d => d)
     omega
+
+private theorem sigma_332640 :
+    ArithmeticFunction.sigma 1 332640 = 1451520 := by
+  rw [show (332640 : ℕ) = 2 ^ 5 * 3 ^ 3 * 5 ^ 1 * 7 ^ 1 * 11 ^ 1 by norm_num,
+    ArithmeticFunction.isMultiplicative_sigma.map_mul_of_coprime
+      (by decide : Nat.Coprime (2 ^ 5 * 3 ^ 3 * 5 ^ 1 * 7 ^ 1) (11 ^ 1)),
+    ArithmeticFunction.isMultiplicative_sigma.map_mul_of_coprime
+      (by decide : Nat.Coprime (2 ^ 5 * 3 ^ 3 * 5 ^ 1) (7 ^ 1)),
+    ArithmeticFunction.isMultiplicative_sigma.map_mul_of_coprime
+      (by decide : Nat.Coprime (2 ^ 5 * 3 ^ 3) (5 ^ 1)),
+    ArithmeticFunction.isMultiplicative_sigma.map_mul_of_coprime
+      (by decide : Nat.Coprime (2 ^ 5) (3 ^ 3)),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 2),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 3),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 5),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 7),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 11)]
+  norm_num [Finset.sum_range_succ]
+
+private theorem sigma_332637 :
+    ArithmeticFunction.sigma 1 332637 = 443520 := by
+  rw [show (332637 : ℕ) = 3 ^ 1 * 110879 ^ 1 by norm_num,
+    ArithmeticFunction.isMultiplicative_sigma.map_mul_of_coprime
+      (by decide : Nat.Coprime (3 ^ 1) (110879 ^ 1)),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 3),
+    ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 110879)]
+  norm_num [Finset.sum_range_succ]
 
 end D5.S0.Certificates.KrizekAntisigmaDecreaseRefutation
