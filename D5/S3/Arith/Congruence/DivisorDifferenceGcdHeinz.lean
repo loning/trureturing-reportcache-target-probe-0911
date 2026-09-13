@@ -2,14 +2,11 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/DivisorDifferenceGcdHeinz
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
-   anchors: [mathlib/module/Mathlib.NumberTheory.Divisors, mathlib/module/Mathlib.Data.Finset.Sort, mathlib/module/Mathlib.NumberTheory.PrimeCounting, mathlib/module/Mathlib.Data.Nat.Factorization.Basic]
+   anchors: [mathlib/module/Mathlib.NumberTheory.PrimeCounting]
    utility: none
-   digest: Wiseman's A258409 divisor-minus-one gcd equals the consecutive divisor-gap gcd and its Heinz prime-index gcd. -/
+   digest: Wiseman's A258409 gcd identity for divisors, consecutive gaps, and Heinz decoding. -/
 
-import Mathlib.NumberTheory.Divisors
-import Mathlib.Data.Finset.Sort
 import Mathlib.NumberTheory.PrimeCounting
-import Mathlib.Data.Nat.Factorization.Basic
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
