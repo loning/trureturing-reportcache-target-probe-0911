@@ -2,12 +2,11 @@
    generality: I
    mirror-B: D5/B/S0/Certificates/OrdowskiLeastWitnessRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.Tactic.IntervalCases, mathlib/module/Mathlib.Tactic.NormNum]
+   anchors: [mathlib/module/Mathlib.Tactic.IntervalCases]
    utility: kind=certified-instance; basis=refutes=gid:D5/S0/Certificates/OrdowskiLeastWitnessRefutation.claim; result=D5/S0/Certificates/OrdowskiLeastWitnessRefutation.result; claim=D5/S0/Certificates/OrdowskiLeastWitnessRefutation.claim
-   digest: Refutes Thomas Ordowski's 2018 OEIS A126762 conjecture that the least k greater than n satisfying n^k congruent to n modulo k is also the least such k satisfying n^(k-1) congruent to 1, using n=363 and k=366; no priority claim. -/
+   digest: A modular certificate at n = 363 refutes Ordowski's OEIS A126762 least-witness conjecture. -/
 
 import Mathlib.Tactic.IntervalCases
-import Mathlib.Tactic.NormNum
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
