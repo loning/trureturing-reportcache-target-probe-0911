@@ -18,7 +18,7 @@ open scoped BigOperators
 
 namespace D5.S3.Arith.Congruence.DivisorDifferenceGcdHeinz
 
-noncomputable def divisorList (n : ℕ) : List ℕ := n.divisors.sort (· ≤ ·)
+private noncomputable def divisorList (n : ℕ) : List ℕ := n.divisors.sort (· ≤ ·)
 
 noncomputable def consecutiveDivisorDifferences (n : ℕ) : List ℕ :=
   (divisorList n).zipWith (fun x y => y - x) (divisorList n).tail
