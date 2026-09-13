@@ -1,0 +1,8 @@
+**定理 469.10。**若时域 $T$、每层状态和实际边集均有限，保留平行边，非负实向量边费为 $g$，允许末态及终端费为 $h$，则尾路径 Pareto 集满足
+$$
+P_T(s)=\begin{cases}\{h(s)\},&s\text{ 为允许末态},\\\varnothing,&\text{否则},\end{cases}
+\quad
+P_t(s)=\operatorname{Min}\bigcup_{e:s\to u}(g(e)+P_{t+1}(u)).
+$$
+每个保留费用实际达到，保留全部等号边可恢复全部达到路径。
+

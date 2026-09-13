@@ -1,0 +1,9 @@
+**定理 467.3（定义与定理）。**对有效码定义
+$$
+\operatorname{El}(c)=\operatorname{Enc}[\operatorname{Dec}(c)],
+\quad
+\operatorname{Pack}(B)=\operatorname{Enc}(\operatorname{Dec}[B])
+\quad(B\subseteq\mathfrak V_Z\text{ 为集合}).
+$$
+则 $\operatorname{El}(\operatorname{Pack}(B))=B$，$\operatorname{Pack}(\operatorname{El}(c))=c$。若 $B=\{\operatorname{NatZ}(j):j<n\}$，$\operatorname{Pack}(B)=\operatorname{NatZ}(n)$；否则为 $\langle1,B\rangle$。第一种情况下 $\langle1,B\rangle$ 无效，尤其不能另加第二个语义空集。
+

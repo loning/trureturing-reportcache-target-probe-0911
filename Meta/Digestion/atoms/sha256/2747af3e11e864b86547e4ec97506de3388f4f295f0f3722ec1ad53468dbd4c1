@@ -1,0 +1,20 @@
+**定理 467.4（定义与定理）。**令语义配对为 $\langle c,d\rangle_Z=\operatorname{Enc}(\langle\operatorname{Dec}(c),\operatorname{Dec}(d)\rangle)$。对任意集合 $A$，
+$$
+\mathcal P_Z(\operatorname{Enc}(A))
+=\operatorname{Pack}\{\operatorname{Pack}(B):B\subseteq\operatorname{Enc}[A]\}
+=\operatorname{Enc}(\mathcal P(A)).
+$$
+对任意全函数 $f:D\to Y$，包括无限域、空域及零值，完整图的码为
+$$
+\operatorname{Enc}(G_f)
+=\operatorname{Pack}\{\langle\operatorname{Enc}(x),\operatorname{Enc}(f(x))\rangle_Z:x\in D\},
+\quad G_f=\{\langle x,f(x)\rangle:x\in D\}.
+$$
+其语义评价在 $\operatorname{Enc}(x)$ 处为 $\operatorname{Enc}(f(x))$，域外无图边。外部共轭函数的普通图则为
+$$
+G_{f^*}=\{\langle\operatorname{Enc}(x),\operatorname{Enc}(f(x))\rangle:x\in D\};
+$$
+两种图不能混写。任意关系、子集、积、全函数空间 $Y^D$ 都同样运输。
+
+**证明。**子集 $S\subseteq A$ 与外部子集 $\operatorname{Enc}[S]\subseteq\operatorname{Enc}[A]$ 逐点互逆，遍历全部子集给幂集公式。逐个原图边应用语义配对定义给图公式；全域和单值性由全部 $x\in D$ 及原函数性保持反映，零输出不删边。语义函数图的集合恰为原全部函数图的码：对任一外部编码域上的全函数，逐输入解码其值给原函数，替代构造其全图，所以满到全函数空间而非某个可编码子类。关系用任意元组同样处理。证毕。
+

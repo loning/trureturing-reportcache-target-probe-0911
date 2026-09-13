@@ -1,0 +1,10 @@
+**定义 467.1。**所有集合及原成员关系仍在 ZFC 中。保留原自然叶 $\operatorname{NatZ}(n)=\langle0,\zeta(n)\rangle$ 和同一个递归式
+$$
+\operatorname{Enc}(x)=
+\begin{cases}
+\operatorname{NatZ}(x),&x\in\omega,\\
+\langle1,\operatorname{Enc}[x]\rangle,&x\notin\omega.
+\end{cases}
+$$
+这里对为原 Kuratowski 对；$\mathfrak V_Z=\{c:\exists x\ \operatorname{Enc}(x)=c\}$ 是有效码类。$\operatorname{Dec}$ 是其逆，$d\in_Zc$ 表示 $\operatorname{Dec}(d)\in\operatorname{Dec}(c)$。普通成员 $\in$ 与语义成员 $\in_Z$ 不作字面认同。
+
