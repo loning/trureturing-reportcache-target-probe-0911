@@ -19,7 +19,8 @@ internal sealed class DyadicTailFillingDocument : IScribeDocumentDefinition
                     + "two to the negative coordinate index. If the total weighted capacity is infinite, "
                     + "the closure of the finite-support states with any prescribed nonnegative dyadic "
                     + "sum is exactly the set of all bounded states whose extended sum is at most that "
-                    + "value. The product topology has discrete coordinate factors. The construction "
+                    + "value. In the finite-support carrier, the relative closure is the real readout "
+                    + "sublevel. The product topology has discrete coordinate factors. The construction "
                     + "preserves any prescribed finite set of coordinates and fills the remaining "
                     + "deficit at the first capacity crossing; zero capacity gaps require no restriction."))),
                 DescribeRole.Theorem))));
