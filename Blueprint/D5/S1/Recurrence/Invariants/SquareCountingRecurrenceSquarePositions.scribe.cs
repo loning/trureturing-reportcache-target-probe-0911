@@ -30,7 +30,11 @@ internal sealed class SquareCountingRecurrenceSquarePositionsDocument : IScribeD
                 "For every positive root m, its square occurs as a sequence value exactly when "
                 + "m is not divisible by three. The two square positions in each block carry "
                 + "the roots 3k+1 and 3k+2.",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)))));
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a097602-square-counting-recurrence-square-values"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role, AssessedProvenance provenance,

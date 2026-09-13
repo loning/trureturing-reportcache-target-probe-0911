@@ -34,6 +34,10 @@ $$\forall m \in \mathbb{N},\; 1 \le m \Rightarrow ((\exists n \in \mathbb{N},\; 
 
 *Proof.* Machine-checked in Lean as `D5/S1/Recurrence/Invariants/SquareCountingRecurrenceSquarePositions.zumkeller_a097602` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a097602-square-counting-recurrence-square-values` (proved) by `D5/S1/Recurrence/Invariants/SquareCountingRecurrenceSquarePositions.zumkeller_a097602`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a097602-square-counting-recurrence-square-values","declaration_gid":"D5/S1/Recurrence/Invariants/SquareCountingRecurrenceSquarePositions.zumkeller_a097602","resolution_kind":"proved"} -->
+
 *Citation.* Reinhard Zumkeller; Vladeta Jovovic (2004). *OEIS A097602, a(n+1) = a(n) + number of squares so far; a(1) = 1*. URL: <https://oeis.org/A097602>.
 
 *Commentary.*
