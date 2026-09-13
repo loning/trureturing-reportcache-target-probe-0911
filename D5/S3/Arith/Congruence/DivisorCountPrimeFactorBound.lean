@@ -4,7 +4,7 @@
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
    anchors: [mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc]
    utility: none
-   digest: The divisor count dominates two plus the distinct-prime count times one less than the prime-factor count with multiplicity. -/
+   digest: The divisor count dominates the prime-factor-count correction in A328959. -/
 
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
 
