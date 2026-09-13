@@ -66,7 +66,21 @@ $$\forall a , b : \operatorname{Fin}\left(4\right), \operatorname{SameParity}\le
 
 The two natural representatives have equal remainders modulo two.
 
-**Definition 1.6 (Equal-or-extreme endpoint coordinates).**
+**Definition 1.6 (Decidability of same-parity coordinates).**
+
+$$(\operatorname{DecidableRel}\left(SameParity\right))$$
+
+*Formalization.* `D5/S3/Arith/Lattices/FourGridCollinearTriples.instDecidableRelFinOfNatNatSameParity` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Acknowledgement.* Richard J. Mathar (2010). *OEIS A178294, Number of collinear point triples in a 4 X 4 X 4 X... n-dimensional cubic grid*. URL: <https://oeis.org/A178294>.
+
+*Commentary.*
+
+The anonymous instance command generates this auto-named declaration; unfolding SameParity reduces it to a decidable arithmetic condition.
+
+**Definition 1.7 (Equal-or-extreme endpoint coordinates).**
 
 $$\forall a , b : \operatorname{Fin}\left(4\right), \operatorname{EqualOrExtreme}\left(a, b\right) \iff (a = b \lor \operatorname{val}\left(a\right) = 0 \land \operatorname{val}\left(b\right) = 3 \lor \operatorname{val}\left(a\right) = 3 \land \operatorname{val}\left(b\right) = 0)$$
 
@@ -78,7 +92,21 @@ $$\forall a , b : \operatorname{Fin}\left(4\right), \operatorname{EqualOrExtreme
 
 A permitted pair is equal, zero-to-three, or three-to-zero.
 
-**Definition 1.7 (Coordinatewise endpoint pairs).**
+**Definition 1.8 (Decidability of equal-or-extreme coordinates).**
+
+$$(\operatorname{DecidableRel}\left(EqualOrExtreme\right))$$
+
+*Formalization.* `D5/S3/Arith/Lattices/FourGridCollinearTriples.instDecidableRelFinOfNatNatEqualOrExtreme` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Acknowledgement.* Richard J. Mathar (2010). *OEIS A178294, Number of collinear point triples in a 4 X 4 X 4 X... n-dimensional cubic grid*. URL: <https://oeis.org/A178294>.
+
+*Commentary.*
+
+The anonymous instance command generates this auto-named declaration; unfolding EqualOrExtreme reduces it to decidable equality and arithmetic conditions.
+
+**Definition 1.9 (Coordinatewise endpoint pairs).**
 
 $$\forall relation : \operatorname{Fin}\left(4\right) \to \operatorname{Fin}\left(4\right) \to \operatorname{Prop}, \forall d : \mathbb{N}, \operatorname{CoordinatePairs}\left(relation, d\right) = \{p : \operatorname{GridPoint}\left(d\right) \times \operatorname{GridPoint}\left(d\right) \mid \forall i : \operatorname{Fin}\left(d\right), relation(\operatorname{fst}\left(p\right)(i), \operatorname{snd}\left(p\right)(i))\}$$
 
@@ -90,7 +118,7 @@ $$\forall relation : \operatorname{Fin}\left(4\right) \to \operatorname{Fin}\lef
 
 Each ordered pair of grid points satisfies the supplied relation at every coordinate.
 
-**Definition 1.8 (Distinct coordinatewise endpoint pairs).**
+**Definition 1.10 (Distinct coordinatewise endpoint pairs).**
 
 $$\forall relation : \operatorname{Fin}\left(4\right) \to \operatorname{Fin}\left(4\right) \to \operatorname{Prop}, \forall d : \mathbb{N}, \operatorname{DistinctCoordinatePairs}\left(relation, d\right) = \{p : \operatorname{CoordinatePairs}\left(relation, d\right) \mid \operatorname{fst}\left(\operatorname{val}\left(p\right)\right) \neq \operatorname{snd}\left(\operatorname{val}\left(p\right)\right)\}$$
 
@@ -102,7 +130,7 @@ $$\forall relation : \operatorname{Fin}\left(4\right) \to \operatorname{Fin}\lef
 
 This subtype removes exactly the diagonal endpoint pairs.
 
-**Definition 1.9 (Integral midpoint coordinate).**
+**Definition 1.11 (Integral midpoint coordinate).**
 
 $$\forall a , b : \operatorname{Fin}\left(4\right), \operatorname{val}\left(\operatorname{midpointCoordinate}\left(a, b\right)\right) = \operatorname{natDiv}\left(\operatorname{val}\left(a\right) + \operatorname{val}\left(b\right), 2\right)$$
 
@@ -114,7 +142,7 @@ $$\forall a , b : \operatorname{Fin}\left(4\right), \operatorname{val}\left(\ope
 
 The value is natural division of the endpoint sum by two. Its bound below four supplies the dependent Fin(4) component.
 
-**Definition 1.10 (Coordinatewise midpoint).**
+**Definition 1.12 (Coordinatewise midpoint).**
 
 $$\forall d : \mathbb{N}, \forall x , z : \operatorname{GridPoint}\left(d\right), \forall i : \operatorname{Fin}\left(d\right), \operatorname{midpoint}\left(x, z\right)(i) = \operatorname{midpointCoordinate}\left(x(i), z(i)\right)$$
 
@@ -126,7 +154,7 @@ $$\forall d : \mathbb{N}, \forall x , z : \operatorname{GridPoint}\left(d\right)
 
 The point is obtained by applying midpointCoordinate independently on every axis.
 
-**Definition 1.11 (Oriented arithmetic progressions).**
+**Definition 1.13 (Oriented arithmetic progressions).**
 
 $$\forall d : \mathbb{N}, \operatorname{OrientedArithmeticProgression}\left(d\right) = \{t : \operatorname{GridPoint}\left(d\right) \times (\operatorname{GridPoint}\left(d\right) \times \operatorname{GridPoint}\left(d\right)) \mid \operatorname{fst}\left(t\right) \neq \operatorname{snd}\left(\operatorname{snd}\left(t\right)\right) \land \forall i : \operatorname{Fin}\left(d\right), \operatorname{intCast}\left(\operatorname{val}\left(\operatorname{fst}\left(t\right)(i)\right)\right) + \operatorname{intCast}\left(\operatorname{val}\left(\operatorname{snd}\left(\operatorname{snd}\left(t\right)\right)(i)\right)\right) = 2 \cdot \operatorname{intCast}\left(\operatorname{val}\left(\operatorname{fst}\left(\operatorname{snd}\left(t\right)\right)(i)\right)\right)\}$$
 
@@ -138,7 +166,7 @@ $$\forall d : \mathbb{N}, \operatorname{OrientedArithmeticProgression}\left(d\ri
 
 The endpoints differ, and their coordinatewise integral sum is twice the middle point.
 
-**Theorem 1.12 (Counts of the two endpoint-code families).**
+**Theorem 1.14 (Counts of the two endpoint-code families).**
 
 $$\forall d : \mathbb{N}, \operatorname{card}\left(\operatorname{DistinctCoordinatePairs}\left(\operatorname{SameParity}, d\right)\right) = 8^{d} - 4^{d} \land \operatorname{card}\left(\operatorname{DistinctCoordinatePairs}\left(\operatorname{EqualOrExtreme}, d\right)\right) = 6^{d} - 4^{d}$$
 
@@ -150,7 +178,7 @@ $$\forall d : \mathbb{N}, \operatorname{card}\left(\operatorname{DistinctCoordin
 
 There are 8^d same-parity coordinate pairs and 6^d equal-or-extreme pairs. Removing the 4^d diagonal pairs gives both displayed conjuncts.
 
-**Theorem 1.13 (Count of oriented arithmetic progressions).**
+**Theorem 1.15 (Count of oriented arithmetic progressions).**
 
 $$\forall d : \mathbb{N}, \operatorname{card}\left(\operatorname{OrientedArithmeticProgression}\left(d\right)\right) = 8^{d} - 4^{d}$$
 
@@ -162,7 +190,7 @@ $$\forall d : \mathbb{N}, \operatorname{card}\left(\operatorname{OrientedArithme
 
 A same-parity ordered endpoint pair has one integral midpoint, and every oriented nonconstant arithmetic progression recovers its endpoint pair.
 
-**Theorem 1.14 (Mathar's closed form).**
+**Theorem 1.16 (Mathar's closed form).**
 
 $$\forall d : \mathbb{N}, 2 \cdot \operatorname{matharCount}\left(d\right) = 8^{d} + 2 \cdot 6^{d} - 3 \cdot 4^{d}$$
 
@@ -189,6 +217,8 @@ Marked collinear triples split bijectively into oriented arithmetic progressions
 - Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.OrientedArithmeticProgression`
 - Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.SameParity`
 - Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.endpoint_pair_counts`
+- Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.instDecidableRelFinOfNatNatEqualOrExtreme`
+- Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.instDecidableRelFinOfNatNatSameParity`
 - Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.matharCount`
 - Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.mathar_collinear_triples`
 - Truth anchor: `D5/S3/Arith/Lattices/FourGridCollinearTriples.midpoint`

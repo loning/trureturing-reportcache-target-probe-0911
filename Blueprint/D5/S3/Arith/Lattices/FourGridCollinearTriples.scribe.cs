@@ -37,10 +37,21 @@ internal sealed class FourGridCollinearTriplesDocument : IScribeDocumentDefiniti
             Node("SameParity", "Same-parity endpoint coordinates", SameParityFormula(),
                 "The two natural representatives have equal remainders modulo two.",
                 DescribeRole.Definition, AssessedProvenance.FromRepo()),
+            Node("instDecidableRelFinOfNatNatSameParity", "Decidability of same-parity coordinates",
+                SameParityDecidableFormula(),
+                "The anonymous instance command generates this auto-named declaration; unfolding "
+                + "SameParity reduces it to a decidable arithmetic condition.",
+                DescribeRole.Definition, AssessedProvenance.FromRepo(Source)),
             Node("EqualOrExtreme", "Equal-or-extreme endpoint coordinates",
                 EqualOrExtremeFormula(),
                 "A permitted pair is equal, zero-to-three, or three-to-zero.",
                 DescribeRole.Definition, AssessedProvenance.FromRepo()),
+            Node("instDecidableRelFinOfNatNatEqualOrExtreme",
+                "Decidability of equal-or-extreme coordinates",
+                EqualOrExtremeDecidableFormula(),
+                "The anonymous instance command generates this auto-named declaration; unfolding "
+                + "EqualOrExtreme reduces it to decidable equality and arithmetic conditions.",
+                DescribeRole.Definition, AssessedProvenance.FromRepo(Source)),
             Node("CoordinatePairs", "Coordinatewise endpoint pairs", CoordinatePairsFormula(),
                 "Each ordered pair of grid points satisfies the supplied relation at every coordinate.",
                 DescribeRole.Definition, AssessedProvenance.FromRepo()),
@@ -140,6 +151,9 @@ internal sealed class FourGridCollinearTriplesDocument : IScribeDocumentDefiniti
                     Call("natMod", Call("val", b), D(2))))));
     }
 
+    private static Formula SameParityDecidableFormula() =>
+        Disp(Parenthesized(Call("DecidableRel", F.Id("SameParity"))));
+
     private static Formula EqualOrExtremeFormula()
     {
         var a = F.Id("a"); var b = F.Id("b");
@@ -149,6 +163,9 @@ internal sealed class FourGridCollinearTriplesDocument : IScribeDocumentDefiniti
             Seq(Call("EqualOrExtreme", a, b), Sp, Iff, Sp,
                 Parenthesized(Disjunction(Equal(a, b), forward, reverse)))));
     }
+
+    private static Formula EqualOrExtremeDecidableFormula() =>
+        Disp(Parenthesized(Call("DecidableRel", F.Id("EqualOrExtreme"))));
 
     private static Formula CoordinatePairsFormula()
     {
