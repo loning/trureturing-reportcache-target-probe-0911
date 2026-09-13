@@ -45,7 +45,11 @@ internal sealed class KrizekAntisigmaDecreaseRefutationDocument : IScribeDocumen
                         + "antisigma(332640) = 55323399600 and antisigma(332637) = "
                         + "55323409683. The first value is smaller, so the universal "
                         + "gap-three inequality is false."))),
-                DescribeRole.Theorem))));
+                DescribeRole.Theorem,
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a231548-antisigma-decrease-refutation"),
+                    ResolutionKind.Refuted)))));
 
     private static Formula AntisigmaFormula()
     {

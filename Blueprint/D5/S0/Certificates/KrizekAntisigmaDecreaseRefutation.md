@@ -34,6 +34,10 @@ $$\neg claim$$
 
 *Proof.* Machine-checked in Lean as `D5/S0/Certificates/KrizekAntisigmaDecreaseRefutation.result` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a231548-antisigma-decrease-refutation` (refuted) by `D5/S0/Certificates/KrizekAntisigmaDecreaseRefutation.result`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a231548-antisigma-decrease-refutation","declaration_gid":"D5/S0/Certificates/KrizekAntisigmaDecreaseRefutation.result","resolution_kind":"refuted"} -->
+
 *Source.* Repository-derived.
 
 *Acknowledgement.* Jaroslav Krizek (2013). *OEIS A231548, Numbers n such that 2*n - 1 < sigma(n) - sigma(n-2)*. URL: <https://oeis.org/A231548>.
