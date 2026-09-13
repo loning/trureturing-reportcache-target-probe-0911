@@ -39,6 +39,21 @@ Verified for `n = 1..120` with no violation. Row 2 begins `0, 2, 1, 5, 7, 3, 10,
 18, 20, 23, 26`. So row 2 is the involution exchanging the two Wythoff sequences, which is what
 the paper's title refers to and what connects this construction to Zeckendorf representations.
 
+The paper states this identification itself, and the reconstruction above was avoidable. In the
+paragraph following Proposition 5.6: "The sequence q_n corresponds with sequence A002251 in
+Sloane's on-line encyclopedia of integer sequences, obtained by swapping a(k) and b(k) for all
+k >= 1. This is evident from the expression for q_n given in Lemma 5.5." So row 2 is A002251 on
+the authors' own account, not on ours; what the computation above adds is only an independent
+check of their claim through index 120.
+
+A002251 is defined as "start with the nonnegative integers; then swap L(k) and U(k) for all
+k >= 1, where L = A000201, U = A001950 (lower and upper Wythoff sequences)". Querying OEIS with
+the terms `0, 2, 1, 5, 7, 3, 10, 4, 13, 15, 6, 18, 20, 8` returns it directly, which is how the
+same identification is reachable when a source does not supply it.
+
+The same query on the first twenty terms of row 3 returns nothing. That is evidence that row 3
+has not been catalogued; it is not evidence that row 3 has no description.
+
 ## Why row 3 does not follow by analogy
 
 The extra translates available at `l = 2` break the involution. The smallest violation is at
