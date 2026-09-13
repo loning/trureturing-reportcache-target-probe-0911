@@ -60,6 +60,10 @@ $$\forall n \in \mathbb{N},\; 2 < n \Rightarrow Int\left(a\left(n\right)\right) 
 
 *Proof.* Machine-checked in Lean as `D5/S1/Words/Patterns/NoncrossingNonnestingGraphRecurrence.barker_a326244` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a326244-noncrossing-nonnesting-graph-recurrence` (proved) by `D5/S1/Words/Patterns/NoncrossingNonnestingGraphRecurrence.barker_a326244`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a326244-noncrossing-nonnesting-graph-recurrence","declaration_gid":"D5/S1/Words/Patterns/NoncrossingNonnestingGraphRecurrence.barker_a326244","resolution_kind":"proved"} -->
+
 *Citation.* Colin Barker (2019). *OEIS A326244, Number of labeled n-vertex simple graphs without crossing or nesting edges*. URL: <https://oeis.org/A326244>.
 
 *Commentary.*

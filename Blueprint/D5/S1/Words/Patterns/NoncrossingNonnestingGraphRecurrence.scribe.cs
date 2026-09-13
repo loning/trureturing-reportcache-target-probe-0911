@@ -44,7 +44,11 @@ internal sealed class NoncrossingNonnestingGraphRecurrenceDocument
                 + "empty, a singleton, or has at least two members. Three weighted counts obey "
                 + "first-order identities; eliminating the two auxiliary moments gives the "
                 + "displayed recurrence for every n greater than two.",
-                DescribeRole.Theorem))));
+                DescribeRole.Theorem,
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a326244-noncrossing-nonnesting-graph-recurrence"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role,
