@@ -205,7 +205,9 @@ theorem closure_level_eq_sublevel (A : ℕ → ℕ) (c : ℝ) (hM : M A = ⊤)
         ring
       have hwc : (w : ℝ) = prefixSum m y * 2 ^ m := (hscale y m).symm
       have hwv : w ≤ v := by
-        exact_mod_cast (show (w : ℝ) ≤ v by rw [hvc, hwc]; exact mul_le_mul_of_nonneg_right hprev (by positivity))
+        exact_mod_cast (show (w : ℝ) ≤ v by
+          rw [hvc, hwc]
+          exact mul_le_mul_of_nonneg_right hprev (by positivity))
       let b := v - w
       have hbc : (b : ℝ) = (c - prefixSum m y) * 2 ^ m := by
         dsimp [b]
