@@ -288,39 +288,34 @@ private theorem sc13 : scan 65001 2264 5000 = true ∧ advance 2264 5000 = 5506 
 private theorem sc14 : scan 70001 5506 5000 = true ∧ advance 5506 5000 = 1234 := by set_option maxRecDepth 30000 in decide
 private theorem sc15 : scan 75001 1234 2741 = true ∧ advance 1234 2741 = 2166 := by set_option maxRecDepth 20000 in decide
 
-private theorem scan_prepend {k r m n r' : ℕ}
-    (hchunk : scan k r m = true ∧ advance r m = r')
-    (htail : scan (k + m) r' n = true) :
-    scan k r (m + n) = true := by
-  rw [scan_add, hchunk.1, hchunk.2, htail]
-  rfl
-
 private theorem fullScan : scan 1 2 77741 = true := by
-  refine scan_prepend (n := 72741) sc00 ?_
-  refine scan_prepend (n := 67741) sc01 ?_
-  refine scan_prepend (n := 62741) sc02 ?_
-  refine scan_prepend (n := 57741) sc03 ?_
-  refine scan_prepend (n := 52741) sc04 ?_
-  refine scan_prepend (n := 47741) sc05 ?_
-  refine scan_prepend (n := 42741) sc06 ?_
-  refine scan_prepend (n := 37741) sc07 ?_
-  refine scan_prepend (n := 32741) sc08 ?_
-  refine scan_prepend (n := 27741) sc09 ?_
-  refine scan_prepend (n := 22741) sc10 ?_
-  refine scan_prepend (n := 17741) sc11 ?_
-  refine scan_prepend (n := 12741) sc12 ?_
-  refine scan_prepend (n := 7741) sc13 ?_
-  refine scan_prepend (n := 2741) sc14 ?_
+  have prepend {k r m n r' : ℕ}
+      (hchunk : scan k r m = true ∧ advance r m = r')
+      (htail : scan (k + m) r' n = true) :
+      scan k r (m + n) = true := by
+    rw [scan_add, hchunk.1, hchunk.2, htail]
+    rfl
+  refine prepend (n := 72741) sc00 ?_
+  refine prepend (n := 67741) sc01 ?_
+  refine prepend (n := 62741) sc02 ?_
+  refine prepend (n := 57741) sc03 ?_
+  refine prepend (n := 52741) sc04 ?_
+  refine prepend (n := 47741) sc05 ?_
+  refine prepend (n := 42741) sc06 ?_
+  refine prepend (n := 37741) sc07 ?_
+  refine prepend (n := 32741) sc08 ?_
+  refine prepend (n := 27741) sc09 ?_
+  refine prepend (n := 22741) sc10 ?_
+  refine prepend (n := 17741) sc11 ?_
+  refine prepend (n := 12741) sc12 ?_
+  refine prepend (n := 7741) sc13 ?_
+  refine prepend (n := 2741) sc14 ?_
   exact sc15.1
 
 private theorem endpointMember : 6298 ∣ 2 ^ 77742 - 77742 := by
   set_option exponentiation.threshold 100000 in
   set_option maxRecDepth 1000000 in
   decide
-
-private theorem noSmaller (k : ℕ) (hk : 0 < k) (hklt : k < 77742) :
-    ¬6298 ∣ 2 ^ k - k := by
-  exact scan_sound fullScan (by decide) k (by omega) (by omega)
 
 private theorem aCertificate : a 6298 = 77742 := by
   have hmember : 0 < 77742 ∧ 6298 ∣ 2 ^ 77742 - 77742 :=
@@ -331,7 +326,10 @@ private theorem aCertificate : a 6298 = 77742 := by
   have hslt : sInf {k : ℕ | 0 < k ∧ 6298 ∣ 2 ^ k - k} < 77742 := by omega
   have hsMem := Nat.sInf_mem (s := {k : ℕ | 0 < k ∧ 6298 ∣ 2 ^ k - k})
     ⟨77742, hmember⟩
-  exact noSmaller _ hsMem.1 hslt hsMem.2
+  have hsOne : 1 ≤ sInf {k : ℕ | 0 < k ∧ 6298 ∣ 2 ^ k - k} := hsMem.1
+  have hsUpper : sInf {k : ℕ | 0 < k ∧ 6298 ∣ 2 ^ k - k} < 1 + 77741 := by
+    simpa using hslt
+  exact (scan_sound fullScan (by decide) _ hsOne hsUpper) hsMem.2
 
 private theorem primeIndexCertificate : Nat.nth Nat.Prime 6297 = 62753 := by
   have hp : Nat.Prime 62753 := by norm_num
