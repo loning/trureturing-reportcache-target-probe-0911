@@ -2,14 +2,12 @@
    generality: I
    mirror-B: D5/B/S0/Certificates/KimberlingCombWienerDeterminantRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.Combinatorics.SimpleGraph.Metric, mathlib/module/Mathlib.Data.Int.Interval, mathlib/module/Mathlib.Data.Fintype.Prod, mathlib/module/Mathlib.Algebra.BigOperators.Group.Finset.Basic]
+   anchors: [mathlib/module/Mathlib.Combinatorics.SimpleGraph.Metric, mathlib/module/Mathlib.Data.Int.Interval]
    utility: kind=certified-instance; basis=refutes=gid:D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.claim; result=D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.result; claim=D5/S0/Certificates/KimberlingCombWienerDeterminantRefutation.claim
-   digest: At n = 3, a literal comb Wiener index is 1 but the determinant-2n matrix count is 2, refuting the OEIS A192023 comment. -/
+   digest: At n = 3, the comb index 1 differs from the matrix count 2, refuting the A192023 comment. -/
 
 import Mathlib.Combinatorics.SimpleGraph.Metric
 import Mathlib.Data.Int.Interval
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
