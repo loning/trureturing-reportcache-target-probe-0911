@@ -9,7 +9,6 @@
 import D5.S3.ConceptDynamics.Spacetime.TemporalComposition
 
 set_option autoImplicit false
-set_option backward.isDefEq.respectTransparency false
 
 namespace D5.S3.ConceptDynamics.Spacetime.TemporalComplementProjection
 
@@ -30,11 +29,11 @@ theorem complement_selection_projection {c e : Context d} (h : Guard c.archive e
     (complement (selection h a b)).val =
       ((c.current \ a.val).disjSum (e.current \ b.val)).map
         (equiv c.archive e.archive h).toEmbedding := by
-  change ((c.current.disjSum e.current).map _ \ (a.val.disjSum b.val).map _) = _
-  rw [Finset.map_disjSum, Finset.map_disjSum]
-  ext z
-  obtain ⟨x, rfl⟩ := (equiv c.archive e.archive h).surjective z
-  cases x <;> simp [Finset.mem_map, Finset.mem_disjSum]
+  change (c.current.disjSum e.current).map (equiv c.archive e.archive h).toEmbedding \
+    (a.val.disjSum b.val).map (equiv c.archive e.archive h).toEmbedding = _
+  rw [← Finset.map_sdiff, Finset.map_inj]
+  ext x
+  cases x <;> simp
 
 /-- Temporal composition and event complement commute after projecting to the
 signed charge; no balance assumption is needed because the background terms
