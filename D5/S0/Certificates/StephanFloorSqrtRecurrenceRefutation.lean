@@ -2,11 +2,11 @@
    generality: I
    mirror-B: D5/B/S0/Certificates/StephanFloorSqrtRecurrenceRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Tactic.NormNum]
    utility: kind=certified-instance; basis=refutes=gid:D5/S0/Certificates/StephanFloorSqrtRecurrenceRefutation.claim; result=D5/S0/Certificates/StephanFloorSqrtRecurrenceRefutation.result; claim=D5/S0/Certificates/StephanFloorSqrtRecurrenceRefutation.claim
    digest: The n = 17 term refutes Stephan's conjectured recurrence for OEIS A104863. -/
 
-import Mathlib.Tactic
+import Mathlib.Tactic.NormNum
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
