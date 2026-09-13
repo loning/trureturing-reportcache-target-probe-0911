@@ -62,4 +62,104 @@ private theorem D_factorization (n p : ℕ) (hn : 1 ≤ n) :
     Finsupp.smul_apply, smul_eq_mul, Finsupp.inf_apply]
   rw [min_comm, tsub_min]
 
+private theorem factorization_even_of_card_divisors_odd
+    (n p : ℕ) (hn : n ≠ 0) (ht : Odd (Nat.divisors n).card) :
+    Even (n.factorization p) := by
+  by_cases hp : p ∈ n.primeFactors
+  · rw [Nat.card_divisors hn] at ht
+    by_contra heven
+    have hoddExp : Odd (n.factorization p) := Nat.not_even_iff_odd.mp heven
+    have hfactorEven : Even (n.factorization p + 1) := hoddExp.add_one
+    have hfactorDvd : n.factorization p + 1 ∣
+        ∏ q ∈ n.primeFactors, (n.factorization q + 1) :=
+      Finset.dvd_prod_of_mem (fun q => n.factorization q + 1) hp
+    have hprodEven : Even (∏ q ∈ n.primeFactors, (n.factorization q + 1)) :=
+      even_iff_two_dvd.mpr ((even_iff_two_dvd.mp hfactorEven).trans hfactorDvd)
+    exact (Nat.not_even_iff_odd.mpr ht) hprodEven
+  · have hz : n.factorization p = 0 := by
+      apply Finsupp.notMem_support_iff.mp
+      simpa only [Nat.support_factorization] using hp
+    simp [hz]
+
+private theorem card_divisors_mul_factorization_le_of_odd
+    (n p : ℕ) (hn : Odd n) :
+    (Nat.divisors n).card * n.factorization p ≤ n := by
+  have hn0 : n ≠ 0 := by
+    intro h
+    subst n
+    simp at hn
+  by_cases hp : p ∈ n.primeFactors
+  · have hprime := Nat.prime_of_mem_primeFactors hp
+    have hpDvd := Nat.dvd_of_mem_primeFactors hp
+    have hnotTwoDvd : ¬2 ∣ n := Nat.two_dvd_ne_zero.mpr (Nat.odd_iff.mp hn)
+    have hpNeTwo : p ≠ 2 := by
+      intro h
+      exact hnotTwoDvd (h ▸ hpDvd)
+    have hpThree : 3 ≤ p := by
+      have := hprime.two_le
+      omega
+    have hePos : 0 < n.factorization p := by
+      apply Nat.pos_of_ne_zero
+      apply Finsupp.mem_support_iff.mp
+      simpa only [Nat.support_factorization] using hp
+    have hcube : n.factorization p * (n.factorization p + 1) ≤
+        3 ^ n.factorization p := by
+      generalize n.factorization p = e at hePos ⊢
+      induction e with
+      | zero => omega
+      | succ e ih =>
+          by_cases hz : e = 0
+          · subst e
+            norm_num
+          · have ih' : e * (e + 1) ≤ 3 ^ e := ih (by omega)
+            rw [pow_succ]
+            calc
+              (e + 1) * (e + 1 + 1) ≤ (e + 1) * (3 * e) :=
+                Nat.mul_le_mul_left (e + 1) (by omega)
+              _ = 3 * (e * (e + 1)) := by ring
+              _ ≤ 3 * 3 ^ e := Nat.mul_le_mul_left 3 ih'
+              _ = 3 ^ e * 3 := by omega
+    have hspecial : (n.factorization p + 1) * n.factorization p ≤
+        p ^ n.factorization p := by
+      rw [mul_comm]
+      exact hcube.trans (Nat.pow_le_pow_left hpThree _)
+    have hrest :
+        (∏ q ∈ n.primeFactors.erase p, (n.factorization q + 1)) ≤
+          ∏ q ∈ n.primeFactors.erase p, q ^ n.factorization q := by
+      apply Finset.prod_le_prod
+      · simp
+      · intro q hq
+        have hqMem : q ∈ n.primeFactors := Finset.mem_of_mem_erase hq
+        have hqPrime := Nat.prime_of_mem_primeFactors hqMem
+        have hqTwo : 2 ≤ q := hqPrime.two_le
+        have hlinear := one_add_le_pow_of_two_add_nonneg
+          (R := ℕ) (a := q - 1) (by omega) (n.factorization q)
+        have hbase : 1 + (q - 1) = q := by omega
+        rw [hbase] at hlinear
+        have hqsub : 1 ≤ q - 1 := by omega
+        have hmul : n.factorization q ≤ n.factorization q * (q - 1) := by
+          simpa using Nat.mul_le_mul_left (n.factorization q) hqsub
+        have hadd : n.factorization q + 1 ≤
+            1 + n.factorization q * (q - 1) := by
+          simpa [add_comm] using Nat.add_le_add_right hmul 1
+        exact hadd.trans hlinear
+    rw [Nat.card_divisors hn0]
+    calc
+      (∏ q ∈ n.primeFactors, (n.factorization q + 1)) * n.factorization p =
+          ((n.factorization p + 1) * n.factorization p) *
+            ∏ q ∈ n.primeFactors.erase p, (n.factorization q + 1) := by
+              rw [← Finset.mul_prod_erase n.primeFactors
+                (fun q => n.factorization q + 1) hp]
+              ring
+      _ ≤ p ^ n.factorization p *
+          ∏ q ∈ n.primeFactors.erase p, q ^ n.factorization q :=
+        Nat.mul_le_mul hspecial hrest
+      _ = ∏ q ∈ n.primeFactors, q ^ n.factorization q :=
+        Finset.mul_prod_erase n.primeFactors (fun q => q ^ n.factorization q) hp
+      _ = n := (Nat.prod_primeFactors_pow_factorization hn0).symm
+  · have hz : n.factorization p = 0 := by
+      apply Finsupp.notMem_support_iff.mp
+      simpa only [Nat.support_factorization] using hp
+    simp [hz]
+
 end D5.S3.Arith.KrizekDivisorCountPowerRatioDenominatorSquare
