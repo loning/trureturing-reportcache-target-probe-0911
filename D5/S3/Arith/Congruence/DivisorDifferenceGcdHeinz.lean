@@ -4,8 +4,7 @@
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
    anchors: [mathlib/module/Mathlib.NumberTheory.Divisors, mathlib/module/Mathlib.Data.Finset.Sort, mathlib/module/Mathlib.NumberTheory.PrimeCounting, mathlib/module/Mathlib.Data.Nat.Factorization.Basic]
    utility: none
-   digest: Wiseman's A258409 divisor-minus-one gcd equals the consecutive divisor-gap gcd and its Heinz prime-index gcd.
- -/
+   digest: Wiseman's A258409 divisor-minus-one gcd equals the consecutive divisor-gap gcd and its Heinz prime-index gcd. -/
 
 import Mathlib.NumberTheory.Divisors
 import Mathlib.Data.Finset.Sort
@@ -237,6 +236,39 @@ theorem wiseman_a258409 : ∀ n, 2 ≤ n →
         exact sorted_list_gcd_sub_one_eq_gaps rest hsrest
       _ = consecutiveDifferenceGcd n := by
         simp [consecutiveDifferenceGcd, consecutiveDivisorDifferences, hrest]
-  exact ⟨by sorry, hconsec⟩
+  let gaps := (1 :: rest).zipWith (fun x y => y - x) (1 :: rest).tail
+  have hstrict : (1 :: rest).Pairwise (· < ·) := by
+    rw [← hrest]
+    simpa [divisorList] using (Finset.sortedLT_sort (n.divisors : Finset ℕ)).pairwise
+  have hgap_pos : ∀ d ∈ gaps, 0 < d := by
+    intro d hd
+    exact positive_gaps (1 :: rest) hstrict d (by simpa [gaps] using hd)
+  have hsupport : (heinzDifferences n).primeFactors =
+      gaps.toFinset.image (fun d => Nat.nth Nat.Prime (d - 1)) := by
+    rw [heinzDifferences, consecutiveDivisorDifferences, hrest]
+    apply primeFactors_map_prod_eq_image
+    intro d hd
+    exact Nat.nth_mem_of_infinite Nat.infinite_setOfPred_prime (d - 1)
+  have hindex : ∀ d ∈ gaps,
+      Nat.primeCounting (Nat.nth Nat.Prime (d - 1)) = d := by
+    intro d hd
+    have hdpos : 0 < d := hgap_pos d hd
+    calc
+      Nat.primeCounting (Nat.nth Nat.Prime (d - 1)) = (d - 1) + 1 :=
+        prime_counting_nth (d - 1)
+      _ = d := Nat.sub_add_cancel (by omega)
+  have hprimeeq : primeIndexGcd (heinzDifferences n) = gaps.toFinset.gcd id := by
+    rw [primeIndexGcd, hsupport, Finset.gcd_image]
+    apply Finset.gcd_congr rfl
+    intro d hd
+    exact hindex d (by simpa [gaps] using hd)
+  have hprime : a n = primeIndexGcd (heinzDifferences n) := by
+    calc
+      a n = (divisorList n).toFinset.gcd (fun d => d - 1) := haeq
+      _ = gaps.toFinset.gcd id := by
+        rw [hrest]
+        exact sorted_list_gcd_sub_one_eq_gaps rest hsrest
+      _ = primeIndexGcd (heinzDifferences n) := hprimeeq.symm
+  exact ⟨hprime, hconsec⟩
 
 end D5.S3.Arith.Congruence.DivisorDifferenceGcdHeinz
