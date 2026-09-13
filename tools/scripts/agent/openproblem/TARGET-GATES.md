@@ -47,6 +47,32 @@ Recorded misses, all of which reached or nearly reached a deposit:
   `D5/S3/Arith/TernaryTraceSupport`: for any solution `f`, put `q = 1 − (f² + f·t + t²)`; then
   `q(f − t) = 0` and `q` is a unit, so `f = t`, with no induction.
 
+### Read the source in full, and query the sequence itself
+
+Two checks, in this order, both established by one case.
+
+**Read the whole source section, not the statement of the conjecture.** A seat spent its run
+reconstructing row 2 of the construction in arXiv:2503.19696 as the involution exchanging the two
+Wythoff sequences. The paper says so itself, in the paragraph immediately after Proposition 5.6:
+"The sequence q_n corresponds with sequence A002251 in Sloane's on-line encyclopedia of integer
+sequences, obtained by swapping a(k) and b(k) for all k >= 1. This is evident from the expression
+for q_n given in Lemma 5.5." The entire reconstruction was avoidable by reading four more
+paragraphs of the paper that supplied the target.
+
+**When the object is an integer sequence, query OEIS with the terms, not with words:**
+
+    curl -s --get --data-urlencode "q=0 2 1 5 7 3 10 4 13 15 6 18 20 8" \
+        --data-urlencode "fmt=text" https://oeis.org/search
+
+That one query returns A002251 from the terms alone, with no shared vocabulary between the
+recursion that generated them and the entry's definition. It is the check that would have caught
+the same thing without reading the paper, which is why both are listed: the source may be silent,
+but the catalogue is searchable from the object. The same query on row 3 returns nothing, which
+is evidence that row 3 has not been catalogued — not evidence that it has no description.
+
+OEIS is a library in the sense the standing goal means, and it was missing from this check:
+Mathlib and the repository index were being searched while OEIS itself was not.
+
 A path is not a statement. A module named for an object may prove something else about it;
 treat a hit as "look here", not as "already done".
 
