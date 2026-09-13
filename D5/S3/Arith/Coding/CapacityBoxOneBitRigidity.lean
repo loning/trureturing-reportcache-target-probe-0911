@@ -24,18 +24,6 @@ noncomputable def edgeColour {B : Nat} {x y : Fin B → Bool}
     (h : hammingDist x y = 1) : Fin B :=
   Classical.choose (Finset.card_eq_one.mp (show (flipSupport x y).card = 1 from h))
 
-private theorem flipSupport_xor {B : Nat} (x y z : Fin B → Bool) :
-    flipSupport x z = flipSupport x y ∆ flipSupport y z := by
-  classical
-  ext i
-  simp only [flipSupport, Finset.mem_filter, Finset.mem_univ, true_and,
-    Finset.mem_symmDiff]
-  by_cases hxy : x i = y i <;> by_cases hyz : y i = z i
-  · simp [hxy, hyz]
-  · simp [hxy, hyz]
-  · simp [hxy, hyz]
-  · cases hx : x i <;> cases hy : y i <;> cases hz : z i <;> simp_all
-
 /-- Opposite edges of a nondegenerate Boolean square have the same colour. -/
 theorem square_opposite_edges_same_colour {B : Nat}
     (a b c d : Fin B → Bool)
@@ -44,6 +32,16 @@ theorem square_opposite_edges_same_colour {B : Nat}
     (had : a ≠ d) (hbc : b ≠ c) :
     edgeColour hab = edgeColour hcd := by
   classical
+  have flipSupport_xor (x y z : Fin B → Bool) :
+      flipSupport x z = flipSupport x y ∆ flipSupport y z := by
+    ext i
+    simp only [flipSupport, Finset.mem_filter, Finset.mem_univ, true_and,
+      Finset.mem_symmDiff]
+    by_cases hxy : x i = y i <;> by_cases hyz : y i = z i
+    · simp [hxy, hyz]
+    · simp [hxy, hyz]
+    · simp [hxy, hyz]
+    · cases hx : x i <;> cases hy : y i <;> cases hz : z i <;> simp_all
   let p := edgeColour hab
   let q := edgeColour hbd
   let r := edgeColour hac
@@ -87,35 +85,6 @@ theorem square_opposite_edges_same_colour {B : Nat}
       cases hx : a t <;> cases hy : b t <;> cases hz : c t <;> simp_all
     exact False.elim (hbc hbcEq)
   · simpa [p, s] using hps
-
-/-- Two consecutive unit edges with the same flipped coordinate cannot form a diagonal. -/
-theorem same_colour_adjacent_edges_force_diagonal {B : Nat}
-    (x y z : Fin B → Bool) (a : Fin B)
-    (hxy : flipSupport x y = {a})
-    (hyz : flipSupport y z = {a}) :
-    x = z := by
-  have hxy' : ∀ t, x t ≠ y t ↔ t = a := by
-    intro t
-    rw [show x t ≠ y t ↔ t ∈ flipSupport x y by simp [flipSupport], hxy]
-    simp
-  have hyz' : ∀ t, y t ≠ z t ↔ t = a := by
-    intro t
-    rw [show y t ≠ z t ↔ t ∈ flipSupport y z by simp [flipSupport], hyz]
-    simp
-  funext t
-  by_cases hta : t = a
-  · subst t
-    have hxyA : x a ≠ y a := (hxy' a).mpr rfl
-    have hyzA : y a ≠ z a := (hyz' a).mpr rfl
-    cases hx : x a <;> cases hy : y a <;> cases hz : z a <;> simp_all
-  · have hxyEq : x t = y t := by
-      by_contra h
-      exact hta ((hxy' t).mp h)
-    have hyzEq : y t = z t := by
-      by_contra h
-      exact hta ((hyz' t).mp h)
-    exact hxyEq.trans hyzEq
-
 
 open D5.S1.Ledger.BoundedTimeSlice (TailBox)
 
@@ -270,9 +239,13 @@ theorem different_axes_distinct_colours {n : ℕ} (φ : OneBitEmbedding A n)
     simp [flipSupport, ne_comm]
   have hnext : flipSupport (φ.toFun x) (φ.toFun (raise x q hxq)) =
       {unitEdgeColour φ x p hxp} := by rw [support q hxq, hcol]
-  have hd := same_colour_adjacent_edges_force_diagonal
-    (φ.toFun (raise x p hxp)) (φ.toFun x) (φ.toFun (raise x q hxq))
-    (unitEdgeColour φ x p hxp) hrev hnext
+  have hd : φ.toFun (raise x p hxp) = φ.toFun (raise x q hxq) := by
+    funext t
+    have hm : t ∈ flipSupport (φ.toFun (raise x p hxp)) (φ.toFun x) ↔
+        t ∈ flipSupport (φ.toFun x) (φ.toFun (raise x q hxq)) := by rw [hrev, hnext]
+    simp only [flipSupport, Finset.mem_filter, Finset.mem_univ, true_and] at hm
+    cases ha : φ.toFun (raise x p hxp) t <;> cases hb : φ.toFun x t <;>
+      cases hc : φ.toFun (raise x q hxq) t <;> simp_all
   have hval := congrArg (fun y : TailBox A => (y p).val) (φ.injective hd)
   simp [raise, hpq] at hval
 

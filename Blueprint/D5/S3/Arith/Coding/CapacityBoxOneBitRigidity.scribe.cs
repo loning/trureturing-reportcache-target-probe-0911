@@ -31,19 +31,6 @@ internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinit
                     + "coordinate, the two opposite edges change the same coordinate."))),
             DescribeRole.Theorem),
         Describe.Lean(
-            DescribeId.Create("same-colour-adjacent-edges-force-diagonal"),
-            DeclarationHandle.Create(
-                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.same_colour_adjacent_edges_force_diagonal"),
-            H("Same-colour adjacent edges force the diagonal"),
-            StatementSource.WithoutFormula(),
-            AssessedProvenance.FromRepo(),
-            Blocks(Paragraph(Text(
-                "For Boolean words indexed by a finite bit set, if the supports of the changes "
-                    + "from x to y and from y to z are the same singleton, then x and z agree "
-                    + "at every bit. The shared bit changes twice and every other bit changes "
-                    + "zero times."))),
-            DescribeRole.Theorem),
-        Describe.Lean(
             DescribeId.Create("unit-edge"),
             DeclarationHandle.Create(
                 "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.UnitEdge"),
