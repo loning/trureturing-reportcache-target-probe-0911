@@ -7,7 +7,7 @@
    digest: A one-bit hypercube square has equal opposite edge colours. -/
 
 import Mathlib.InformationTheory.Hamming
-import Mathlib.Tactic
+import D5.S1.Ledger.BoundedTimeSlice
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
@@ -19,21 +19,10 @@ open scoped symmDiff
 private def flipSupport {B : Nat} (x y : Fin B → Bool) : Finset (Fin B) :=
   Finset.univ.filter fun j => x j ≠ y j
 
-private theorem flipSupport_card_one {B : Nat} {x y : Fin B → Bool}
-    (h : hammingDist x y = 1) : (flipSupport x y).card = 1 := by
-  simpa [flipSupport, hammingDist]
-
-private theorem flipSupport_eq_singleton {B : Nat} {x y : Fin B → Bool}
-    (h : hammingDist x y = 1) : ∃ a : Fin B, flipSupport x y = {a} := by
-  exact Finset.card_eq_one.mp (flipSupport_card_one h)
-
+/-- The colour of a unit Boolean edge is its unique changed bit. -/
 noncomputable def edgeColour {B : Nat} {x y : Fin B → Bool}
     (h : hammingDist x y = 1) : Fin B :=
-  Classical.choose (flipSupport_eq_singleton h)
-
-private theorem flipSupport_eq_edgeColour {B : Nat} {x y : Fin B → Bool}
-    (h : hammingDist x y = 1) : flipSupport x y = {edgeColour h} :=
-  Classical.choose_spec (flipSupport_eq_singleton h)
+  Classical.choose (Finset.card_eq_one.mp (show (flipSupport x y).card = 1 from h))
 
 private theorem flipSupport_xor {B : Nat} (x y z : Fin B → Bool) :
     flipSupport x z = flipSupport x y ∆ flipSupport y z := by
@@ -47,17 +36,6 @@ private theorem flipSupport_xor {B : Nat} (x y z : Fin B → Bool) :
   · simp [hxy, hyz]
   · cases hx : x i <;> cases hy : y i <;> cases hz : z i <;> simp_all
 
-private theorem singleton_symmDiff_singleton_eq {B : Nat} {p q r s : Fin B}
-    (h : ({p} : Finset (Fin B)) ∆ {q} = ({r} : Finset (Fin B)) ∆ {s})
-    (hpq : p ≠ q) : p = r ∨ p = s := by
-  have hp : p ∈ ({p} : Finset (Fin B)) ∆ {q} := by
-    rw [Finset.mem_symmDiff]
-    exact Or.inl ⟨by simp, by simpa using hpq⟩
-  rw [h] at hp
-  have hp' : p = r ∧ p ≠ s ∨ p = s ∧ p ≠ r := by
-    simpa [Finset.mem_symmDiff] using hp
-  exact hp'.elim (fun h => Or.inl h.1) (fun h => Or.inr h.1)
-
 /-- Opposite edges of a nondegenerate Boolean square have the same colour. -/
 theorem square_opposite_edges_same_colour {B : Nat}
     (a b c d : Fin B → Bool)
@@ -70,10 +48,10 @@ theorem square_opposite_edges_same_colour {B : Nat}
   let q := edgeColour hbd
   let r := edgeColour hac
   let s := edgeColour hcd
-  have hs1 : flipSupport a b = {p} := flipSupport_eq_edgeColour hab
-  have hs2 : flipSupport b d = {q} := flipSupport_eq_edgeColour hbd
-  have hs3 : flipSupport a c = {r} := flipSupport_eq_edgeColour hac
-  have hs4 : flipSupport c d = {s} := flipSupport_eq_edgeColour hcd
+  have hs1 : flipSupport a b = {p} := Classical.choose_spec (Finset.card_eq_one.mp hab)
+  have hs2 : flipSupport b d = {q} := Classical.choose_spec (Finset.card_eq_one.mp hbd)
+  have hs3 : flipSupport a c = {r} := Classical.choose_spec (Finset.card_eq_one.mp hac)
+  have hs4 : flipSupport c d = {s} := Classical.choose_spec (Finset.card_eq_one.mp hcd)
   have hxor : (({p} : Finset (Fin B)) ∆ {q}) = (({r} : Finset (Fin B)) ∆ {s}) := by
     calc
       ({p} : Finset (Fin B)) ∆ {q} = flipSupport a b ∆ flipSupport b d := by rw [hs1, hs2]
@@ -92,7 +70,13 @@ theorem square_opposite_edges_same_colour {B : Nat}
       rw [hsd] at ht
       simpa using ht
     exact had this
-  rcases singleton_symmDiff_singleton_eq hxor hpq with hpr | hps
+  have hp : p ∈ ({p} : Finset (Fin B)) ∆ {q} := by simp [hpq]
+  rw [hxor] at hp
+  have hcases : p = r ∨ p = s := by
+    rcases Finset.mem_symmDiff.mp hp with h | h
+    · exact Or.inl (Finset.mem_singleton.mp h.1)
+    · exact Or.inr (Finset.mem_singleton.mp h.1)
+  rcases hcases with hpr | hps
   · have hsup : flipSupport a b = flipSupport a c := by rw [hs1, hs3, hpr]
     have hbcEq : b = c := by
       funext t
@@ -129,6 +113,73 @@ theorem same_colour_adjacent_edges_force_diagonal {B : Nat}
       by_contra h
       exact hta ((hyz' t).mp h)
     exact hxyEq.trans hyzEq
+
+
+open D5.S1.Ledger.BoundedTimeSlice (TailBox)
+
+variable {P : Type*} [Fintype P] {A : P → ℕ}
+
+/-- A directed unit edge increases one coordinate by one and fixes all others. -/
+def UnitEdge (p : P) (a b : TailBox A) : Prop :=
+  (b p).val = (a p).val + 1 ∧ ∀ q, q ≠ p → b q = a q
+
+/-- An injective Boolean code sending each unit edge to Hamming distance one. -/
+structure OneBitEmbedding (A : P → ℕ) (n : ℕ) where
+  toFun : TailBox A → (Fin n → Bool)
+  injective : Function.Injective toFun
+  map_unitEdge : ∀ (p : P) (a b : TailBox A), UnitEdge p a b →
+    hammingDist (toFun a) (toFun b) = 1
+
+/-- Increase a coordinate whose current value is strictly below its capacity. -/
+noncomputable def raise (a : TailBox A) (p : P) (h : (a p).val < A p) : TailBox A :=
+  Function.update a p ⟨(a p).val + 1, Nat.add_lt_add_right h 1⟩
+
+/-- The colour of the edge increasing the indicated coordinate. -/
+noncomputable def unitEdgeColour {n : ℕ} (φ : OneBitEmbedding A n)
+    (a : TailBox A) (p : P) (h : (a p).val < A p) : Fin n := by
+  classical
+  exact edgeColour (φ.map_unitEdge p a (raise a p h) (by
+    constructor
+    · simp [raise]
+    · intro q hq
+      simp [raise, hq]))
+
+
+/-- Moving one step along another axis preserves the colour of a layer edge. -/
+theorem layer_colour_invariant {n : ℕ} (φ : OneBitEmbedding A n)
+    (a : TailBox A) (p q : P) (hpq : p ≠ q)
+    (hp : (a p).val < A p) (hq : (a q).val < A q) :
+    unitEdgeColour φ a p hp =
+      unitEdgeColour φ (raise a q hq) p (by simpa [raise, hpq] using hp) := by
+  classical
+  let b := raise a p hp
+  let c := raise a q hq
+  have hcp : (c p).val < A p := by simpa [c, raise, hpq] using hp
+  let d := raise c p hcp
+  have hedge (x : TailBox A) (r : P) (hr : (x r).val < A r) :
+      UnitEdge r x (raise x r hr) := by
+    constructor
+    · simp [raise]
+    · intro t ht
+      simp [raise, ht]
+  have hbd : UnitEdge q b d := by
+    constructor
+    · simp [b, c, d, raise, hpq, Ne.symm hpq]
+    · intro t ht
+      by_cases htp : t = p
+      · subst t
+        simp [b, c, d, raise, hpq]
+      · simp [b, c, d, raise, ht, htp]
+  apply square_opposite_edges_same_colour (φ.toFun a) (φ.toFun b)
+    (φ.toFun c) (φ.toFun d) (φ.map_unitEdge _ _ _ (hedge a p hp))
+    (φ.map_unitEdge _ _ _ hbd) (φ.map_unitEdge _ _ _ (hedge a q hq))
+    (φ.map_unitEdge _ _ _ (hedge c p hcp))
+  · intro h
+    have he := congrArg (fun x : TailBox A => (x p).val) (φ.injective h)
+    simp [d, c, raise, hpq] at he
+  · intro h
+    have he := congrArg (fun x : TailBox A => (x p).val) (φ.injective h)
+    simp [b, c, raise, hpq] at he
 
 
 end D5.S3.Arith.Coding.CapacityBoxOneBitRigidity

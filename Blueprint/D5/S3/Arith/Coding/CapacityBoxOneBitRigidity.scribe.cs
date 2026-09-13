@@ -6,7 +6,7 @@ namespace StrataLint.Scribe.Blueprint.D5.S3.Arith.Coding;
 internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinition
 {
     public DocumentDefinition Create() => DocumentDefinition.Create(ScribeNode.Create(
-        "A Boolean hypercube cannot return to a different diagonal after two consecutive edges use the same bit.",
+        "Unit-edge embeddings of capacity boxes assign the same colour to opposite edges of each coordinate square.",
         H("Capacity Box One-Bit Rigidity"),
         Blocks(Describe.Lean(
             DescribeId.Create("edge-colour"),
@@ -42,5 +42,55 @@ internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinit
                     + "from x to y and from y to z are the same singleton, then x and z agree "
                     + "at every bit. The shared bit changes twice and every other bit changes "
                     + "zero times."))),
+            DescribeRole.Theorem),
+        Describe.Lean(
+            DescribeId.Create("unit-edge"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.UnitEdge"),
+            H("Directed capacity edge"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "A unit edge increases one capacity coordinate by one while fixing every other coordinate."))),
+            DescribeRole.Definition),
+        Describe.Lean(
+            DescribeId.Create("one-bit-embedding"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.OneBitEmbedding"),
+            H("One-bit capacity code"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "A one-bit capacity code is injective and maps every unit edge to two Boolean words at Hamming distance one."))),
+            DescribeRole.Definition),
+        Describe.Lean(
+            DescribeId.Create("raise"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.raise"),
+            H("Increase one coordinate"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "The indicated coordinate is increased by one when its value is below capacity."))),
+            DescribeRole.Definition),
+        Describe.Lean(
+            DescribeId.Create("unit-edge-colour"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.unitEdgeColour"),
+            H("Colour of a capacity edge"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "The colour of a capacity edge is the unique bit changed by its image."))),
+            DescribeRole.Definition),
+        Describe.Lean(
+            DescribeId.Create("layer-colour-invariant"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.layer_colour_invariant"),
+            H("Transport across a coordinate square"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "Increasing a different coordinate leaves the colour of a fixed layer edge unchanged. Injectivity keeps both diagonals of the image square nondegenerate."))),
             DescribeRole.Theorem))));
 }
