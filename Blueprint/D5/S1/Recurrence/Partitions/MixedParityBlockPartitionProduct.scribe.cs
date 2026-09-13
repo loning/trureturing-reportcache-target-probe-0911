@@ -108,46 +108,60 @@ internal sealed class MixedParityBlockPartitionProductDocument : IScribeDocument
     private static Formula SetPartitionFormula() => Def2("SetPartition", "r",
         Call("Finpartition", Call("univ", Call("Fin", V("r")))));
     private static Formula StirlingFormula() => Def3("stirling2", "r", "i",
-        Call("card", Call("partitionsWithBlockCount", V("r"), V("i"))));
+        Call("card", Subtype("P", Call("SetPartition", V("r")),
+            Equal(Call("card", Call("parts", V("P"))), V("i")))));
     private static Formula MarkedPartitionFormula() => Def3("MarkedPartition", "r", "k",
-        Call("marked", Call("SetPartition", V("r")), V("k")));
+        DependentSum("P", Call("SetPartition", V("r")),
+            Subtype("M", Call("Finset", Call("parts", V("P"))),
+                Equal(Call("card", V("M")), V("k")))));
     private static Formula MarkedPartitionsFormula() => Def3("markedPartitions", "r", "k",
         Call("card", Call("MarkedPartition", V("r"), V("k"))));
     private static Formula A049020Formula() => Disp(Universal2("r", "k", Equal(
         Call("A049020", V("r"), V("k")), Seq(new Formula.Subscript(Sum,
             Seq(V("i"), Sp, InMacro, Sp, Call("range", Add(V("r"), D(1))))), Sp,
-            Multiply(Call("S2", V("r"), V("i")), Call("C", V("i"), V("k")))))));
+            Multiply(Call("stirling2", V("r"), V("i")),
+                Call("choose", V("i"), V("k")))))));
     private static Formula MarkedA049020Formula() => Disp(Universal2("r", "k", Equal(
         Call("markedPartitions", V("r"), V("k")), Call("A049020", V("r"), V("k")))));
-    private static Formula ParityIndexFormula() => Def2("ParityIndex", "n", Call("sumType",
+    private static Formula ParityIndexFormula() => Def2("ParityIndex", "n", Call("Sum",
         Call("Fin", CeilHalf(V("n"))), Call("Fin", FloorHalf(V("n")))));
-    private static Formula ParityBlockFormula() => Def2("ParityBlock", "n", Call("product",
+    private static Formula ParityBlockFormula() => Def2("ParityBlock", "n", Product(
         Call("Finset", Call("Fin", CeilHalf(V("n")))),
         Call("Finset", Call("Fin", FloorHalf(V("n"))))));
     private static Formula ParityPartitionFormula() => Def2("ParityPartition", "n",
-        Call("Finpartition", Call("product", Call("univ", Call("Fin", CeilHalf(V("n")))),
+        Call("Finpartition", Pair(Call("univ", Call("Fin", CeilHalf(V("n")))),
             Call("univ", Call("Fin", FloorHalf(V("n")))))));
-    private static Formula IsMixedBlockFormula() => Disp(Universal("b", Equal(
-        Call("IsMixedBlock", V("b")), And(Call("Nonempty", Call("oddPart", V("b"))),
-            Call("Nonempty", Call("evenPart", V("b")))))));
-    private static Formula MixedBlockCountFormula() => Disp(Universal("P", Equal(
-        Call("mixedBlockCount", V("P")), Call("card", Call("filter", Call("parts", V("P")),
-            V("IsMixedBlock"))))));
+    private static Formula IsMixedBlockFormula() => Disp(Universal("n", Bound("b",
+        Call("ParityBlock", V("n")), Iff(Call("IsMixedBlock", V("b")),
+            And(Call("Nonempty", Projection(V("b"), 1)),
+                Call("Nonempty", Projection(V("b"), 2)))))));
+    private static Formula MixedBlockCountFormula() => Disp(Universal("n", Bound("P",
+        Call("ParityPartition", V("n")), Equal(Call("mixedBlockCount", V("P")),
+            Call("card", Call("filter", V("IsMixedBlock"),
+                Call("parts", V("P"))))))));
     private static Formula MixedParityPartitionFormula() => Def3("MixedParityPartition", "n", "k",
-        Call("partitionsWithMixedBlockCount", V("n"), V("k")));
+        Subtype("P", Call("ParityPartition", V("n")),
+            Equal(Call("mixedBlockCount", V("P")), V("k"))));
     private static Formula TFormula() => Def3("T", "n", "k",
         Call("card", Call("MixedParityPartition", V("n"), V("k"))));
-    private static Formula IsMixedBlockFinFormula() => Disp(Universal("b", Equal(
-        Call("IsMixedBlockFin", V("b")), And(
-            Call("containsOddEntry", V("b")), Call("containsEvenEntry", V("b"))))));
+    private static Formula IsMixedBlockFinFormula() => Disp(Universal("n", Bound("b",
+        Call("Finset", Call("Fin", V("n"))), Iff(Call("IsMixedBlockFin", V("b")), And(
+            ExistsIn("x", V("b"), Call("Odd", Add(Projection(V("x"), "val"), D(1)))),
+            ExistsIn("x", V("b"), Call("Even", Add(Projection(V("x"), "val"), D(1)))))))));
     private static Formula TfinFormula() => Def3("Tfin", "n", "k",
-        Call("card", Call("literalMixedPartitions", V("n"), V("k"))));
+        Call("card", Subtype("P", Call("Finpartition", Call("univ", Call("Fin", V("n")))),
+            Equal(Call("card", Call("filter", V("IsMixedBlockFin"),
+                Call("parts", V("P")))), V("k")))));
     private static Formula TBridgeFormula() => Disp(Universal2("n", "k", Equal(
         Call("T", V("n"), V("k")), Call("Tfin", V("n"), V("k")))));
-    private static Formula MarkedBlocksFormula() => Disp(Universal("P", Equal(
-        Call("MarkedBlocks", V("P")), Call("selectedBlocks", V("P")))));
+    private static Formula MarkedBlocksFormula() => Disp(Universal2("r", "k", Bound("P",
+        Call("MarkedPartition", V("r"), V("k")), Equal(Call("MarkedBlocks", V("P")),
+            Projection(V("P"), 2, 1)))));
     private static Formula PairingDataFormula() => Def3("RestrictionPairingData", "n", "k",
-        Call("pairedMarkedRestrictions", V("n"), V("k")));
+        DependentSum("odd", Call("MarkedPartition", CeilHalf(V("n")), V("k")),
+            DependentSum("even", Call("MarkedPartition", FloorHalf(V("n")), V("k")),
+                Equivalent(Call("MarkedBlocks", V("odd")),
+                    Call("MarkedBlocks", V("even"))))));
     private static Formula RestrictionEquivFormula() => Disp(Universal2("n", "k", Seq(
         Call("MixedParityPartition", V("n"), V("k")), Sp, Equiv, Sp,
         Call("RestrictionPairingData", V("n"), V("k")))));
@@ -176,13 +190,42 @@ internal sealed class MixedParityBlockPartitionProductDocument : IScribeDocument
         Seq(Forall, Sp, V(x), Sp, InMacro, Sp, Naturals(), Comma, Sp, body);
     private static Formula Universal2(string x, string y, Formula body) =>
         Universal(x, Universal(y, body));
+    private static Formula Bound(string name, Formula type, Formula body) =>
+        new Formula.Bind(FormulaQuantifier.ForAll, FormulaIdentifier.Create(name), type, body);
+    private static Formula ExistsIn(string name, Formula type, Formula body) =>
+        new Formula.Bind(FormulaQuantifier.Exists, FormulaIdentifier.Create(name), type, body);
     private static Formula Naturals() => V("N");
+    private static Formula Subtype(string name, Formula type, Formula predicate) =>
+        Seq(OpenBrace, V(name), Sp, Colon, Sp, type, Sp, Mid, Sp, predicate, CloseBrace);
+    private static Formula DependentSum(string name, Formula type, Formula body) =>
+        Seq(Sigma, Sp, V(name), Sp, Colon, Sp, type, Comma, Sp, body);
+    private static Formula Pair(Formula left, Formula right) =>
+        Parenthesized(Seq(left, Comma, Sp, right));
+    private static Formula Product(Formula left, Formula right) =>
+        Seq(left, Sp, Times, Sp, right);
+    private static Formula Projection(Formula value, params int[] fields)
+    {
+        var pieces = new List<Formula> { value };
+        foreach (var field in fields)
+        {
+            pieces.Add(Dot);
+            pieces.Add(D((byte)field));
+        }
+        return Seq(pieces.ToArray());
+    }
+    private static Formula Projection(Formula value, string field) =>
+        Seq(value, Dot, V(field));
     private static Formula FloorHalf(Formula n) =>
         Seq(Lfloor, Sp, n, Sp, Slash, Sp, D(2), Rfloor);
     private static Formula CeilHalf(Formula n) =>
         Seq(Lfloor, Parenthesized(Add(n, D(1))), Sp, Slash, Sp, D(2), Rfloor);
     private static Formula Equal(Formula left, Formula right) =>
         Seq(left, Sp, Eq, Sp, right);
+    private static Formula Equivalent(Formula left, Formula right) =>
+        Seq(left, Sp, Equiv, Sp, right);
+    private static Formula Iff(Formula left, Formula right) =>
+        new Formula.Logic(Parenthesized(left), FormulaLogicOperator.Iff,
+            Parenthesized(right));
     private static Formula LessOrEqual(Formula left, Formula right) =>
         new Formula.Relation(left, FormulaRelationOperator.LessThanOrEqual, right);
     private static Formula And(Formula left, Formula right) =>

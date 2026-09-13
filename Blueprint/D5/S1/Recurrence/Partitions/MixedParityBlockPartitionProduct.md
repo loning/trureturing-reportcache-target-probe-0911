@@ -22,7 +22,7 @@ Set partitions of the universal finite set with r elements.
 
 **Definition 1.2 (Stirling numbers of the second kind).**
 
-$$\forall r \in N, \forall i \in N, stirling2(r,i) = card(partitionsWithBlockCount(r,i))$$
+$$\forall r \in N, \forall i \in N, stirling2(r,i) = card(\{P : SetPartition(r) \mid card(parts(P)) = i\})$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.stirling2` (`✓ std3`).
 
@@ -34,7 +34,7 @@ This is the number of partitions of an r-element set into i blocks, the Stirling
 
 **Definition 1.3 (Partitions with marked blocks).**
 
-$$\forall r \in N, \forall k \in N, MarkedPartition(r,k) = marked(SetPartition(r),k)$$
+$$\forall r \in N, \forall k \in N, MarkedPartition(r,k) = \Sigma P : SetPartition(r), \{M : Finset(parts(P)) \mid card(M) = k\}$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.MarkedPartition` (`✓ std3`).
 
@@ -58,7 +58,7 @@ The cardinality of the marked-partition family.
 
 **Definition 1.5 (The A049020 triangle).**
 
-$$\forall r \in N, \forall k \in N, A049020(r,k) = \sum_{i \in range(r + 1)} S2(r,i) \cdot C(i,k)$$
+$$\forall r \in N, \forall k \in N, A049020(r,k) = \sum_{i \in range(r + 1)} stirling2(r,i) \cdot choose(i,k)$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.A049020` (`✓ std3`).
 
@@ -82,7 +82,7 @@ Decomposition by the number of blocks gives one binomial choice per fiber.
 
 **Definition 1.7 (Odd and even index carriers).**
 
-$$\forall n \in N, ParityIndex(n) = sumType(Fin(\lfloor(n + 1) / 2\rfloor),Fin(\lfloor n / 2\rfloor))$$
+$$\forall n \in N, ParityIndex(n) = Sum(Fin(\lfloor(n + 1) / 2\rfloor),Fin(\lfloor n / 2\rfloor))$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.ParityIndex` (`✓ std3`).
 
@@ -94,7 +94,7 @@ The left summand has the odd entries and the right summand has the even entries.
 
 **Definition 1.8 (Parity-split blocks).**
 
-$$\forall n \in N, ParityBlock(n) = product(Finset(Fin(\lfloor(n + 1) / 2\rfloor)),Finset(Fin(\lfloor n / 2\rfloor)))$$
+$$\forall n \in N, ParityBlock(n) = Finset(Fin(\lfloor(n + 1) / 2\rfloor)) \times Finset(Fin(\lfloor n / 2\rfloor))$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.ParityBlock` (`✓ std3`).
 
@@ -106,7 +106,7 @@ A block is represented by its odd restriction and its even restriction.
 
 **Definition 1.9 (Parity-split partitions).**
 
-$$\forall n \in N, ParityPartition(n) = Finpartition(product(univ(Fin(\lfloor(n + 1) / 2\rfloor)),univ(Fin(\lfloor n / 2\rfloor))))$$
+$$\forall n \in N, ParityPartition(n) = Finpartition((univ(Fin(\lfloor(n + 1) / 2\rfloor)), univ(Fin(\lfloor n / 2\rfloor))))$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.ParityPartition` (`✓ std3`).
 
@@ -118,7 +118,7 @@ These are partitions of the product lattice of odd and even subsets.
 
 **Definition 1.10 (Mixed parity blocks).**
 
-$$\forall b \in N, IsMixedBlock(b) = Nonempty(oddPart(b)) \land Nonempty(evenPart(b))$$
+$$\forall n \in N, \forall b \in ParityBlock(n),\; (IsMixedBlock(b)) \Leftrightarrow (Nonempty(b.1) \land Nonempty(b.2))$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.IsMixedBlock` (`✓ std3`).
 
@@ -130,7 +130,7 @@ A parity-split block is mixed exactly when both coordinates are nonempty.
 
 **Definition 1.11 (Number of mixed blocks).**
 
-$$\forall P \in N, mixedBlockCount(P) = card(filter(parts(P),IsMixedBlock))$$
+$$\forall n \in N, \forall P \in ParityPartition(n),\; mixedBlockCount(P) = card(filter(IsMixedBlock,parts(P)))$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.mixedBlockCount` (`✓ std3`).
 
@@ -142,7 +142,7 @@ Filter the block family by mixedness and take its cardinality.
 
 **Definition 1.12 (Partitions with k mixed blocks).**
 
-$$\forall n \in N, \forall k \in N, MixedParityPartition(n,k) = partitionsWithMixedBlockCount(n,k)$$
+$$\forall n \in N, \forall k \in N, MixedParityPartition(n,k) = \{P : ParityPartition(n) \mid mixedBlockCount(P) = k\}$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.MixedParityPartition` (`✓ std3`).
 
@@ -166,7 +166,7 @@ The cardinality of the parity-split partition family with k mixed blocks.
 
 **Definition 1.14 (Literal mixed blocks).**
 
-$$\forall b \in N, IsMixedBlockFin(b) = containsOddEntry(b) \land containsEvenEntry(b)$$
+$$\forall n \in N, \forall b \in Finset(Fin(n)),\; (IsMixedBlockFin(b)) \Leftrightarrow (\left(\exists x \in b,\; Odd(x.val + 1)\right) \land \left(\exists x \in b,\; Even(x.val + 1)\right))$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.IsMixedBlockFin` (`✓ std3`).
 
@@ -178,7 +178,7 @@ For x representing x+1, a block contains witnesses of both entry parities.
 
 **Definition 1.15 (The literal set-partition count).**
 
-$$\forall n \in N, \forall k \in N, Tfin(n,k) = card(literalMixedPartitions(n,k))$$
+$$\forall n \in N, \forall k \in N, Tfin(n,k) = card(\{P : Finpartition(univ(Fin(n))) \mid card(filter(IsMixedBlockFin,parts(P))) = k\})$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.Tfin` (`✓ std3`).
 
@@ -202,7 +202,7 @@ Splitting Fin n by parity transports partitions bijectively and preserves the nu
 
 **Definition 1.17 (The marked block family).**
 
-$$\forall P \in N, MarkedBlocks(P) = selectedBlocks(P)$$
+$$\forall r \in N, \forall k \in N, \forall P \in MarkedPartition(r,k),\; MarkedBlocks(P) = P.2.1$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.MarkedBlocks` (`✓ std3`).
 
@@ -214,7 +214,7 @@ Project the selected blocks from a marked partition.
 
 **Definition 1.18 (Restriction and pairing data).**
 
-$$\forall n \in N, \forall k \in N, RestrictionPairingData(n,k) = pairedMarkedRestrictions(n,k)$$
+$$\forall n \in N, \forall k \in N, RestrictionPairingData(n,k) = \Sigma odd : MarkedPartition(\lfloor(n + 1) / 2\rfloor,k), \Sigma even : MarkedPartition(\lfloor n / 2\rfloor,k), MarkedBlocks(odd) \equiv MarkedBlocks(even)$$
 
 *Formalization.* `D5/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct.RestrictionPairingData` (`✓ std3`).
 
