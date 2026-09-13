@@ -184,5 +184,66 @@ theorem layer_colour_invariant {n : ℕ} (φ : OneBitEmbedding A n)
     have he := congrArg (fun x : TailBox A => (x p).val) (φ.injective h)
     simp [b, c, raise, hpq] at he
 
+/-- The colour of a coordinate edge depends only on its axis and starting layer. -/
+theorem colour_depends_only_on_layer {n : ℕ} (φ : OneBitEmbedding A n)
+    (a b : TailBox A) (p : P) (hp : (a p).val < A p) (hb : (b p).val < A p)
+    (hab : (a p).val = (b p).val) :
+    unitEdgeColour φ a p hp = unitEdgeColour φ b p hb := by
+  classical
+  let base : TailBox A := Function.update (fun r => ⟨0, Nat.zero_lt_succ (A r)⟩) p (a p)
+  have hbase : (base p).val < A p := by simpa [base] using hp
+  have transport : ∀ m, ∀ (x : TailBox A), (∑ r, (x r).val) = m →
+      x p = a p → ∀ hx : (x p).val < A p,
+      unitEdgeColour φ x p hx = unitEdgeColour φ base p hbase := by
+    intro m
+    induction m using Nat.strong_induction_on with
+    | h m ih =>
+      intro x hsum hxp hx
+      by_cases hz : ∀ q, q ≠ p → (x q).val = 0
+      · have hxb : x = base := by
+          funext q
+          by_cases hqp : q = p
+          · subst q
+            simpa [base] using hxp
+          · apply Fin.ext
+            simpa [base, hqp] using hz q hqp
+        subst x
+        rfl
+      · push Not at hz
+        obtain ⟨q, hqp, hq⟩ := hz
+        let y : TailBox A := Function.update x q
+          ⟨(x q).val - 1, by have := (x q).isLt; omega⟩
+        have hyp : y p = a p := by simpa [y, Ne.symm hqp] using hxp
+        have hycap : (y p).val < A p := by simpa [y, Ne.symm hqp] using hx
+        have hyq : (y q).val < A q := by
+          have := (x q).isLt
+          simp only [y, Function.update_self]
+          omega
+        have hyraise : raise y q hyq = x := by
+          funext r
+          by_cases hrq : r = q
+          · subst r
+            apply Fin.ext
+            simp only [raise, Function.update_self, y]
+            omega
+          · simp [raise, y, hrq]
+        have hlt : (∑ r, (y r).val) < (∑ r, (x r).val) := by
+          apply Finset.sum_lt_sum
+          · intro r _
+            by_cases hrq : r = q
+            · subst r
+              simp [y]
+            · simp [y, hrq]
+          · refine ⟨q, Finset.mem_univ q, ?_⟩
+            simp only [y, Function.update_self]
+            omega
+        have hrec := ih (∑ r, (y r).val) (by omega) y rfl hyp hycap
+        have hstep := layer_colour_invariant φ y p q (Ne.symm hqp) hycap hyq
+        have hxy : unitEdgeColour φ x p hx = unitEdgeColour φ y p hycap := by
+          simpa only [hyraise] using hstep.symm
+        exact hxy.trans hrec
+  exact (transport _ a rfl rfl hp).trans
+    (transport _ b rfl (Fin.ext hab.symm) hb).symm
+
 
 end D5.S3.Arith.Coding.CapacityBoxOneBitRigidity

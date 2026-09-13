@@ -92,5 +92,17 @@ internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinit
             AssessedProvenance.FromRepo(),
             Blocks(Paragraph(Text(
                 "Increasing a different coordinate leaves the colour of a fixed layer edge unchanged. Injectivity keeps both diagonals of the image square nondegenerate."))),
+            DescribeRole.Theorem),
+        Describe.Lean(
+            DescribeId.Create("colour-depends-only-on-layer"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.colour_depends_only_on_layer"),
+            H("Colours are constant across a layer"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "Two edges increasing the same axis from the same starting value have the "
+                    + "same colour, regardless of their other coordinates. Lowering those "
+                    + "coordinates one at a time connects each edge to the same axis fibre."))),
             DescribeRole.Theorem))));
 }
