@@ -25,24 +25,21 @@ open GaussianInt
 def z : ℕ → GaussianInt :=
   Nat.binaryRec 0 (fun b _ w => (if b then 1 else 0) + (⟨0, 1⟩ : GaussianInt) * w)
 
-private theorem z_zero : z 0 = 0 := by
-  rfl
-
-private theorem z_bit (b : Bool) (n : ℕ) :
-    z (Nat.bit b n) = (if b then 1 else 0) + (⟨0, 1⟩ : GaussianInt) * z n := by
-  simpa [z] using
-    (Nat.binaryRec_eq (motive := fun _ => GaussianInt)
-      (zero := (0 : GaussianInt))
-      (bit := fun b _ w => (if b then 1 else 0) + (⟨0, 1⟩ : GaussianInt) * w)
-      b n (by simp))
-
 private theorem invariant : ∀ n : ℕ,
     (n : ZMod 5) = (z n).re + 2 * (z n).im := by
   intro n
   induction n using Nat.binaryRec with
-  | zero => simp [z_zero]
+  | zero => simp [z]
   | bit b n ih =>
-      rw [z_bit]
+      have hz : z (Nat.bit b n) =
+          (if b then 1 else 0) + (⟨0, 1⟩ : GaussianInt) * z n := by
+        simpa [z] using
+          (Nat.binaryRec_eq (motive := fun _ => GaussianInt)
+            (zero := (0 : GaussianInt))
+            (bit := fun b _ w =>
+              (if b then 1 else 0) + (⟨0, 1⟩ : GaussianInt) * w)
+            b n (by simp))
+      rw [hz]
       rw [Nat.bit_val]
       have h4 : (4 : ZMod 5) = -1 := by decide
       cases b <;> simp [ih]
