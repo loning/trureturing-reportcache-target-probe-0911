@@ -46,6 +46,10 @@ $$\neg claim$$
 
 *Proof.* Machine-checked in Lean as `D5/S0/Certificates/KrizekIntegralityGcdRecordRefutation.result` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a245786-integrality-gcd-record-refutation` (refuted) by `D5/S0/Certificates/KrizekIntegralityGcdRecordRefutation.result`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a245786-integrality-gcd-record-refutation","declaration_gid":"D5/S0/Certificates/KrizekIntegralityGcdRecordRefutation.result","resolution_kind":"refuted"} -->
+
 *Source.* Repository-derived.
 
 *Acknowledgement.* Jaroslav Krizek (2014). *OEIS A245786, Numbers n such that k(n) = (n/tau(n) + sigma(n)/n) is an integer*. URL: <https://oeis.org/A245786>.

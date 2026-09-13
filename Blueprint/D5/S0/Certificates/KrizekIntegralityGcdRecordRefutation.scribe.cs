@@ -53,7 +53,11 @@ internal sealed class KrizekIntegralityGcdRecordRefutationDocument : IScribeDocu
                         + "N/tau(N) + sigma(N)/N = 957958. Its gcd value is 91963648. "
                         + "For the smaller M = 142990848, sigma(M) = 571963392 = 4M and "
                         + "the gcd value is M itself. Thus N is a member but not a record."))),
-                DescribeRole.Theorem))));
+                DescribeRole.Theorem,
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a245786-integrality-gcd-record-refutation"),
+                    ResolutionKind.Refuted)))));
 
     private static Formula IsMemberFormula()
     {
