@@ -446,57 +446,64 @@ private noncomputable def gluedMixedEmbedding {n k : ℕ}
     apply Subtype.ext
     exact congrArg Prod.fst h
 
+private theorem glued_mixed_parts {n k : ℕ} (D : RestrictionPairingData n k) :
+    mixedParts (gluedPartition D) =
+      D.1.2.1.attach.map (gluedMixedEmbedding D) := by
+  classical
+  ext p
+  simp only [mixedParts, gluedPartition, Finpartition.copy_parts, Finpartition.parts_map,
+    Finset.mem_filter, Finset.mem_map]
+  constructor
+  · rintro ⟨⟨b, hb, hbp⟩, hp⟩
+    subst p
+    simp only [gluedSumPartition, Finpartition.ofExistsUnique_parts] at hb
+    simp only [gluedSumParts, Finset.mem_union] at hb
+    rcases hb with hodd | heven | hmixed
+    · obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp hodd
+      have hp' := hp.2
+      change (a.disjSum (∅ : Finset (Fin (n / 2)))).toRight.Nonempty at hp'
+      rw [Finset.toRight_disjSum] at hp'
+      exact (Finset.not_nonempty_empty hp').elim
+    · obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp heven
+      have hp' := hp.1
+      change ((∅ : Finset (Fin ((n + 1) / 2))).disjSum a).toLeft.Nonempty at hp'
+      rw [Finset.toLeft_disjSum] at hp'
+      exact (Finset.not_nonempty_empty hp').elim
+    · obtain ⟨a, ha, hab⟩ := Finset.mem_image.mp hmixed
+      subst b
+      refine ⟨a, by simp, ?_⟩
+      apply Prod.ext
+      · change a.1.1 = (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).1
+        simp
+      · change (D.2.2 a).1.1 = (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).2
+        simp
+  · rintro ⟨a, ha, hap⟩
+    subst p
+    refine ⟨?_, ?_⟩
+    · refine ⟨a.1.1.disjSum (D.2.2 a).1.1, ?_, ?_⟩
+      · simp only [gluedSumPartition, Finpartition.ofExistsUnique_parts, gluedSumParts,
+          Finset.mem_union]
+        right
+        right
+        exact Finset.mem_image.mpr ⟨a, by simp, rfl⟩
+      · apply Prod.ext
+        · change (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).1 = a.1.1
+          simp
+        · change (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).2 = (D.2.2 a).1.1
+          simp
+    · exact ⟨D.1.1.nonempty_of_mem_parts a.1.2,
+        D.2.1.1.nonempty_of_mem_parts (D.2.2 a).1.2⟩
+
 private noncomputable def gluedMixedPartition {n k : ℕ}
     (D : RestrictionPairingData n k) : MixedParityPartition n k := by
   classical
   refine ⟨gluedPartition D, ?_⟩
   rw [mixedBlockCount]
-  have hparts : (gluedPartition D).parts.filter IsMixedBlock =
-      D.1.2.1.attach.map (gluedMixedEmbedding D) := by
+  have hm : (gluedPartition D).parts.filter IsMixedBlock =
+      mixedParts (gluedPartition D) := by
     ext p
-    simp only [gluedPartition, Finpartition.copy_parts, Finpartition.parts_map,
-      Finset.mem_filter, Finset.mem_map]
-    constructor
-    · rintro ⟨⟨b, hb, hbp⟩, hp⟩
-      subst p
-      simp only [gluedSumPartition, Finpartition.ofExistsUnique_parts] at hb
-      simp only [gluedSumParts, Finset.mem_union] at hb
-      rcases hb with hodd | heven | hmixed
-      · obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp hodd
-        have hp' := hp.2
-        change (a.disjSum (∅ : Finset (Fin (n / 2)))).toRight.Nonempty at hp'
-        rw [Finset.toRight_disjSum] at hp'
-        exact (Finset.not_nonempty_empty hp').elim
-      · obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp heven
-        have hp' := hp.1
-        change ((∅ : Finset (Fin ((n + 1) / 2))).disjSum a).toLeft.Nonempty at hp'
-        rw [Finset.toLeft_disjSum] at hp'
-        exact (Finset.not_nonempty_empty hp').elim
-      · obtain ⟨a, ha, hab⟩ := Finset.mem_image.mp hmixed
-        subst b
-        refine ⟨a, by simp, ?_⟩
-        apply Prod.ext
-        · change a.1.1 = (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).1
-          simp
-        · change (D.2.2 a).1.1 = (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).2
-          simp
-    · rintro ⟨a, ha, hap⟩
-      subst p
-      refine ⟨?_, ?_⟩
-      · refine ⟨a.1.1.disjSum (D.2.2 a).1.1, ?_, ?_⟩
-        · simp only [gluedSumPartition, Finpartition.ofExistsUnique_parts, gluedSumParts,
-            Finset.mem_union]
-          right
-          right
-          exact Finset.mem_image.mpr ⟨a, by simp, rfl⟩
-        · apply Prod.ext
-          · change (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).1 = a.1.1
-            simp
-          · change (Finset.sumEquiv (a.1.1.disjSum (D.2.2 a).1.1)).2 = (D.2.2 a).1.1
-            simp
-      · exact ⟨D.1.1.nonempty_of_mem_parts a.1.2,
-          D.2.1.1.nonempty_of_mem_parts (D.2.2 a).1.2⟩
-  rw [hparts, Finset.card_map, Finset.card_attach]
+    simp [mixedParts, IsMixedBlock]
+  rw [hm, glued_mixed_parts, Finset.card_map, Finset.card_attach]
   exact D.1.2.2
 
 private theorem glued_restriction {n k : ℕ} (P : MixedParityPartition n k) :
