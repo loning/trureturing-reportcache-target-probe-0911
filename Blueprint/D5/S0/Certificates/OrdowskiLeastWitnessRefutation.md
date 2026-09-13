@@ -6,7 +6,7 @@ The printed exponent-shift conjecture for OEIS A126762 fails at n = 363.
 
 **Definition 1.1 (The defining congruence for A126762).**
 
-$$\forall n \in \mathrm{Nat}, k \in \mathrm{Nat},\; (n < k \land n^{k} \bmod k = n \bmod k)$$
+$$\forall n \in \mathrm{Nat}, k \in \mathrm{Nat},\; (\operatorname{firstCongruence}\left(n, k\right)) \Leftrightarrow ((n < k \land n^{k} \bmod k = n \bmod k))$$
 
 *Formalization.* `D5/S0/Certificates/OrdowskiLeastWitnessRefutation.firstCongruence` (`✓ std3`).
 
@@ -18,7 +18,7 @@ For natural numbers n and k, the defining condition requires k to be strictly gr
 
 **Definition 1.2 (The proposed exponent-shift congruence).**
 
-$$\forall n \in \mathrm{Nat}, k \in \mathrm{Nat},\; (n < k \land n^{k - 1} \bmod k = 1 \bmod k)$$
+$$\forall n \in \mathrm{Nat}, k \in \mathrm{Nat},\; (\operatorname{secondCongruence}\left(n, k\right)) \Leftrightarrow ((n < k \land n^{k - 1} \bmod k = 1 \bmod k))$$
 
 *Formalization.* `D5/S0/Certificates/OrdowskiLeastWitnessRefutation.secondCongruence` (`✓ std3`).
 

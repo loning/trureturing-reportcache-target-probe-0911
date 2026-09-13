@@ -69,28 +69,32 @@ internal sealed class OrdowskiLeastWitnessRefutationDocument : IScribeDocumentDe
     {
         var n = F.Id("n");
         var k = F.Id("k");
-        return Universal(Parenthesized(And(
-            Relation(n, FormulaRelationOperator.LessThan, k),
-            Relation(
-                new Formula.Modulo(new Formula.Power(n, k), k),
-                FormulaRelationOperator.Equal,
-                new Formula.Modulo(n, k)))));
+        return Universal(Iff(
+            Call("firstCongruence", n, k),
+            Parenthesized(And(
+                Relation(n, FormulaRelationOperator.LessThan, k),
+                Relation(
+                    new Formula.Modulo(new Formula.Power(n, k), k),
+                    FormulaRelationOperator.Equal,
+                    new Formula.Modulo(n, k))))));
     }
 
     private static Formula SecondCongruenceFormula()
     {
         var n = F.Id("n");
         var k = F.Id("k");
-        return Universal(Parenthesized(And(
-            Relation(n, FormulaRelationOperator.LessThan, k),
-            Relation(
-                new Formula.Modulo(
-                    new Formula.Power(
-                        n,
-                        new Formula.Binary(k, FormulaBinaryOperator.Subtract, D(1))),
-                    k),
-                FormulaRelationOperator.Equal,
-                new Formula.Modulo(D(1), k)))));
+        return Universal(Iff(
+            Call("secondCongruence", n, k),
+            Parenthesized(And(
+                Relation(n, FormulaRelationOperator.LessThan, k),
+                Relation(
+                    new Formula.Modulo(
+                        new Formula.Power(
+                            n,
+                            new Formula.Binary(k, FormulaBinaryOperator.Subtract, D(1))),
+                        k),
+                    FormulaRelationOperator.Equal,
+                    new Formula.Modulo(D(1), k))))));
     }
 
     private static Formula ClaimFormula()
@@ -135,6 +139,9 @@ internal sealed class OrdowskiLeastWitnessRefutationDocument : IScribeDocumentDe
 
     private static Formula And(Formula left, Formula right) =>
         new Formula.Logic(left, FormulaLogicOperator.And, right);
+
+    private static Formula Iff(Formula left, Formula right) =>
+        new Formula.Logic(Parenthesized(left), FormulaLogicOperator.Iff, Parenthesized(right));
 
     private static Formula Implies(Formula left, Formula right) =>
         new Formula.Logic(left, FormulaLogicOperator.Implies, right);
