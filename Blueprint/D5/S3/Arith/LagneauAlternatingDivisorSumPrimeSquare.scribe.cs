@@ -27,13 +27,18 @@ internal sealed class LagneauAlternatingDivisorSumPrimeSquareDocument
                 + "Alternating signs disappear modulo two, so T(n) has the parity of "
                 + "sigma(n). The classical characterization of odd sigma values then "
                 + "gives that n is a square or twice a square.",
-                DescribeRole.Theorem, AssessedProvenance.FromRepo()))));
+                DescribeRole.Theorem, AssessedProvenance.FromRepo(),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a193351-alternating-divisor-sum-prime-square"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
-        string prose, DescribeRole role, AssessedProvenance provenance) => Describe.Lean(
+        string prose, DescribeRole role, AssessedProvenance provenance,
+        OpenProblemResolutionClaim? claim = null) => Describe.Lean(
         DescribeId.Create("a193351-" + name.Replace('_', '-').ToLowerInvariant()),
         DeclarationHandle.Create(Prefix + name), H(title), StatementSource.FromAuthor(formula),
-        provenance, Blocks(Paragraph(Text(prose))), role);
+        provenance, Blocks(Paragraph(Text(prose))), role, claim);
 
     private static Formula DefinitionFormula()
     {

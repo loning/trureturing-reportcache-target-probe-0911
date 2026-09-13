@@ -22,6 +22,10 @@ $$\forall n \in \mathbb{N},\; (3 < n) \Rightarrow ((Prime\left(toNat\left(T\left
 
 *Proof.* Machine-checked in Lean as `D5/S3/Arith/LagneauAlternatingDivisorSumPrimeSquare.lagneau_a193351` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a193351-alternating-divisor-sum-prime-square` (proved) by `D5/S3/Arith/LagneauAlternatingDivisorSumPrimeSquare.lagneau_a193351`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a193351-alternating-divisor-sum-prime-square","declaration_gid":"D5/S3/Arith/LagneauAlternatingDivisorSumPrimeSquare.lagneau_a193351","resolution_kind":"proved"} -->
+
 *Source.* Repository-derived.
 
 *Commentary.*
