@@ -34,17 +34,6 @@ def IsPalindrome10 (n : ℕ) : Prop :=
 def IsMember (p : ℕ) : Prop :=
   IsPalindrome10 p ∧ ¬ IsPalindrome10 (p ^ 2) ∧ ∃ q, rev10 (p ^ 2) = q ^ 2
 
-#eval rev10 1252409430321
-
-private example : IsMember 33 := by
-  constructor
-  · change rev10 33 = 33
-    decide
-  constructor
-  · change ¬rev10 (33 ^ 2) = 33 ^ 2
-    decide
-  · exact ⟨99, by decide⟩
-
 /-- Decimal digits of little-endian base-`10^j` blocks, with only the top block unpadded. -/
 private def blockDigits (j : ℕ) : List ℕ → List ℕ
   | [] => []
