@@ -15,8 +15,15 @@ public sealed partial class NativeSharedLakeCacheTests(ITestOutputHelper output)
     [InlineData("death")]
     [InlineData("hardlinks")]
     [InlineData("traces")]
-    [InlineData("report-traces")]
-    [InlineData("serial-traces")]
+    [InlineData("report-traces:environment")]
+    [InlineData("report-traces:global")]
+    [InlineData("report-traces:system-redirection")]
+    [InlineData("serial-traces:environment")]
+    [InlineData("serial-traces:global")]
+    [InlineData("serial-traces:system-redirection")]
+    [InlineData("callbacks:repository")]
+    [InlineData("callbacks:global")]
+    [InlineData("callbacks:worktree")]
     [InlineData("dependencies")]
     [InlineData("stale-session")]
     public void RealEntrypointsPreserveCacheBoundaries(string scenario)
@@ -25,7 +32,7 @@ public sealed partial class NativeSharedLakeCacheTests(ITestOutputHelper output)
         // Other platforms execute the private/fail-closed controls in the same program.
         Assert.True(LeanLakeExecutable.TryResolve(out var lake, out var reason), reason);
         var script = Path.Combine(temporary.Path, "native.py");
-        File.WriteAllText(script, NativeProgram + "\n" + RepairScenarios + "\n" + TraceScenarios + "\n" + NativeScenarios);
+        File.WriteAllText(script, NativeProgram + "\n" + RepairScenarios + "\n" + TraceScenarios + "\n" + CallbackScenarios + "\n" + NativeScenarios);
         var result = TestProcessRunner.Run("python3", [script, scenario,
             typeof(Program).Assembly.Location, lake, TestRepositoryLayout.FindRoot()],
             temporary.Path, TestBudgets.ReportSupervisorHangGuard, 1024 * 1024);
@@ -80,6 +87,38 @@ def fresh(name, revision='HEAD'):
     root = P / name
     git(main, 'worktree', 'add', '--detach', root, revision)
     return root
+def prepare_helpers():
+    source = pathlib.Path(repository)
+    # Actual make/helper scripts and candidate sources, independently built in this
+    # tiny fixture. No substitute shell entrypoint, dotnet shim or repository Lean build.
+    for path in (source / 'tools/scripts').rglob('*.sh'):
+        target = reader / path.relative_to(source)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
+    shutil.copytree(source / 'tools/lean-inspector', reader / 'tools/lean-inspector',
+        ignore=shutil.ignore_patterns('__pycache__'))
+    shutil.copy2(source / 'Makefile', reader / 'Makefile')
+    for name in ['StrataLint.Cli', 'StrataLint.Engine', 'StrataLint.Scribe',
+            'StrataLint.Scribe.Documents', 'Trureturing.Truth', 'Architecture']:
+        shutil.copytree(source / 'tools' / name, reader / 'tools' / name,
+            ignore=shutil.ignore_patterns('bin', 'obj'))
+    for name in ['Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props', 'global.json']:
+        if (source / name).exists(): shutil.copy2(source / name, reader / name)
+    (reader / 'D5').mkdir()
+    (reader / 'D5/Probe.lean').write_text('def serialAnswer : Nat := 7\n')
+    (reader / 'Trureturing.lean').write_text('import Fixture\n')
+    with (reader / 'lakefile.toml').open('a') as f:
+        f.write('\n[[lean_lib]]\nname = "D5"\nroots = ["D5.Probe"]\n')
+    git(reader, 'add', '.')
+    git(reader, 'commit', '-m', 'actual helper fixture')
+    ENV['MSBUILDDISABLENODEREUSE'] = '1'
+    ENV['DOTNET_CLI_USE_MSBUILD_SERVER'] = '0'
+    ENV['STRATALINT_LEAN_INPUT_MEMO_ROOT'] = str(P / 'memo')
+    ENV['STRATALINT_REPORT_CACHE_ROOT'] = str(P / 'report-cache')
+    ENV['XDG_CACHE_HOME'] = str(P / 'xdg-cache')
+    project = reader / 'tools/StrataLint.Cli/StrataLint.Cli.csproj'
+    run(['dotnet', 'restore', project, '--locked-mode', '--disable-parallel'], reader)
+    run(['dotnet', 'build', project, '--no-restore', '-c', 'Release', '--warnaserror', '-m:1', '-nodeReuse:false'], reader)
 main = P / 'main with spaces'
 main.mkdir()
 git(main, 'init', '-b', 'dev')

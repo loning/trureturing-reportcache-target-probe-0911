@@ -49,10 +49,9 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
         child["LAKE_CONFIG"] = Path.Combine(root, ".lake", "config.toml");
         child["LAKE_RESTORE_ARTIFACTS"] = "true";
         child["MATHLIB_CACHE_DIR"] = Path.Combine(root, ".lake", "mathlib-cache");
-        var common = Git(root, runner, "rev-parse", "--path-format=absolute", "--git-common-dir");
-        var sharedRoot = LeanCacheGuard.PhysicalPath(Path.Combine(common, "stratalint-lake"));
-        if (sharedRoot != Path.Combine(LeanCacheGuard.PhysicalPath(common), "stratalint-lake"))
-            throw new InvalidOperationException("Shared cache must reside below the canonical git-common-dir.");
+        var discovery = DiscoverGitCommon(root, runner, [], child);
+        LeanCacheProvisioner.RequireSuccess(discovery, "Git common directory discovery");
+        var sharedRoot = SharedRootFor(discovery);
         var platform = (OperatingSystem.IsMacOS() ? "macos" : OperatingSystem.IsLinux() ? "linux" : "windows")
             + "-" + RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
         var sharedCache = Path.Combine(sharedRoot, "lean-" + version.Groups[1].Value, platform);
@@ -115,22 +114,24 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
     }
 
     private ProcessOutput RunOnce(string fileName, IReadOnlyList<string> arguments,
-        string workingDirectory, TimeSpan timeout)
+        string workingDirectory, TimeSpan timeout) =>
+        RunGuarded(SharedRoot, runner, fileName, arguments, workingDirectory, timeout, environment, Writers);
+
+    private static ProcessOutput RunGuarded(string sharedRoot, IWorktreeProcessRunner runner,
+        string fileName, IReadOnlyList<string> arguments, string workingDirectory, TimeSpan timeout,
+        IReadOnlyDictionary<string, string> environment, IReadOnlyList<LeanCacheWriterGuard> writers)
     {
-        RequireGuard(SharedRoot);
-        foreach (var ancestor in new[] { SharedRoot, Path.GetDirectoryName(SharedCache)! })
-            if (new DirectoryInfo(ancestor).LinkTarget is not null)
-                throw new InvalidOperationException("Shared cache ancestors must not be symlinks: " + ancestor);
-        RequireNoSharedLinks(SharedRoot);
+        RequireGuard(sharedRoot);
+        RequireNoSharedLinks(sharedRoot);
         if (OperatingSystem.IsMacOS() && File.Exists("/usr/bin/sandbox-exec"))
         {
-            var literal = SharedRoot.Replace("\\", "\\\\", StringComparison.Ordinal)
+            var literal = sharedRoot.Replace("\\", "\\\\", StringComparison.Ordinal)
                 .Replace("\"", "\\\"", StringComparison.Ordinal);
             var profile = "(version 1) (allow default) (deny file-write* (subpath \"" + literal + "\"))";
             return LeanCacheProcessLifetime.Run(runner, "/usr/bin/sandbox-exec",
-                ["-p", profile, fileName, .. arguments], workingDirectory, timeout, environment, Writers);
+                ["-p", profile, fileName, .. arguments], workingDirectory, timeout, environment, writers);
         }
-        return LeanCacheProcessLifetime.Run(runner, fileName, arguments, workingDirectory, timeout, environment, Writers);
+        return LeanCacheProcessLifetime.Run(runner, fileName, arguments, workingDirectory, timeout, environment, writers);
     }
 
     internal static string Git(string root, IWorktreeProcessRunner runner, params string[] arguments)
@@ -144,10 +145,57 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
     // Shell fingerprint/serial callers share the bootstrap policy without acquiring
     // a Lake writer guard or materializing dependencies. Preserve Git's bytes and exit.
     internal static ProcessOutput RunGit(string root, IWorktreeProcessRunner runner,
-        IReadOnlyList<string> arguments) => runner is LeanProcessPolicy policy
-            ? policy.Run("git", arguments, root, BoundedProcessRunner.HangDetectionBudget)
-            : runner.RunWithEnvironment("git", arguments, root, BoundedProcessRunner.HangDetectionBudget,
-                PhysicalGitEnvironment());
+        IReadOnlyList<string> arguments)
+    {
+        // Locate Git's subcommand using its value-taking global option grammar.
+        // Forward only repository/config selection to the fixed discovery query;
+        // command options such as --help must never turn discovery into a callback.
+        // Git itself resolves chained relative -C and explicit directory selectors.
+        var selection = new List<string>();
+        var prefix = 0;
+        while (prefix < arguments.Count && arguments[prefix].StartsWith('-'))
+        {
+            var option = arguments[prefix++];
+            if (option is "-C" or "-c" or "--git-dir" or "--work-tree" or "--namespace"
+                or "--config-env" or "--shallow-file" or "--attr-source")
+            {
+                if (prefix == arguments.Count) break; // Let the actual command report missing values.
+                var value = arguments[prefix++];
+                if (option is "-C" or "-c" or "--git-dir" or "--work-tree" or "--config-env")
+                    selection.AddRange([option, value]);
+            }
+            else if (option is "--bare" || option.StartsWith("--git-dir=", StringComparison.Ordinal)
+                || option.StartsWith("--work-tree=", StringComparison.Ordinal)
+                || option.StartsWith("--config-env=", StringComparison.Ordinal))
+                selection.Add(option);
+        }
+        var policy = runner as LeanProcessPolicy;
+        if (policy is not null && prefix == 0 && root == policy.Root)
+            return policy.Run("git", arguments, root, BoundedProcessRunner.HangDetectionBudget);
+        var child = policy?.environment ?? PhysicalGitEnvironment();
+        var processRunner = policy?.runner ?? runner;
+        var discovery = DiscoverGitCommon(root, processRunner, selection, child);
+        if (discovery.ExitCode != 0) return discovery;
+        return RunGuarded(SharedRootFor(discovery), processRunner, "git", arguments, root,
+            BoundedProcessRunner.HangDetectionBudget, child, policy?.Writers ?? []);
+    }
+
+    // The only unguarded cache bootstrap Git command is this built-in path query:
+    // rev-parse does not refresh the index or run configured callbacks. Trace2 is
+    // already disabled. Every requested command and descendant is then confined.
+    private static ProcessOutput DiscoverGitCommon(string root, IWorktreeProcessRunner runner,
+        IReadOnlyList<string> options, IReadOnlyDictionary<string, string> environment) =>
+        runner.RunWithEnvironment("git", [.. options, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            root, BoundedProcessRunner.HangDetectionBudget, environment);
+
+    private static string SharedRootFor(ProcessOutput discovery)
+    {
+        var common = Encoding.UTF8.GetString(discovery.StandardOutput).TrimEnd('\r', '\n');
+        var expected = Path.Combine(LeanCacheGuard.PhysicalPath(common), "stratalint-lake");
+        if (LeanCacheGuard.PhysicalPath(expected) != expected)
+            throw new InvalidOperationException("Shared cache must reside below the canonical git-common-dir.");
+        return expected;
+    }
 
     private static Dictionary<string, string> PhysicalGitEnvironment()
     {

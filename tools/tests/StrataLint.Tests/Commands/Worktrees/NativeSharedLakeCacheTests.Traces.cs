@@ -3,41 +3,11 @@ namespace StrataLint.Tests;
 public sealed partial class NativeSharedLakeCacheTests
 {
     private const string TraceScenarios = """
-if scenario in ['traces', 'report-traces', 'serial-traces']:
+verb_group, _, trace_scope = scenario.partition(':')
+if verb_group in ['traces', 'report-traces', 'serial-traces']:
     command(main, 'warm-cache')
     build(reader)
-    source = pathlib.Path(repository)
-    # Actual make/helper scripts and candidate sources, independently built in this
-    # tiny fixture. No substitute shell entrypoint, dotnet shim or repository Lean build.
-    if scenario != 'traces':
-        for path in (source / 'tools/scripts').rglob('*.sh'):
-            target = reader / path.relative_to(source)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(path, target)
-        shutil.copytree(source / 'tools/lean-inspector', reader / 'tools/lean-inspector',
-            ignore=shutil.ignore_patterns('__pycache__'))
-        shutil.copy2(source / 'Makefile', reader / 'Makefile')
-        for name in ['StrataLint.Cli', 'StrataLint.Engine', 'StrataLint.Scribe',
-                'StrataLint.Scribe.Documents', 'Trureturing.Truth', 'Architecture']:
-            shutil.copytree(source / 'tools' / name, reader / 'tools' / name,
-                ignore=shutil.ignore_patterns('bin', 'obj'))
-        for name in ['Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props', 'global.json']:
-            if (source / name).exists(): shutil.copy2(source / name, reader / name)
-        (reader / 'D5').mkdir()
-        (reader / 'D5/Probe.lean').write_text('def serialAnswer : Nat := 7\n')
-        (reader / 'Trureturing.lean').write_text('import Fixture\n')
-        with (reader / 'lakefile.toml').open('a') as f:
-            f.write('\n[[lean_lib]]\nname = "D5"\nroots = ["D5.Probe"]\n')
-        git(reader, 'add', '.')
-        git(reader, 'commit', '-m', 'actual helper fixture')
-        ENV['MSBUILDDISABLENODEREUSE'] = '1'
-        ENV['DOTNET_CLI_USE_MSBUILD_SERVER'] = '0'
-        ENV['STRATALINT_LEAN_INPUT_MEMO_ROOT'] = str(P / 'memo')
-        ENV['STRATALINT_REPORT_CACHE_ROOT'] = str(P / 'report-cache')
-        ENV['XDG_CACHE_HOME'] = str(P / 'xdg-cache')
-        project = reader / 'tools/StrataLint.Cli/StrataLint.Cli.csproj'
-        run(['dotnet', 'restore', project, '--locked-mode', '--disable-parallel'], reader)
-        run(['dotnet', 'build', project, '--no-restore', '-c', 'Release', '--warnaserror', '-m:1'], reader)
+    if verb_group != 'traces': prepare_helpers()
     trace_directory = shared_root / 'diagnostics'
     trace_directory.mkdir()
     trace = trace_directory / 'trace'
@@ -49,17 +19,19 @@ if scenario in ['traces', 'report-traces', 'serial-traces']:
         ('trace2.eventTarget', 'GIT_TRACE2_EVENT'), ('trace2.perfTarget', 'GIT_TRACE2_PERF')]
     inputs = [('environment', name, name) for name in ['GIT_TRACE', 'GIT_TRACE_SETUP',
         'GIT_TRACE_PERFORMANCE', 'GIT_TRACE2', 'GIT_TRACE2_EVENT', 'GIT_TRACE2_PERF']]
-    inputs += [(scope, key, variable) for scope in ['global', 'system'] for key, variable in targets]
-    verbs = ['ensure-cache', 'with-cache-reader', 'warm-cache'] if scenario == 'traces' else [scenario]
+    inputs += [(scope, key, variable) for scope in ['global', 'system-redirection'] for key, variable in targets]
+    # System rows test inherited GIT_CONFIG_SYSTEM removal, not active default-system config.
+    if trace_scope: inputs = [row for row in inputs if row[0] == trace_scope]
+    verbs = ['ensure-cache', 'with-cache-reader', 'warm-cache'] if verb_group == 'traces' else [verb_group]
     def reset_trace(preexisting):
         if trace.exists(): trace.unlink()
         if preexisting: trace.write_text('existing diagnostic\n')
     for scope, key, variable in inputs:
         config = '[trace2]\n ' + key.split('.')[-1] + ' = ' + json.dumps(str(trace)) + '\n'
         global_config.write_text(config if scope == 'global' else '')
-        system_config.write_text(config if scope == 'system' else '')
+        system_config.write_text(config if scope == 'system-redirection' else '')
         extra = {'XDG_CONFIG_HOME': str(xdg)}
-        if scope == 'system': extra['GIT_CONFIG_SYSTEM'] = str(system_config)
+        if scope == 'system-redirection': extra['GIT_CONFIG_SYSTEM'] = str(system_config)
         if scope == 'environment': extra[variable] = str(trace)
         for preexisting in [False, True]:
             reset_trace(preexisting)
@@ -102,7 +74,7 @@ if scenario in ['traces', 'report-traces', 'serial-traces']:
                 if verb == 'serial-traces':
                     assert 'SERIAL_LEAN status=complete' in result.stdout, result
                     assert (reader / '.lake/build/lib/lean/D5/Probe.olean').exists()
-    if scenario == 'traces':
+    if verb_group == 'traces':
         keys = ['GIT_SSH_COMMAND', 'GIT_ASKPASS', 'SSH_AUTH_SOCK', 'GIT_TERMINAL_PROMPT', 'GIT_OPTIONAL_LOCKS']
         values = dict(zip(keys, ['ssh -o BatchMode=yes', '/fixture/askpass', '/fixture/agent', '0', '0']))
         probe = 'import os,json; print(json.dumps({k:os.environ.get(k) for k in ' + repr(keys) + '}))'
