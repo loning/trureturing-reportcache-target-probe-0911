@@ -100,9 +100,9 @@ public sealed class BoundedProcessRunnerTests
         InvalidOperationException? exceeded = null;
         try
         {
-            TestProcessRunner.Classify(() => BoundedProcessRunner.Run("/bin/sh",
+            TestProcessRunner.Run("/bin/sh",
                 ["-c", "head -c 1048576 /dev/zero" + redirect], Path.GetTempPath(),
-                BoundedProcessRunner.HangDetectionBudget, 16), "/bin/sh");
+                BoundedProcessRunner.HangDetectionBudget, 16);
         }
         catch (InvalidOperationException exception) { exceeded = exception; }
 
