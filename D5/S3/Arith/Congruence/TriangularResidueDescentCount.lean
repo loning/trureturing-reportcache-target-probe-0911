@@ -2,13 +2,14 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/TriangularResidueDescentCount
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Algebra.BigOperators.Intervals, mathlib/module/Mathlib.Data.Nat.ModEq, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Algebra.BigOperators.Intervals, mathlib/module/Mathlib.Data.Nat.ModEq, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.Ring]
    utility: none
    digest: Count the descents in the triangular-number permutation modulo each positive power of two. -/
 
 import Mathlib.Algebra.BigOperators.Intervals
 import Mathlib.Data.Nat.ModEq
-import Mathlib.Tactic
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 
 namespace D5.S3.Arith.Congruence.TriangularResidueDescentCount
 
