@@ -4,7 +4,7 @@
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
    anchors: []
    utility: none
-   digest: A one-bit hypercube square has equal opposite edge colours. -/
+   digest: Capacity-box edge colours depend only on axis and layer, and different axes use different bits. -/
 
 import Mathlib.InformationTheory.Hamming
 import D5.S1.Ledger.BoundedTimeSlice
@@ -244,6 +244,37 @@ theorem colour_depends_only_on_layer {n : ℕ} (φ : OneBitEmbedding A n)
         exact hxy.trans hrec
   exact (transport _ a rfl rfl hp).trans
     (transport _ b rfl (Fin.ext hab.symm) hb).symm
+
+/-- Edges on different capacity axes always change different bits. -/
+theorem different_axes_distinct_colours {n : ℕ} (φ : OneBitEmbedding A n)
+    (a b : TailBox A) (p q : P) (hpq : p ≠ q)
+    (hp : (a p).val < A p) (hq : (b q).val < A q) :
+    unitEdgeColour φ a p hp ≠ unitEdgeColour φ b q hq := by
+  classical
+  let x : TailBox A := Function.update a q (b q)
+  have hxp : (x p).val < A p := by simpa [x, hpq] using hp
+  have hxq : (x q).val < A q := by simpa [x] using hq
+  have hpa := colour_depends_only_on_layer φ a x p hp hxp (by simp [x, hpq])
+  have hqb := colour_depends_only_on_layer φ b x q hq hxq (by simp [x])
+  intro heq
+  have hcol : unitEdgeColour φ x p hxp = unitEdgeColour φ x q hxq :=
+    hpa.symm.trans (heq.trans hqb)
+  have support (r : P) (hr : (x r).val < A r) :
+      flipSupport (φ.toFun x) (φ.toFun (raise x r hr)) = {unitEdgeColour φ x r hr} :=
+    Classical.choose_spec (Finset.card_eq_one.mp (φ.map_unitEdge r x (raise x r hr)
+      (by constructor <;> simp_all [UnitEdge, raise])))
+  have hrev : flipSupport (φ.toFun (raise x p hxp)) (φ.toFun x) =
+      {unitEdgeColour φ x p hxp} := by
+    rw [← support p hxp]
+    ext t
+    simp [flipSupport, ne_comm]
+  have hnext : flipSupport (φ.toFun x) (φ.toFun (raise x q hxq)) =
+      {unitEdgeColour φ x p hxp} := by rw [support q hxq, hcol]
+  have hd := same_colour_adjacent_edges_force_diagonal
+    (φ.toFun (raise x p hxp)) (φ.toFun x) (φ.toFun (raise x q hxq))
+    (unitEdgeColour φ x p hxp) hrev hnext
+  have hval := congrArg (fun y : TailBox A => (y p).val) (φ.injective hd)
+  simp [raise, hpq] at hval
 
 
 end D5.S3.Arith.Coding.CapacityBoxOneBitRigidity

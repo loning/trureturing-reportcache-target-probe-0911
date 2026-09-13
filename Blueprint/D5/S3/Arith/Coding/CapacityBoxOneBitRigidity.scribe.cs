@@ -6,7 +6,7 @@ namespace StrataLint.Scribe.Blueprint.D5.S3.Arith.Coding;
 internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinition
 {
     public DocumentDefinition Create() => DocumentDefinition.Create(ScribeNode.Create(
-        "Unit-edge embeddings of capacity boxes assign the same colour to opposite edges of each coordinate square.",
+        "Capacity-box unit-edge colours depend only on the axis and layer, and different axes use disjoint sets of bits.",
         H("Capacity Box One-Bit Rigidity"),
         Blocks(Describe.Lean(
             DescribeId.Create("edge-colour"),
@@ -104,5 +104,17 @@ internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinit
                 "Two edges increasing the same axis from the same starting value have the "
                     + "same colour, regardless of their other coordinates. Lowering those "
                     + "coordinates one at a time connects each edge to the same axis fibre."))),
+            DescribeRole.Theorem),
+        Describe.Lean(
+            DescribeId.Create("different-axes-distinct-colours"),
+            DeclarationHandle.Create(
+                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.different_axes_distinct_colours"),
+            H("Different axes use different colours"),
+            StatementSource.WithoutFormula(),
+            AssessedProvenance.FromRepo(),
+            Blocks(Paragraph(Text(
+                "Any two layer edges on distinct axes can be transported to edges with a "
+                    + "common starting state. If they changed the same bit, their other "
+                    + "endpoints would have equal codes, contradicting injectivity."))),
             DescribeRole.Theorem))));
 }
