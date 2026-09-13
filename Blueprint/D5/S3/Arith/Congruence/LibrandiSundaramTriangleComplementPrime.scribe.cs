@@ -9,7 +9,7 @@ internal sealed class LibrandiSundaramTriangleComplementPrimeDocument : IScribeD
     private const string Prefix =
         "D5/S3/Arith/Congruence/LibrandiSundaramTriangleComplementPrime.";
     private static readonly LibraryNoteRef Source =
-        LibraryNoteRef.Create("D5/L/Factorization/librandi2012a140869");
+        LibraryNoteRef.Create("D5/L/librandi2012a140869");
 
     public DocumentDefinition Create() => DocumentDefinition.Create(ScribeNode.Create(
         "Librandi's triangle complement maps every outside value to a prime 4h+5.",
