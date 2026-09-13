@@ -7,6 +7,7 @@
    digest: Infinitely many decimal palindromes have nonpalindromic squares whose reversals are squares. -/
 import Mathlib.Data.Nat.Digits.Lemmas
 import Mathlib.Tactic.NormNum
+import Lean.Elab.Tactic.Omega
 
 /-!
 # Palindromes whose reversed square is a square
@@ -41,5 +42,36 @@ private example : IsMember 33 := by
   · change ¬rev10 (33 ^ 2) = 33 ^ 2
     decide
   · exact ⟨99, by decide⟩
+
+/-- Decimal digits of little-endian base-`10^j` blocks, with only the top block unpadded. -/
+private def blockDigits (j : ℕ) : List ℕ → List ℕ
+  | [] => []
+  | [a] => Nat.digits 10 a
+  | a :: b :: rest => Nat.digitsAppend 10 j a ++ blockDigits j (b :: rest)
+
+private theorem digits_of_pow_blocks (j : ℕ) (blocks : List ℕ)
+    (hpos : ∀ a ∈ blocks, 0 < a)
+    (hlt : ∀ a ∈ blocks, a < 10 ^ j) :
+    Nat.digits 10 (Nat.ofDigits (10 ^ j) blocks) = blockDigits j blocks := by
+  induction blocks with
+  | nil => rfl
+  | cons a tail ih =>
+      cases tail with
+      | nil => simp [blockDigits, Nat.ofDigits]
+      | cons b rest =>
+          have hm : 0 < Nat.ofDigits (10 ^ j) (b :: rest) := by
+            rw [Nat.ofDigits_cons]
+            have hb := hpos b (by simp)
+            omega
+          have hlen : (Nat.digits 10 a).length ≤ j :=
+            (Nat.digits_length_le_iff (by norm_num) a).2 (hlt a (by simp))
+          have hadd := Nat.digits_append_zeroes_append_digits
+            (b := 10) (k := j - (Nat.digits 10 a).length)
+            (m := Nat.ofDigits (10 ^ j) (b :: rest)) (n := a) (by norm_num) hm
+          rw [Nat.add_sub_of_le hlen] at hadd
+          rw [Nat.ofDigits_cons, ← hadd]
+          rw [ih (fun x hx => hpos x (by simp [hx]))
+            (fun x hx => hlt x (by simp [hx]))]
+          simp only [blockDigits, Nat.digitsAppend, List.append_assoc]
 
 end D5.S1.Digit.Admissibility.PalindromeSquareReversalInfinitude
