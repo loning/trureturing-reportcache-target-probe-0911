@@ -186,6 +186,10 @@ $$\forall n \in \mathbb{N}, \sum_{k \in \operatorname{Fin}\left(n + 1\right)} (-
 
 *Proof.* Machine-checked in Lean as `D5/S1/Recurrence/Invariants/SchroederPeakAlternatingQuadraticMoment.schulte_a060693` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a060693-schroeder-peak-alternating-quadratic-moment` (proved) by `D5/S1/Recurrence/Invariants/SchroederPeakAlternatingQuadraticMoment.schulte_a060693`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a060693-schroeder-peak-alternating-quadratic-moment","declaration_gid":"D5/S1/Recurrence/Invariants/SchroederPeakAlternatingQuadraticMoment.schulte_a060693","resolution_kind":"proved"} -->
+
 *Citation.* Werner Schulte (2017). *OEIS A060693, Triangle read by rows: T(n, k) is the number of Schröder paths from (0,0) to (2n,0) having k peaks*. URL: <https://oeis.org/A060693>.
 
 *Commentary.*

@@ -74,7 +74,10 @@ internal sealed class SchroederPeakAlternatingQuadraticMomentDocument : IScribeD
                 DescribeRole.Theorem),
             Node("schulte_a060693", "Schulte's alternating quadratic moment", SchulteFormula(),
                 "The zeroth, first, and second falling signed peak moments satisfy the recurrences induced by first return. Their closed forms reduce the alternating quadratic moment to n squared plus n plus one.",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)))));
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create("oeis-a060693-schroeder-peak-alternating-quadratic-moment"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula, string prose,
         DescribeRole role, AssessedProvenance? provenance = null,
