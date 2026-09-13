@@ -277,4 +277,19 @@ private theorem block_invariant (k : ℕ) :
       · simpa only [show 9 * (k + 1) + 1 = 9 * k + 10 by ring,
             show 2 * (k + 1) + 1 = 2 * k + 3 by ring] using ih.2.2.2.2.1
 
+/-- The terms of A097602 are squares exactly at indices congruent to one or four modulo nine. -/
+theorem jovovic_a097602_positions : ∀ n : ℕ, 1 ≤ n →
+    (IsSquare (a n) ↔ n % 9 = 1 ∨ n % 9 = 4) := by
+  intro n hn
+  let k := (n - 1) / 9
+  let j := (n - 1) % 9
+  have hj : j < 9 := Nat.mod_lt _ (by omega)
+  have hn_repr : n = 9 * k + 1 + j := by
+    dsimp only [k, j]
+    have hdiv := Nat.mod_add_div (n - 1) 9
+    omega
+  rw [hn_repr]
+  rw [(block_invariant k).2.2.2.2.2 j hj]
+  omega
+
 end D5.S1.Recurrence.Invariants.SquareCountingRecurrenceSquarePositions
