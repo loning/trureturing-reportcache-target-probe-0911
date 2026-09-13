@@ -2,7 +2,7 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators, Mathlib.Data.Fintype.Perm, Mathlib.Data.Finset.Sum]
+   anchors: [mathlib/module/Mathlib.Order.Partition.Finpartition, mathlib/module/Mathlib.Data.Fintype.Powerset, mathlib/module/Mathlib.Data.Fintype.Sigma, mathlib/module/Mathlib.Data.Fintype.BigOperators, mathlib/module/Mathlib.Data.Fintype.Perm, mathlib/module/Mathlib.Data.Finset.Sum, mathlib/module/Mathlib.Algebra.Ring.Parity]
    utility: none
    digest: Marked set partitions and the odd-even mixed-block product conjecture. -/
 import Mathlib.Order.Partition.Finpartition
@@ -11,6 +11,7 @@ import Mathlib.Data.Fintype.Sigma
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.Fintype.Perm
 import Mathlib.Data.Finset.Sum
+import Mathlib.Algebra.Ring.Parity
 namespace D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
 open Finset
 /-- Set partitions of an `r`-element labelled set. -/
@@ -25,8 +26,7 @@ def markedPartitions (r k : ℕ) : ℕ := Fintype.card (MarkedPartition r k)
 def A049020 (r k : ℕ) : ℕ := ∑ i ∈ range (r + 1), stirling2 r i * i.choose k
 /-- Marking `k` blocks after partitioning gives the Stirling-binomial formula for A049020. -/
 theorem markedPartitions_eq_A049020 (r k : ℕ) : markedPartitions r k = A049020 r k := by
-  classical
-  rw [markedPartitions, A049020]
+  classical rw [markedPartitions, A049020]
   change Fintype.card (Σ P : SetPartition r, {M : Finset P.parts // M.card = k}) = _
   rw [Fintype.card_sigma]
   simp_rw [Fintype.card_finset_len]
@@ -39,29 +39,48 @@ theorem markedPartitions_eq_A049020 (r k : ℕ) : markedPartitions r k = A049020
             apply Finset.sum_const_nat
             intro P hP
             rw [(mem_filter.mp hP).2]
-      _ = stirling2 r i * i.choose k := by
-        congr 1
-        simp [stirling2, Fintype.card_subtype]
+      _ = stirling2 r i * i.choose k := by congr 1; simp [stirling2, Fintype.card_subtype]
   · intro P _
     rw [mem_range]; exact Nat.lt_succ_of_le (by simpa using P.card_parts_le_card)
 /-- The canonical `n`-element parity-labelled set: the left summand labels odd entries. -/
 abbrev ParityIndex (n : ℕ) := Fin ((n + 1) / 2) ⊕ Fin (n / 2)
-/-- A block after transporting along `Finset.sumEquiv`: its two coordinates are the
-odd and even restrictions of the original block. -/
+/-- A block after `Finset.sumEquiv`: its coordinates are the odd and even restrictions. -/
 abbrev ParityBlock (n : ℕ) := Finset (Fin ((n + 1) / 2)) × Finset (Fin (n / 2))
-/-- Set partitions of the parity-labelled `n`-element set, transported along
-`Finset.sumEquiv` to the product lattice of odd and even subsets. -/
+/-- Parity-labelled partitions transported by `Finset.sumEquiv` to the product lattice. -/
 abbrev ParityPartition (n : ℕ) := Finpartition ((univ : Finset (Fin ((n + 1) / 2))), (univ : Finset (Fin (n / 2))))
 /-- A block is mixed when it contains both an odd-labelled and an even-labelled entry. -/
 def IsMixedBlock {n : ℕ} (b : ParityBlock n) : Prop := b.1.Nonempty ∧ b.2.Nonempty
 /-- Number of odd-even mixed blocks in a parity-labelled set partition. -/
-noncomputable def mixedBlockCount {n : ℕ} (P : ParityPartition n) : ℕ := by
-  classical
-  exact (P.parts.filter IsMixedBlock).card
+noncomputable def mixedBlockCount {n : ℕ} (P : ParityPartition n) : ℕ := by classical exact (P.parts.filter IsMixedBlock).card
 /-- Partitions of `[n]` having exactly `k` odd-even mixed blocks. -/
 abbrev MixedParityPartition (n k : ℕ) := {P : ParityPartition n // mixedBlockCount P = k}
 /-- OEIS A124418's `T(n,k)`, defined as the cardinality in its `%N` line. -/
 noncomputable def T (n k : ℕ) : ℕ := Fintype.card (MixedParityPartition n k)
+/-- A block of `Fin n` is mixed when `x : Fin n` represents `x.val + 1 ∈ {1, ..., n}`. -/ def IsMixedBlockFin {n : ℕ} (b : Finset (Fin n)) : Prop := (∃ x ∈ b, Odd (x.val + 1)) ∧ (∃ x ∈ b, Even (x.val + 1))
+/-- The literal `%N` object: partitions of `{1, ..., n}` with `k` mixed blocks. -/ noncomputable def Tfin (n k : ℕ) : ℕ := by classical exact Fintype.card {P : Finpartition (univ : Finset (Fin n)) // (P.parts.filter IsMixedBlockFin).card = k}
+/-- The parity-split model `T` is identical to the literal `Fin n` model `Tfin`. -/ theorem T_eq_Tfin (n k : ℕ) : T n k = Tfin n k := by classical
+  let e : Fin n ≃ ParityIndex n := {
+    toFun := fun x => if h : Even x.val then Sum.inl ⟨x.val / 2, by rw [Nat.even_iff] at h; omega⟩ else Sum.inr ⟨x.val / 2, by rw [Nat.even_iff] at h; omega⟩
+    invFun := fun x => match x with | Sum.inl i => ⟨2 * i.val, by omega⟩ | Sum.inr i => ⟨2 * i.val + 1, by omega⟩
+    left_inv := by
+      intro x
+      by_cases h : Even x.val
+      · simp only [h, ↓reduceDIte]; apply Fin.ext; simpa [mul_comm] using Nat.div_two_mul_two_of_even h
+      · simp only [h, ↓reduceDIte]; apply Fin.ext; exact Nat.two_mul_div_two_add_one_of_odd (Nat.not_even_iff_odd.mp h)
+    right_inv := by
+      intro x
+      rcases x with i | i
+      · simp
+      · simp; apply Fin.ext; show (2 * i.val + 1) / 2 = i.val; exact (by rw [Nat.add_comm, Nat.add_mul_div_left, Nat.div_eq_of_lt] <;> omega) }
+  let ef : Finset (Fin n) ≃o Finset (ParityIndex n) := { toFun := fun b => b.map e.toEmbedding, invFun := fun b => b.map e.symm.toEmbedding, left_inv := by intro b; simp [Finset.map_map], right_inv := by intro b; simp [Finset.map_map], map_rel_iff' := by simp }; let es : Finset (Fin n) ≃o ParityBlock n := ef.trans Finset.sumEquiv
+  let ep : Finpartition (univ : Finset (Fin n)) ≃ ParityPartition n := { toFun := fun P => (P.map es).copy (by apply Prod.ext <;> simp [es, ef]), invFun := fun P => (P.map es.symm).copy (by simp [es, ef]), left_inv := by intro P; apply Finpartition.ext; change es.toEquiv.finsetCongr.invFun (es.toEquiv.finsetCongr.toFun P.parts) = P.parts; exact es.toEquiv.finsetCongr.left_inv P.parts, right_inv := by intro P; apply Finpartition.ext; change es.toEquiv.finsetCongr.toFun (es.toEquiv.finsetCongr.invFun P.parts) = P.parts; exact es.toEquiv.finsetCongr.right_inv P.parts }
+  have mixed_iff (b : Finset (Fin n)) : IsMixedBlock (es b) ↔ IsMixedBlockFin b := by
+    simp only [IsMixedBlock, IsMixedBlockFin, es, ef, OrderIso.trans_apply, Finset.sumEquiv_apply_fst, Finset.sumEquiv_apply_snd]
+    constructor
+    · rintro ⟨⟨i, hi⟩, ⟨j, hj⟩⟩; rw [Finset.mem_toLeft] at hi; rw [Finset.mem_toRight] at hj; change Sum.inl i ∈ b.map e.toEmbedding at hi; change Sum.inr j ∈ b.map e.toEmbedding at hj; obtain ⟨x, hx, hxi⟩ := Finset.mem_map.mp hi; obtain ⟨y, hy, hyj⟩ := Finset.mem_map.mp hj; have he : Even x.val := (by by_contra h; simp [e, h] at hxi); have ho : Odd y.val := (by by_contra h; have he' : Even y.val := Nat.not_odd_iff_even.mp h; simp [e, he'] at hyj); exact ⟨⟨x, hx, he.add_one⟩, ⟨y, hy, ho.add_one⟩⟩
+    · rintro ⟨⟨x, hx, hxo⟩, ⟨y, hy, hye⟩⟩; have hxe : Even x.val := Nat.not_odd_iff_even.mp (Nat.odd_add_one.mp hxo); have hyo : Odd y.val := Nat.not_even_iff_odd.mp (Nat.even_add_one.mp hye); exact ⟨⟨⟨x.val / 2, by rw [Nat.even_iff] at hxe; omega⟩, by rw [Finset.mem_toLeft]; change Sum.inl ⟨x.val / 2, _⟩ ∈ b.map e.toEmbedding; exact Finset.mem_map.mpr ⟨x, hx, by simp [e, hxe]⟩⟩, ⟨⟨y.val / 2, by rw [Nat.odd_iff] at hyo; omega⟩, by rw [Finset.mem_toRight]; change Sum.inr ⟨y.val / 2, _⟩ ∈ b.map e.toEmbedding; exact Finset.mem_map.mpr ⟨y, hy, by simp [e, Nat.not_even_iff_odd.mpr hyo]⟩⟩⟩
+  have count_eq (P : Finpartition (univ : Finset (Fin n))) : mixedBlockCount (ep P) = (P.parts.filter IsMixedBlockFin).card := by rw [mixedBlockCount]; change ((P.parts.map es.toEmbedding).filter IsMixedBlock).card = _; rw [Finset.filter_map, Finset.card_map]; congr 1; ext b; simp only [Finset.mem_filter]; exact and_congr_right (fun _ => mixed_iff b)
+  let E : MixedParityPartition n k ≃ {P : Finpartition (univ : Finset (Fin n)) // (P.parts.filter IsMixedBlockFin).card = k} := { toFun := fun P => ⟨ep.symm P.1, by rw [← count_eq]; simpa using P.2⟩, invFun := fun P => ⟨ep P.1, by simpa [count_eq] using P.2⟩, left_inv := by intro P; apply Subtype.ext; simp, right_inv := by intro P; apply Subtype.ext; simp }; exact Fintype.card_congr E
 /-- The marked blocks carried by a marked partition. -/
 abbrev MarkedBlocks {r k : ℕ} (P : MarkedPartition r k) := P.2.1
 /-- Restrict to odd and even entries, mark the mixed-derived blocks, and pair their halves. -/
@@ -743,15 +762,13 @@ private theorem restriction_glued {n k : ℕ} (D : RestrictionPairingData n k) :
     subst g
     rfl
   exact data_ext X.1 D.1 hO X.2.1 D.2.1 hE X.2.2 D.2.2 hpair
-/-- Restricting a parity partition to its marked odd and even blocks, together with
-their pairing, is an equivalence whose inverse glues every paired pair of blocks. -/
+/-- Restriction with marked odd/even blocks is inverse to gluing paired blocks. -/
 noncomputable def mixedRestrictionEquiv (n k : ℕ) : MixedParityPartition n k ≃ RestrictionPairingData n k where
   toFun := restrictionData
   invFun := gluedMixedPartition
   left_inv := glued_restriction
   right_inv := restriction_glued
-/-- Hanna's A124418 product formula: a partition with `k` mixed blocks is counted by
-choosing marked odd and even restrictions and one bijection between their marked blocks. -/
+/-- Hanna's A124418 formula counts marked odd/even restrictions and their bijections. -/
 theorem hanna_a124418 : ∀ n k, k ≤ n / 2 → T n k = Nat.factorial k * A049020 (n / 2) k * A049020 ((n + 1) / 2) k := by
   classical
   intro n k _hk
@@ -778,5 +795,6 @@ theorem hanna_a124418 : ∀ n k, k ≤ n / 2 → T n k = Nat.factorial k * A0490
     _ = Nat.factorial k * A049020 (n / 2) k * A049020 ((n + 1) / 2) k := by
       rw [markedPartitions_eq_A049020, markedPartitions_eq_A049020]
 #print axioms markedPartitions_eq_A049020
+#print axioms T_eq_Tfin
 #print axioms hanna_a124418
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
