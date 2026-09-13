@@ -27,4 +27,3 @@ factor of `n-1`.
 - URL: https://oeis.org/A092028
 - Locator: COMMENTS, "Conjecture 1: All terms of this sequence are primes."
 - Locator: COMMENTS, "Conjecture 2: a(n) is the smallest prime factor of n-1 or for n>2, A092028(n) = A020639(n-1)."
-
