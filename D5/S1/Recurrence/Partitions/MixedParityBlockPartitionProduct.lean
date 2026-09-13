@@ -818,6 +818,77 @@ private theorem rightRestriction_glued {n k : ℕ} (D : RestrictionPairingData n
         dsimp only [b]
         rw [Finset.toRight_disjSum]
 
+private theorem leftMarkedValues_glued {n k : ℕ} (D : RestrictionPairingData n k) :
+    markedValues (leftMarkedParts (gluedPartition D)) = markedValues D.1.2.1 := by
+  classical
+  ext a
+  simp only [markedValues, Finset.mem_image]
+  constructor
+  · rintro ⟨m, hm, hma⟩
+    change m ∈ leftMarkedParts (gluedPartition D) at hm
+    obtain ⟨p, hp, hpm⟩ := Finset.mem_map.mp hm
+    have hpin : p.1 ∈ D.1.2.1.attach.map (gluedMixedEmbedding D) := by
+      rw [← glued_mixed_parts D]
+      exact p.2
+    obtain ⟨q, hq, hqp⟩ := Finset.mem_map.mp hpin
+    refine ⟨q.1, q.2, ?_⟩
+    calc
+      q.1.1 = p.1.1 := congrArg Prod.fst hqp
+      _ = m.1 := congrArg Subtype.val hpm
+      _ = a := hma
+  · rintro ⟨m, hm, hma⟩
+    let q : MarkedBlocks D.1 := ⟨m, hm⟩
+    let block : ParityBlock n := gluedMixedEmbedding D q
+    have hblock : block ∈ mixedParts (gluedPartition D) := by
+      rw [glued_mixed_parts D]
+      exact Finset.mem_map.mpr ⟨q, Finset.mem_attach _ q, rfl⟩
+    let p : {b // b ∈ mixedParts (gluedPartition D)} := ⟨block, hblock⟩
+    let lm : (leftRestriction (gluedPartition D)).parts :=
+      mixedToLeftEmbedding (gluedPartition D) p
+    refine ⟨lm, ?_, ?_⟩
+    · exact Finset.mem_map.mpr ⟨p, Finset.mem_attach _ p, rfl⟩
+    · calc
+        lm.1 = p.1.1 := rfl
+        _ = block.1 := rfl
+        _ = q.1.1 := rfl
+        _ = m.1 := rfl
+        _ = a := hma
+
+private theorem rightMarkedValues_glued {n k : ℕ} (D : RestrictionPairingData n k) :
+    markedValues (rightMarkedParts (gluedPartition D)) = markedValues D.2.1.2.1 := by
+  classical
+  ext a
+  simp only [markedValues, Finset.mem_image]
+  constructor
+  · rintro ⟨m, hm, hma⟩
+    change m ∈ rightMarkedParts (gluedPartition D) at hm
+    obtain ⟨p, hp, hpm⟩ := Finset.mem_map.mp hm
+    have hpin : p.1 ∈ D.1.2.1.attach.map (gluedMixedEmbedding D) := by
+      rw [← glued_mixed_parts D]
+      exact p.2
+    obtain ⟨q, hq, hqp⟩ := Finset.mem_map.mp hpin
+    refine ⟨(D.2.2 q).1, (D.2.2 q).2, ?_⟩
+    calc
+      (D.2.2 q).1.1 = p.1.2 := congrArg Prod.snd hqp
+      _ = m.1 := congrArg Subtype.val hpm
+      _ = a := hma
+  · rintro ⟨m, hm, hma⟩
+    let q : MarkedBlocks D.2.1 := ⟨m, hm⟩
+    let pre : MarkedBlocks D.1 := D.2.2.symm q
+    let block : ParityBlock n := gluedMixedEmbedding D pre
+    have hblock : block ∈ mixedParts (gluedPartition D) := by
+      rw [glued_mixed_parts D]
+      exact Finset.mem_map.mpr ⟨pre, Finset.mem_attach _ pre, rfl⟩
+    let p : {b // b ∈ mixedParts (gluedPartition D)} := ⟨block, hblock⟩
+    let rm : (rightRestriction (gluedPartition D)).parts :=
+      mixedToRightEmbedding (gluedPartition D) p
+    refine ⟨rm, ?_, ?_⟩
+    · exact Finset.mem_map.mpr ⟨p, Finset.mem_attach _ p, rfl⟩
+    · calc
+        rm.1 = (D.2.2 pre).1.1 := rfl
+        _ = q.1.1 := congrArg (fun z => z.1.1) (D.2.2.apply_symm_apply q)
+        _ = a := hma
+
 #print axioms markedPartitions_eq_A049020
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
