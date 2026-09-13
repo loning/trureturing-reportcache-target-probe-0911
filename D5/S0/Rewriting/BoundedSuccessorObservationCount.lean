@@ -92,11 +92,13 @@ theorem bounded_successor_observation_count (B h : ℕ) {A : Type*} (q : Fin (B 
     rcases lt_trichotomy i.val j.val with hij | hij | hij
     · have ht : i.val + 1 < h + 1 := by have := j.isLt; omega
       exact False.elim ((hsep (rep j) (rep i) ⟨i.val + 1, ht⟩
-        (by simpa only [hr] using hij) (by simp only [hr]; omega)) heq.symm)
+        (by dsimp only; rw [hr]; omega) (by simp only [hr]; omega)) heq.symm)
     · exact hij
     · have ht : j.val + 1 < h + 1 := by have := i.isLt; omega
       exact False.elim ((hsep (rep i) (rep j) ⟨j.val + 1, ht⟩
-        (by simpa only [hr] using hij) (by simp only [hr]; omega)) heq)
+        (by dsimp only; rw [hr]; omega) (by simp only [hr]; omega)) heq)
+  letI : Finite (Set.range Q) :=
+    Finite.of_surjective (Set.rangeFactorization Q) Set.rangeFactorization_surjective
   have hlower : min (B + 1) (h + 1) ≤ Nat.card (Set.range Q) := by
     let f : Fin (min (B + 1) (h + 1)) → Set.range Q :=
       fun i => ⟨Q (rep i), ⟨rep i, rfl⟩⟩
@@ -120,7 +122,7 @@ theorem bounded_successor_observation_count (B h : ℕ) {A : Type*} (q : Fin (B 
         have ht := t.isLt
         have hn := n.isLt
         have hp := (rep i).isLt
-        dsimp only [i] at hi
+        change B - (rep i).val = min (B - n.val) h at hi
         omega
       dsimp only [Q]
       rw [htraj, htraj]
@@ -139,6 +141,7 @@ theorem bounded_successor_observation_count (B h : ℕ) {A : Type*} (q : Fin (B 
     rw [heq, Nat.card_range_of_injective hinj, Nat.card_fin]
   have htau : Function.Injective (fun n : Fin (B + 1) => B - n.val + 1) := by
     intro n m heq
+    change B - n.val + 1 = B - m.val + 1 at heq
     apply Fin.ext
     have := n.isLt
     have := m.isLt
@@ -158,6 +161,7 @@ theorem bounded_successor_observation_count (B h : ℕ) {A : Type*} (q : Fin (B 
       omega
     have hnm := horder n m (congrFun heq)
     have hmn := horder m n (congrFun heq.symm)
+    change B - n.val + 1 = B - m.val + 1
     omega
   exact ⟨htraj, hfirst, hconst, ⟨hlower, hupper⟩, htau, hfuture⟩
 
