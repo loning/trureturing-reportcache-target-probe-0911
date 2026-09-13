@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 import os
 from pathlib import Path
 import shutil
@@ -79,6 +80,31 @@ def prepare(root):
         'configs': inputs.expand('config_inputs'), 'coordinates': public.coordinates(root)}))
 
 
+@lru_cache(maxsize=None)
+def source_inventory(root):
+    # Expanded once per native invocation, never mixed into the aggregate
+    # trace: adding an unused producer helper is still a compatible change.
+    inputs = selection.Selection(root)
+    return set(inputs.dependency_sources()), set(inputs.modules().values())
+
+
+def input_sources(root, utility_path):
+    """Capture Lake's local source closure, bounded by explicit registration.
+
+    Other reported sources are already bound by the complete exported report
+    address. Keep their closure out of each row's sidecar to avoid quadratic
+    duplication; native compiler traces still govern row invalidation.
+    """
+    allowed, reported = source_inventory(str(root))
+    record = public.read_json(Path(utility_path).read_bytes())
+    paths = public.read_json(Path(str(utility_path) + '.sources.json').read_bytes())
+    materials.require_sorted_strings(sorted(set(paths)), 'native dependency sources')
+    if set(paths) - allowed:
+        raise ValueError('unregistered native dependency sources: ' + ', '.join(sorted(set(paths) - allowed)))
+    selected = (set(paths) - reported) | {record['source_path']}
+    return {path: public.digest(Path(root) / path) for path in sorted(selected)}
+
+
 def row_binding(rows, root, module_name, utility_path):
     if len(rows) != 1 or rows[0]['module'] != module_name:
         raise ValueError('native module binding mismatch')
@@ -106,6 +132,7 @@ def module(root, name, source, utility_path, executable, output):
     with tempfile.TemporaryDirectory(prefix='.module.', dir=output.parent) as directory:
         directory = Path(directory)
         record = public.read_json(Path(utility_path).read_bytes())
+        bindings = input_sources(root, utility_path)
         utility = directory / 'utility.json'
         utility.write_bytes(materials.canonical_json(record['utilities']))
         spool = directory / 'spool'
@@ -114,10 +141,13 @@ def module(root, name, source, utility_path, executable, output):
         subprocess.run([str(executable), '--output', str(directory / 'spool.json'), '--material-spool', str(spool),
             '--utility-input', str(utility), name, record['source_path'], 'sha256:' + public.digest(source)], check=True, cwd=root)
         materials.compact(directory / 'spool.json', spool, report)
-        rows = public.validate_rows(report, public.member(report, '.materials.zip'))
+        # Lake returns only canonically validated public facets. Generation is
+        # private; the completed artifact gets its full validation at acceptance.
+        rows = public.read_json(report.read_bytes())['modules']
         row_binding(rows, root, name, utility_path)
         artifact = directory / 'module.zip'
-        public.write_origin(report, name, public.production_origin(root, executable))
+        public.write_origin(report, name, dict(public.production_origin(root, executable),
+                                              input_sources=bindings))
         public.zip_files(artifact, [(public.RAW + suffix, public.member(report, suffix)) for suffix in ROW_SUFFIXES])
         os.replace(artifact, output)
         activity('extract', 1)
@@ -144,7 +174,7 @@ def produce_batch(requests):
             record = public.read_json(Path(utility_path).read_bytes())
             utilities.extend(record['utilities'])
             triples.extend([name, record['source_path'], 'sha256:' + public.digest(source)])
-            bindings[name] = (utility_path, Path(output))
+            bindings[name] = (utility_path, Path(output), input_sources(root, utility_path))
         utility_file = directory / 'utility.json'
         utility_file.write_bytes(materials.canonical_json(utilities))
         arguments = ['--output', str(directory / 'spool.json'), '--material-spool', str(spool),
@@ -157,7 +187,7 @@ def produce_batch(requests):
             raise ValueError('incomplete native inspection batch')
         for row in raw['modules']:
             name = row['module']
-            utility_path, output = bindings[name]
+            utility_path, output, sources = bindings[name]
             row_dir = directory / name
             row_dir.mkdir()
             row_spool = row_dir / 'spool'
@@ -169,11 +199,11 @@ def produce_batch(requests):
             spool_report.write_bytes(materials.canonical_json({'schema': materials.SPOOL_SCHEMA, 'modules': [row]}))
             report = row_dir / public.RAW
             materials.compact(spool_report, row_spool, report)
-            rows = public.validate_rows(report, public.member(report, '.materials.zip'))
+            rows = public.read_json(report.read_bytes())['modules']
             row_binding(rows, root, name, utility_path)
             output.parent.mkdir(parents=True, exist_ok=True)
             artifact = row_dir / 'module.zip'
-            public.write_origin(report, name, origin)
+            public.write_origin(report, name, dict(origin, input_sources=sources))
             public.zip_files(artifact, [(public.RAW + suffix, public.member(report, suffix)) for suffix in ROW_SUFFIXES])
             os.replace(artifact, output)
         if list(spool.iterdir()):
@@ -188,23 +218,31 @@ def batch(request_file, result_file):
     if produce:
         produce_batch(produce)
     statuses = []
+    verified_materials = {}
     for kind, args in requests:
         if kind == 'produce':
             statuses.append(0)
         elif kind == 'validate':
             try:
-                validate(*args[1:])
+                validate(*args[1:], verified_materials=verified_materials)
                 statuses.append(0)
             except (OSError, UnicodeError, ValueError, KeyError, TypeError,
                     zipfile.BadZipFile, zlib.error, NotImplementedError) as error:
                 print(f'LEAN_INSPECTOR_REJECT {error}', file=sys.stderr)
                 statuses.append(1)
+        elif kind == 'aggregate':
+            if any(statuses):
+                statuses.append(1)
+            else:
+                root, output, *artifacts = args
+                aggregate(root, output, artifacts, verified_materials=verified_materials)
+                statuses.append(0)
         else:
             raise ValueError('unknown native batch operation')
     Path(result_file).write_text(json.dumps(statuses))
 
 
-def aggregate(root, output, artifacts):
+def aggregate(root, output, artifacts, verified_materials=None):
     root, output = Path(root), Path(output)
     config = public.read_json((state(root) / 'inputs.json').read_bytes())
     if len(artifacts) != len(config['modules']):
@@ -219,9 +257,11 @@ def aggregate(root, output, artifacts):
         for name, artifact in zip(config['modules'], artifacts):
             with tempfile.TemporaryDirectory(prefix='row.', dir=directory) as row_dir:
                 report = public.unpack(artifact, row_dir, ROW_SUFFIXES)
-                current = public.validate_rows(report, public.member(report, '.materials.zip'))
+                current = public.validate_rows(report, public.member(report, '.materials.zip'), verified_materials)
                 row_binding(current, root, name, state(root) / 'inputs' / (name + '.json'))
                 origins[name] = public.validate_origin(report, current, config['coordinates']['producer'])
+                if origins[name]['input_sources'] != input_sources(root, state(root) / 'inputs' / (name + '.json')):
+                    raise ValueError('native dependency source binding mismatch')
                 rows.extend(current)
                 with zipfile.ZipFile(public.member(report, '.materials.zip')) as archive:
                     for entry in archive.infolist():
@@ -245,7 +285,8 @@ def aggregate(root, output, artifacts):
                 with source.open('rb') as reader, archive.open(info, 'w') as writer:
                     shutil.copyfileobj(reader, writer, materials.BUFFER_BYTES)
         public.write_sidecars(report, config['coordinates'], origins)
-        public.validate_bundle(report, config['coordinates'])
+        # The native aggregate facet validates the completed bundle before
+        # exposing it. Do not repeat that complete pass inside its builder.
         artifact = directory / 'report.zip'
         public.zip_files(artifact, [(public.RAW + suffix, public.member(report, suffix)) for suffix in public.SUFFIXES])
         os.replace(artifact, output)
@@ -253,22 +294,24 @@ def aggregate(root, output, artifacts):
         print(f'LEAN_INSPECTOR_AGGREGATE modules={len(rows)} declarations={sum(len(row["declarations"]) for row in rows)}')
 
 
-def validate(kind, root, *args):
+def validate(kind, root, *args, verified_materials=None):
     with tempfile.TemporaryDirectory(prefix='.validate.', dir=state(root)) as directory:
         if kind == 'module':
             name, utility, artifact = args
             report = public.unpack(artifact, directory, ROW_SUFFIXES)
-            rows = public.validate_rows(report, public.member(report, '.materials.zip'))
+            rows = public.validate_rows(report, public.member(report, '.materials.zip'), verified_materials)
             row_binding(rows, root, name, utility)
             # prepare validated the manifest before any facet could accept an
             # artifact. Read its small derived token, not the full module scope
             # again for each row in a large validation batch.
             compatibility = (state(root) / 'compatibility').read_text(encoding='ascii').strip()
-            public.validate_origin(report, rows, compatibility)
+            origin = public.validate_origin(report, rows, compatibility)
+            if origin['input_sources'] != input_sources(root, utility):
+                raise ValueError('native dependency source binding mismatch')
         elif kind == 'report':
             report = public.unpack(args[0], directory)
             config = public.read_json((state(root) / 'inputs.json').read_bytes())
-            rows = public.validate_bundle(report, config['coordinates'])
+            rows = public.validate_bundle(report, config['coordinates'], root, verified_materials)
             if [row['module'] for row in rows] != config['modules']:
                 raise ValueError('native aggregate membership mismatch')
             for row in rows:

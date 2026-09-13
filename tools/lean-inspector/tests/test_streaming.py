@@ -89,6 +89,39 @@ class StreamingTests(unittest.TestCase):
 
 
 class PublicationTests(unittest.TestCase):
+    def test_shared_validation_rechecks_bytes_and_complete_declaration_identity(self):
+        import zipfile
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            spool = root / 'spool'
+            spool.mkdir()
+            (spool / '0.statement').write_text('λ😀' * (materials.BUFFER_BYTES + 1))
+            source = root / 'spool.json'
+            source.write_text(json.dumps(dict(schema=materials.SPOOL_SCHEMA, modules=[dict(
+                module='X', source_path='X.lean', source_sha256='sha256:' + 'a'*64, imports=[],
+                declarations=[dict(axioms=[], include_in_statement=False, kind='opaque',
+                    material_file='0.statement', name='x', name_key='ns(n0,1:x)')])])) )
+            report = root / 'report.json'
+            archive = publication.member(report, '.materials.zip')
+            materials.compact(source, spool, report)
+            verified = {}
+            with patch.object(materials, 'material_identities', wraps=materials.material_identities) as identities:
+                rows = publication.validate_rows(report, archive, verified)
+                publication.validate_rows(report, archive, verified)
+                self.assertEqual(identities.call_count, 1)
+                original = report.read_bytes()
+                rows[0]['declarations'][0]['statement_id'] = 'sha256:' + 'b'*64
+                report.write_bytes(materials.canonical_json(dict(schema=materials.REPORT_SCHEMA, modules=rows)))
+                with self.assertRaisesRegex(ValueError, 'identity mismatch'):
+                    publication.validate_rows(report, archive, verified)
+                report.write_bytes(original)
+                with zipfile.ZipFile(archive) as reader:
+                    name = reader.namelist()[0]
+                with zipfile.ZipFile(archive, 'w') as writer:
+                    writer.writestr(name, b'corrupt actual bytes')
+                with self.assertRaisesRegex(ValueError, 'material address mismatch'):
+                    publication.validate_rows(report, archive, verified)
+
     def test_source_membership_and_claim_bindings_use_current_registered_sources(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -143,7 +176,8 @@ class PublicationTests(unittest.TestCase):
                 pair, repository = subprocess.check_output([str(helper), 'coordinates', 'b'*64, 'b'*64, 'c'*64, 'd'*64], text=True).split()
                 coordinates = dict(repository=repository, producer='b'*64, sources='c'*64, config='d'*64, input=pair)
                 origins = {'X': dict(module='X', report_sha256=publication.digest(report),
-                    compatibility_sha256='b'*64, producer_sources_sha256='e'*64, inspector_executable_sha256='f'*64)}
+                    compatibility_sha256='b'*64, producer_sources_sha256='e'*64, inspector_executable_sha256='f'*64,
+                    input_sources={'X.lean': 'a'*64})}
                 publication.write_sidecars(report, coordinates, origins)
                 live = directory / 'live.json'
                 publication.publish(report, live, coordinates)

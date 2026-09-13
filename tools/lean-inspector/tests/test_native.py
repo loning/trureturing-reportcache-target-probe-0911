@@ -93,6 +93,7 @@ root = "Cache"
         paths = lambda *names: dict(include=[dict(pattern=n, optional=False) for n in names], exclude=[])
         policy = dict(schema_version=1, report_semantic_version=1, report_modules=paths('Fixture.lean', 'D5/**/*.lean'),
             inspector_sources=paths('tools/lean-inspector/Inspector.lean', 'tools/lean-inspector/lakefile.lean'),
+            dependency_sources=paths('External.lean', 'ClaimSupport.lean'),
             config_inputs=paths('lean-toolchain', 'lakefile.toml', 'lake-manifest.json'),
             producer_scopes={'lean-report': paths('lean-report-inputs.json', 'tools/scripts/report/lean-report-selection.py',
                 'tools/lean-inspector/Inspector.lean', 'tools/lean-inspector/lakefile.lean',
@@ -203,6 +204,88 @@ root = "Cache"
     def origins(self):
         with zipfile.ZipFile(self.root / '.lake/build/lean-inspector/report.zip') as archive:
             return json.loads(archive.read(publication.RAW + '.provenance.json'))['module_origins']
+
+    def test_exported_transitive_dependency_binding(self):
+        self.build()
+        self.publish()
+        before = self.report()[0][-1]['utility_refutation']['is_closed_negation']
+        dependency = self.root / 'ClaimSupport.lean'
+        old_sha = publication.digest(dependency)
+        coordinates = publication.coordinates(self.root)
+        self.write('ClaimSupport.lean', 'def claimSupport : Prop := True\n')
+        stage = subprocess.run([sys.executable, str(self.root / 'tools/lean-inspector/publication.py'),
+            'stage', '--bundle', str(self.root / 'public.json'), '--repository', str(self.root),
+            '--staging-directory', str(self.root / 'staged')], env=self.env,
+            text=True, capture_output=True, timeout=120)
+        verify = subprocess.run(['bash', str(self.root / 'tools/scripts/report/lean-report-input.sh'),
+            'verify', '--repository', str(self.root), '--report', str(self.root / 'public.json')],
+            env=self.env, text=True, capture_output=True, timeout=120)
+        self.build()
+        after = self.report()[0][-1]['utility_refutation']['is_closed_negation']
+        result = dict(lean_generated=True, dependency='ClaimSupport.lean',
+            dependency_sha256_before=old_sha, dependency_sha256_after=publication.digest(dependency),
+            coordinates_unchanged=coordinates == publication.coordinates(self.root),
+            old_closed_negation=before, new_closed_negation=after,
+            stage_exit=stage.returncode, stage_stderr=stage.stderr,
+            verify_exit=verify.returncode, verify_stderr=verify.stderr)
+        if output := os.environ.get('STRATALINT_DEPENDENCY_PROBE_RESULT'):
+            Path(output).write_text(json.dumps(result, indent=2) + '\n')
+        self.assertTrue(before)
+        self.assertFalse(after, 'mutation must change actual Lean-generated semantic evidence')
+        self.assertNotEqual(stage.returncode, 0, json.dumps(result))
+        self.assertNotEqual(verify.returncode, 0, json.dumps(result))
+
+    def test_exported_private_dependency_and_missing_binding(self):
+        support = 'module\npublic section\nnoncomputable section\nprivate axiom privateInput : Nat\ndef support : Nat := privateInput\n'
+        self.write('Support.lean', support)
+        self.write('D5/A.lean', 'import Support\nnoncomputable def value : Nat := support\n')
+        self.write('lakefile.toml', (self.root / 'lakefile.toml').read_text() + '\n[[lean_lib]]\nname = "Support"\n')
+        policy = json.loads((self.root / 'lean-report-inputs.json').read_text())
+        rejected = self.build(success=False)  # Native dependencies never invent registration.
+        self.assertIn('unregistered native dependency sources: Support.lean', rejected.stdout + rejected.stderr)
+        policy['dependency_sources']['include'].append(dict(pattern='Support.lean', optional=False))
+        self.write('lean-report-inputs.json', json.dumps(policy))
+        self.build()
+        self.publish()
+        old = self.report()[0][0]['declarations'][0]['axioms']
+        self.assertTrue(any('privateInput' in name for name in old))
+        self.write('Support.lean', support.replace('axiom privateInput : Nat', 'def privateInput : Nat := 3'))
+        with self.assertRaisesRegex(ValueError, 'stale dependency'):
+            publication.validate_bundle(self.root / 'public.json', publication.coordinates(self.root), self.root)
+        self.build()
+        self.assertEqual(self.report()[0][0]['declarations'][0]['axioms'], [])
+        self.publish()
+        # Simulate pre-binding row and aggregate sidecars. Never manufacture
+        # evidence for old bytes from the current dependency snapshot.
+        before = self.stamps()
+        expected = self.report()[1:]
+        for relative in [*(f'modules/{name}.zip' for name in before), 'report.zip']:
+            artifact = self.root / '.lake/build/lean-inspector' / relative
+            with zipfile.ZipFile(artifact) as archive:
+                entries = [(info, archive.read(info)) for info in archive.infolist()]
+            artifact.unlink()
+            with zipfile.ZipFile(artifact, 'w') as archive:
+                for info, data in entries:
+                    if info.filename.endswith('.provenance.json'):
+                        origin = json.loads(data)
+                        records = origin['module_origins'].values() if 'module_origins' in origin else [origin]
+                        for record in records:
+                            record.pop('input_sources')
+                        data = json.dumps(origin).encode()
+                    archive.writestr(info, data)
+        result = subprocess.run([sys.executable, str(self.root / 'tools/lean-inspector/native.py'),
+            'publish', str(self.root), str(self.root / 'rejected.json')], env=self.env, capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((self.root / 'rejected.json').exists())
+        self.build()
+        self.assertEqual({name for name, value in self.stamps().items() if value != before[name]}, set(before))
+        self.assertEqual(expected, self.report()[1:])
+        records = [json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()]
+        self.assertEqual([row['count'] for row in records if row['kind'] == 'extract'], [len(before)])
+        self.publish()
+        self.build()
+        self.assertEqual((self.root / 'activity.jsonl').read_text(), '',
+                         'successfully reconstructed legacy artifacts must be reusable')
 
     def publish(self):
         result = subprocess.run([sys.executable, str(self.root / 'tools/lean-inspector/native.py'),
@@ -389,6 +472,15 @@ root = "Cache"
         self.build()
         self.assertEqual(before, self.stamps())
         self.assertEqual(aggregate_before, (aggregate.stat().st_mtime_ns, publication.digest(aggregate)))
+        self.write('tools/lean-inspector/CompatibleHelper.lean', 'def compatibleHelper : Nat := 1\n')
+        policy = json.loads((self.root / 'lean-report-inputs.json').read_text())
+        for scope in ['inspector_sources', 'dependency_sources']:
+            policy[scope]['include'].append(dict(pattern='tools/lean-inspector/CompatibleHelper.lean', optional=False))
+        self.write('lean-report-inputs.json', json.dumps(policy))
+        self.build()
+        self.assertEqual(before, self.stamps())
+        self.assertEqual(aggregate_before, (aggregate.stat().st_mtime_ns, publication.digest(aggregate)))
+        self.assertEqual(origins, self.origins())
         # Subsequent content changes assemble mixed actual production origins.
         self.write('D5/Alone.lean', (self.root / 'D5/Alone.lean').read_text() + '-- content input\n')
         self.build()
@@ -423,12 +515,17 @@ root = "Cache"
 
     def test_native_semantic_version_and_config(self):
         self.build()
+        self.write('activity.jsonl', '')
+        self.run_lake('--no-build', 'build', ':report')
+        self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
         before = self.stamps()
         original = self.report()[1:]
         origins = self.origins()
         policy = json.loads((self.root / 'lean-report-inputs.json').read_text())
         policy['report_semantic_version'] = 2
         self.write('lean-report-inputs.json', json.dumps(policy))
+        self.run_lake('--no-build', 'build', ':report', success=False)
+        self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
         self.build()
         self.assertEqual({name for name, value in self.stamps().items() if value != before[name]}, set(before))
         records = [json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()]

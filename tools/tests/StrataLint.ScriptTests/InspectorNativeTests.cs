@@ -11,6 +11,8 @@ public sealed class InspectorNativeTests
     [InlineData("test_native.NativeTests.test_publication_snapshot_integrity_and_replace_failure")]
     [InlineData("test_native.NativeTests.test_public_module_validates_and_private_job_is_not_a_target")]
     [InlineData("test_native.NativeTests.test_native_invalidation")]
+    [InlineData("test_native.NativeTests.test_exported_transitive_dependency_binding")]
+    [InlineData("test_native.NativeTests.test_exported_private_dependency_and_missing_binding")]
     [InlineData("test_native.NativeTests.test_native_producer_inputs")]
     [InlineData("test_native.NativeTests.test_native_semantic_version_and_config")]
     [InlineData("test_native.NativeTests.test_native_invalid_semantic_versions")]

@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using StrataLint.Engine;
+using Trureturing.Truth;
 
 namespace StrataLint.Tests;
 
@@ -435,7 +437,9 @@ public sealed partial class LeanReportInputScriptTests
                         "tools", "lean-inspector", "native.py"),
                     Encoding.UTF8));
             Write(CacheEnsureScriptPath, "#!/usr/bin/env bash\n");
-            Write("tools/lean-inspector/publication.py", "#!/usr/bin/env bash\n");
+            foreach (var name in new[] { "publication.py", "materials.py" })
+                Write("tools/lean-inspector/" + name, File.ReadAllText(
+                    Path.Combine(TestRepositoryLayout.FindRoot(), "tools/lean-inspector", name)));
             Write(
                 CachePublishScriptPath,
                 File.ReadAllText(
@@ -481,7 +485,16 @@ public sealed partial class LeanReportInputScriptTests
             Write(TruthLockPath, "{}\n");
             Write("global.json", "{}\n");
             LeanReportRegistrationFixture.Install(repository);
-            File.WriteAllText(report, "{}\n", new UTF8Encoding(false));
+            // Synthetic module rows carry the same source/origin contract as
+            // native bundles; no mathematical declarations are manufactured.
+            var modules = new[] { "D5/Probe.lean", "Trureturing.lean" }.Select(path => new
+            {
+                module = path[..^5].Replace('/', '.'), source_path = path,
+                source_sha256 = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(Path.Combine(repository, path)))),
+                imports = Array.Empty<string>(), declarations = Array.Empty<object>(),
+            });
+            File.WriteAllBytes(report, StructuredCanonicalWriter.WriteJson(JsonSerializer.SerializeToElement(
+                new { schema = "stratalint-raw-lean-report-v2", modules })).ToArray());
             var digest = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(report)));
             File.WriteAllText(
                 report + ".sha256",
@@ -508,6 +521,7 @@ public sealed partial class LeanReportInputScriptTests
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var address = addressParts[0];
             var producer = addressParts[1];
+            WriteFixtureOrigins(report, producer);
             var reportSha = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(report)));
             File.WriteAllText(
                 report + ".input.attestation",

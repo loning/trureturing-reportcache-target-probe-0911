@@ -153,5 +153,6 @@ case "$COMMAND" in
       || { echo "lean-report-input: raw Lean report producer is stale for current repository inputs; run make lean-report first" >&2; exit 2; }
     [[ "$declared" == "$address" ]] \
       || { echo "lean-report-input: raw Lean report is stale for current repository inputs; run make lean-report first" >&2; exit 2; }
+    python3 "$SCRIPT_DIRECTORY/../../lean-inspector/publication.py" verify-inputs "$REPORT" --repository "$REPOSITORY"
     ;;
 esac

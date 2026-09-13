@@ -84,14 +84,19 @@ class Selection:
                                    object_pairs_hook=unique_object)
         except (OSError, UnicodeError, ValueError) as error:
             fail('declaration', str(error))
-        fields(self.data, ('schema_version', 'report_semantic_version', 'report_modules', 'inspector_sources',
-                          'config_inputs', 'producer_scopes'), 'declaration')
+        keys = {'schema_version', 'report_semantic_version', 'report_modules', 'inspector_sources',
+                'config_inputs', 'producer_scopes'}
+        if 'dependency_sources' in self.data:
+            keys.add('dependency_sources')
+        fields(self.data, keys, 'declaration')
         if type(self.data['schema_version']) is not int or self.data['schema_version'] != 1:
             fail('schema_version', 'unsupported version')
         if type(self.data['report_semantic_version']) is not int or self.data['report_semantic_version'] <= 0:
             fail('report_semantic_version', 'must be a positive integer')
         for name in ('report_modules', 'inspector_sources', 'config_inputs'):
             path_set(self.data[name], name)
+        if 'dependency_sources' in self.data:
+            path_set(self.data['dependency_sources'], 'dependency_sources')
         fields(self.data['producer_scopes'], SCOPES, 'producer_scopes')
         for scope, value in self.data['producer_scopes'].items():
             path_set(value, 'producer_scopes.' + scope)
@@ -181,9 +186,23 @@ class Selection:
             selected += self.expand('scribe-content')
         return sorted(set(selected))
 
+    def dependency_sources(self):
+        """Permitted local compiler inputs, not a regeneration fingerprint.
+
+        Lake selects the actual closure separately for each reported module.
+        Producer-only files in this inventory do not invalidate reports.
+        """
+        paths = sorted(set(self.expand('report_modules') +
+            (self.expand('dependency_sources') if 'dependency_sources' in self.data else [])))
+        for path in paths:
+            if not path.endswith('.lean'):
+                fail(path, 'dependency_sources must select Lean source files')
+        return paths
+
     def validate(self, scope):
         self.producer_paths(scope)
         self.expand('config_inputs')
+        self.dependency_sources()
 
     def projection(self, scope):
         if scope not in SCOPES:

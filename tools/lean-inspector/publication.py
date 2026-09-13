@@ -91,7 +91,13 @@ def write_origin(report, name, origin):
 
 def check_origin(origin, row, compatibility):
     materials.require_keys(origin, {'module', 'report_sha256', 'compatibility_sha256',
-        'producer_sources_sha256', 'inspector_executable_sha256'}, 'module production origin')
+        'producer_sources_sha256', 'inspector_executable_sha256', 'input_sources'}, 'module production origin')
+    bindings = origin['input_sources']
+    if (not isinstance(bindings, dict) or bindings.get(row['source_path']) != row['source_sha256'][7:]
+            or any(not isinstance(sha, str) or not HEX.fullmatch(sha) for sha in bindings.values())):
+        raise ValueError('module dependency source binding mismatch')
+    for path in bindings:
+        selection.compile_glob(path, 'dependency source binding')
     if (origin['module'] != row['module'] or origin['compatibility_sha256'] != compatibility
             or any(not isinstance(origin[k], str) or not HEX.fullmatch(origin[k]) for k in
                    ('report_sha256', 'compatibility_sha256', 'producer_sources_sha256', 'inspector_executable_sha256'))
@@ -121,7 +127,7 @@ def write_sidecars(report, inputs, origins, mode='produced'):
     member(report, '.provenance.json').write_text(json.dumps(provenance, separators=(',', ':')) + '\n', encoding='utf-8')
 
 
-def validate_rows(report, archive_path):
+def validate_rows(report, archive_path, verified_materials=None):
     data = Path(report).read_bytes()
     root = read_json(data)
     materials.require_keys(root, {'modules', 'schema'}, 'report')
@@ -178,10 +184,20 @@ def validate_rows(report, archive_path):
             if info.flag_bits & 1:
                 raise ValueError('encrypted material')
             for row, decl in references[name]:
+                key = (row['source_path'], decl['kind'], decl['name_key'], decl['type_sha256'])
                 with archive.open(info) as source:
-                    actual = materials.material_identities(source, row['source_path'], decl['kind'], decl['name_key'])
+                    if verified_materials is not None and key in verified_materials:
+                        # Invocation-local reuse of the expensive canonical
+                        # statement encoding. Always read/CRC-check/hash the
+                        # actual bytes again; an archive address is no proof.
+                        materials.verify_material(source, decl['type_sha256'])
+                        actual = (decl['type_sha256'], verified_materials[key])
+                    else:
+                        actual = materials.material_identities(source, row['source_path'], decl['kind'], decl['name_key'])
                 if actual != (decl['type_sha256'], decl['statement_id']):
                     raise ValueError('material or declaration identity mismatch')
+                if verified_materials is not None:
+                    verified_materials[key] = actual[1]
     return root['modules']
 
 
@@ -199,6 +215,33 @@ def validate_sources(rows, repository):
             raise ValueError('report claim source binding mismatch')
 
 
+def validate_dependency_sources(origins, repository):
+    inputs = selection.Selection(repository)
+    allowed = set(inputs.dependency_sources())
+    observed = {}
+    for origin in origins.values():
+        for path, sha in origin['input_sources'].items():
+            if path not in allowed:
+                raise ValueError('unregistered dependency source binding: ' + path)
+            if path not in observed:
+                observed[path] = digest(inputs.safe_file(path))
+            if observed[path] != sha:
+                raise ValueError('stale dependency source binding: ' + path)
+
+
+def verify_inputs(report, repository):
+    """Input-only verification; the full material validator remains separate."""
+    rows = read_json(Path(report).read_bytes())['modules']
+    provenance = read_json(member(report, '.provenance.json').read_bytes())
+    origins = provenance['module_origins']
+    materials.require_keys(origins, {row['module'] for row in rows}, 'aggregate production origins')
+    compatibility = selection.Selection(repository).compatibility()
+    for row in rows:
+        check_origin(origins[row['module']], row, compatibility)
+    validate_sources(rows, repository)
+    validate_dependency_sources(origins, repository)
+
+
 def _require_bundle_files(report):
     for suffix in SUFFIXES:
         path = member(report, suffix)
@@ -206,7 +249,7 @@ def _require_bundle_files(report):
             raise ValueError(f'missing bundle member: {path.name}')
 
 
-def validate_bundle(report, expected=None, repository=None):
+def validate_bundle(report, expected=None, repository=None, verified_materials=None):
     report = Path(report)
     _require_bundle_files(report)
     sha = digest(report)
@@ -238,13 +281,14 @@ def validate_bundle(report, expected=None, repository=None):
             'lean_config_sha256': expected['config']}
         if any(provenance[k] != v for k, v in wanted.items()) or lines[1] != 'repository_input_sha256=' + expected['repository']:
             raise ValueError('stale input/provenance')
-    rows = validate_rows(report, member(report, '.materials.zip'))
+    rows = validate_rows(report, member(report, '.materials.zip'), verified_materials)
     origins = provenance['module_origins']
     materials.require_keys(origins, {row['module'] for row in rows}, 'aggregate production origins')
     for row in rows:
         check_origin(origins[row['module']], row, provenance['producer_sha256'])
     if repository is not None:
         validate_sources(rows, repository)
+        validate_dependency_sources(origins, repository)
     return rows
 
 
@@ -338,11 +382,17 @@ def main():
     validate = sub.add_parser('validate')
     validate.add_argument('report', type=Path)
     validate.add_argument('--repository', type=Path)
+    verify = sub.add_parser('verify-inputs')
+    verify.add_argument('report', type=Path)
+    verify.add_argument('--repository', required=True, type=Path)
     stage = sub.add_parser('stage')
     stage.add_argument('--bundle', required=True, type=Path)
     stage.add_argument('--staging-directory', required=True, type=Path)
     stage.add_argument('--repository', required=True, type=Path)
     args = parser.parse_args()
+    if args.command == 'verify-inputs':
+        verify_inputs(args.report, args.repository)
+        return
     expected = coordinates(args.repository) if args.repository else None
     if args.command == 'validate':
         validate_bundle(args.report, expected, args.repository)
