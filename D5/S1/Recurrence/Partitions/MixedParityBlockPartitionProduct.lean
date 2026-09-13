@@ -925,6 +925,81 @@ private theorem rightMarkedPartition_glued {n k : ℕ} (D : RestrictionPairingDa
   exact marked_heq R.1 D.2.1.1 (rightRestriction_glued D) R.2 D.2.1.2
     (rightMarkedValues_glued D)
 
+private theorem restrictionPairing_glued {n k : ℕ} (D : RestrictionPairingData n k) :
+    (restrictionData (gluedMixedPartition D)).2.2 ≍ D.2.2 := by
+  classical
+  let P := gluedMixedPartition D
+  let L := leftMarkedPartition P
+  let R := rightMarkedPartition P
+  let F : MarkedBlocks L ≃ MarkedBlocks R :=
+    (mixedLeftEquiv (gluedPartition D)).symm.trans
+      (mixedRightEquiv (gluedPartition D))
+  have hL : L = D.1 := by simpa [L, P] using leftMarkedPartition_glued D
+  have hR : R = D.2.1 := by simpa [R, P] using rightMarkedPartition_glued D
+  have hA : ↥(MarkedBlocks L) = ↥(MarkedBlocks D.1) :=
+    congrArg (fun Q : MarkedPartition ((n + 1) / 2) k => {b // b ∈ MarkedBlocks Q}) hL
+  have hB : ↥(MarkedBlocks R) = ↥(MarkedBlocks D.2.1) :=
+    congrArg (fun Q : MarkedPartition (n / 2) k => {b // b ∈ MarkedBlocks Q}) hR
+  have equiv_heq :
+      ∀ (A A' B B' : Type) (hA : A = A') (hB : B = B')
+        (f : A ≃ B) (g : A' ≃ B'),
+        (∀ (x : A) (x' : A'), x ≍ x' → f x ≍ g x') → f ≍ g := by
+    intro A A' B B' hA' hB' f g hfg
+    subst A'
+    subst B'
+    apply heq_of_eq
+    apply Equiv.ext
+    intro x
+    exact eq_of_heq (hfg x x (HEq.refl x))
+  have raw_of_heq :
+      ∀ (O O' : MarkedPartition ((n + 1) / 2) k) (hO : O = O')
+        (x : MarkedBlocks O) (x' : MarkedBlocks O'),
+        x ≍ x' → x.1.1 = x'.1.1 := by
+    intro O O' hO x x' hxx
+    subst O'
+    exact congrArg (fun z : MarkedBlocks O => z.1.1) (eq_of_heq hxx)
+  have heq_of_raw :
+      ∀ (E E' : MarkedPartition (n / 2) k) (hE : E = E')
+        (y : MarkedBlocks E) (y' : MarkedBlocks E'),
+        y.1.1 = y'.1.1 → y ≍ y' := by
+    intro E E' hE y y' hraw
+    subst E'
+    apply heq_of_eq
+    apply Subtype.ext
+    apply Subtype.ext
+    exact hraw
+  change F ≍ D.2.2
+  refine equiv_heq (MarkedBlocks L) (MarkedBlocks D.1)
+    (MarkedBlocks R) (MarkedBlocks D.2.1) hA hB F D.2.2 ?_
+  intro x x' hxx
+  let p : {b // b ∈ mixedParts (gluedPartition D)} :=
+    (mixedLeftEquiv (gluedPartition D)).symm x
+  have hpin : p.1 ∈ D.1.2.1.attach.map (gluedMixedEmbedding D) := by
+    rw [← glued_mixed_parts D]
+    exact p.2
+  obtain ⟨q, hq, hqp⟩ := Finset.mem_map.mp hpin
+  have hpx : p.1.1 = x.1.1 := by
+    calc
+      p.1.1 = ((mixedLeftEquiv (gluedPartition D)) p).1.1 := rfl
+      _ = x.1.1 := congrArg (fun z => z.1.1)
+        ((mixedLeftEquiv (gluedPartition D)).apply_symm_apply x)
+  have hxxraw : x.1.1 = x'.1.1 := raw_of_heq L D.1 hL x x' hxx
+  have hqraw : q.1.1 = x'.1.1 := by
+    calc
+      q.1.1 = p.1.1 := congrArg Prod.fst hqp
+      _ = x.1.1 := hpx
+      _ = x'.1.1 := hxxraw
+  have hqx : q = x' := by
+    apply Subtype.ext
+    apply Subtype.ext
+    exact hqraw
+  have hout : (F x).1.1 = (D.2.2 x').1.1 := by
+    calc
+      (F x).1.1 = p.1.2 := rfl
+      _ = (D.2.2 q).1.1 := (congrArg Prod.snd hqp).symm
+      _ = (D.2.2 x').1.1 := by rw [hqx]
+  exact heq_of_raw R D.2.1 hR (F x) (D.2.2 x') hout
+
 #print axioms markedPartitions_eq_A049020
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
