@@ -97,7 +97,7 @@ theorem bounded_successor_observation_count (B h : ℕ) {A : Type*} (q : Fin (B 
     · have ht : j.val + 1 < h + 1 := by have := i.isLt; omega
       exact False.elim ((hsep (rep i) (rep j) ⟨j.val + 1, ht⟩
         (by dsimp only; rw [hr]; omega) (by simp only [hr]; omega)) heq)
-  letI : Finite (Set.range Q) :=
+  let : Finite (Set.range Q) :=
     Finite.of_surjective (Set.rangeFactorization Q) Set.rangeFactorization_surjective
   have hlower : min (B + 1) (h + 1) ≤ Nat.card (Set.range Q) := by
     let f : Fin (min (B + 1) (h + 1)) → Set.range Q :=
