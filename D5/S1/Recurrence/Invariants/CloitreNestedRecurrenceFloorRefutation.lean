@@ -2,17 +2,11 @@
    generality: I
    mirror-B: D5/B/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.Algebra.Order.Archimedean.Real.Basic, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Ring, mathlib/module/Mathlib.Topology.Instances.Real.Lemmas, mathlib/module/Mathlib.Topology.Order.IntermediateValue]
+   anchors: [mathlib/module/Mathlib.Topology.Instances.Real.Lemmas]
    utility: kind=certified-instance; basis=refutes=gid:D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.claim; result=D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.result; claim=D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.claim
    digest: At n = 1167, the literal nested recurrence is 664 while the conjectured cubic-root floor is 665. -/
 
-import Mathlib.Algebra.Order.Archimedean.Real.Basic
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Ring
 import Mathlib.Topology.Instances.Real.Lemmas
-import Mathlib.Topology.Order.IntermediateValue
-import Lean.Elab.Tactic.Omega
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
@@ -67,8 +61,10 @@ private theorem a_bounds (N : ℕ) : a N <= N /\ (0 < N -> 0 < a N) := by
         change n + 2 - a i3 <= n + 2 /\ (0 < n + 2 -> 0 < n + 2 - a i3)
         omega
 
-private theorem a_succ (n : ℕ) :
-    a (n + 2) = n + 2 - a (n + 2 - a (n + 2 - a (n + 1))) := by
+theorem a_succ : ∀ n : ℕ, 2 <= n ->
+    a n = n - a (n - a (n - a (n - 1))) := by
+  intro N hN
+  obtain ⟨n, rfl⟩ : ∃ n, N = n + 2 := ⟨N - 2, by omega⟩
   rw [a]
   have h1 := a_bounds (n + 1)
   have hi2le : n + 2 - a (n + 1) <= n + 1 := by omega
@@ -77,6 +73,8 @@ private theorem a_succ (n : ℕ) :
   have h2 := a_bounds (n + 2 - a (n + 1))
   have hi3le : n + 2 - a (n + 2 - a (n + 1)) <= n + 1 := by omega
   rw [min_eq_left hi3le]
+  have hpred : n + 2 - 1 = n + 1 := by omega
+  rw [hpred]
 
 private def P (x : ℝ) : ℝ := x ^ 3 - x ^ 2 + 2 * x - 1
 
@@ -92,29 +90,32 @@ private theorem P_strictMono : StrictMono P := by
     mul_pos (sub_pos.mpr hxy) hfactor
   linarith
 
-private theorem existsUniquePositiveRoot : ∃! x : ℝ, 0 < x /\ P x = 0 := by
-  have hcontinuous : Continuous P := by
-    unfold P
-    exact ((((continuous_id.pow 3).sub (continuous_id.pow 2)).add
-      (continuous_const.mul continuous_id)).sub continuous_const)
-  have hzero : (0 : ℝ) ∈ Set.Icc (P 0) (P 1) := by
-    norm_num [P]
-  obtain ⟨x, hx, hPx⟩ :=
-    intermediate_value_Icc (show (0 : ℝ) <= 1 by norm_num)
-      hcontinuous.continuousOn hzero
-  have hxpos : 0 < x := by
-    rcases hx with ⟨hxnonneg, _⟩
-    by_contra hnot
-    have : x = 0 := by linarith
-    subst x
-    norm_num [P] at hPx
-  refine ⟨x, ⟨hxpos, hPx⟩, ?_⟩
-  intro y hy
-  apply P_strictMono.injective
-  exact hy.2.trans hPx.symm
+theorem cubic_positiveRoot_existsUnique :
+    ∃! x : ℝ, 0 < x /\ x ^ 3 - x ^ 2 + 2 * x - 1 = 0 := by
+  have hroot : ∃! x : ℝ, 0 < x /\ P x = 0 := by
+    have hcontinuous : Continuous P := by
+      unfold P
+      exact ((((continuous_id.pow 3).sub (continuous_id.pow 2)).add
+        (continuous_const.mul continuous_id)).sub continuous_const)
+    have hzero : (0 : ℝ) ∈ Set.Icc (P 0) (P 1) := by
+      norm_num [P]
+    obtain ⟨x, hx, hPx⟩ :=
+      intermediate_value_Icc (show (0 : ℝ) <= 1 by norm_num)
+        hcontinuous.continuousOn hzero
+    have hxpos : 0 < x := by
+      rcases hx with ⟨hxnonneg, _⟩
+      by_contra hnot
+      have : x = 0 := by linarith
+      subst x
+      norm_num [P] at hPx
+    refine ⟨x, ⟨hxpos, hPx⟩, ?_⟩
+    intro y hy
+    apply P_strictMono.injective
+    exact hy.2.trans hPx.symm
+  simpa only [P] using hroot
 
 /-- The unique positive real root of `x^3 - x^2 + 2*x - 1`. -/
-noncomputable def c : ℝ := Classical.choose existsUniquePositiveRoot
+noncomputable def c : ℝ := Classical.choose cubic_positiveRoot_existsUnique
 
 /-- Cloitre's literal 2002 comment: bounded real error and floor offset in `{0,1,2}`. -/
 def claim : Prop :=
@@ -166,7 +167,8 @@ private theorem prefixChecks_sound (table : PrefixTable) (last : ℕ)
             n + 2 - table.value (n + 2 - table.value
               (n + 2 - table.value (n + 1))) := by
           simpa using hentryBool.2
-        rw [a_succ]
+        have hpred : n + 2 - 1 = n + 1 := by omega
+        rw [a_succ (n + 2) (by omega), hpred]
         have ha1 := a_bounds (n + 1)
         have h1 := ih (n + 1) (by omega) (by omega)
         rw [h1]
@@ -204,7 +206,7 @@ theorem result : ¬ claim := by
         prefixChecks_sound certificate 1167 hchecked 1167 (by omega)
       _ = 664 := by decide +kernel
   have hc : 0 < c /\ P c = 0 := by
-    exact (Classical.choose_spec existsUniquePositiveRoot).1
+    simpa only [c, P] using (Classical.choose_spec cubic_positiveRoot_existsUnique).1
   have hPlow : P ((665 : ℝ) / 1167) < 0 := by norm_num [P]
   have hPupper : 0 < P ((666 : ℝ) / 1167) := by norm_num [P]
   have hlower : (665 : ℝ) / 1167 < c := by
@@ -228,6 +230,8 @@ theorem result : ¬ claim := by
   omega
 
 #print axioms a
+#print axioms a_succ
+#print axioms cubic_positiveRoot_existsUnique
 #print axioms c
 #print axioms claim
 #print axioms result
