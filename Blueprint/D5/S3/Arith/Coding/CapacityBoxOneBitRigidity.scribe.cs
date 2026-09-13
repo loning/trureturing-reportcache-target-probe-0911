@@ -20,17 +20,6 @@ internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinit
                     + "words differ."))),
             DescribeRole.Definition),
         Describe.Lean(
-            DescribeId.Create("square-opposite-edges-same-colour"),
-            DeclarationHandle.Create(
-                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.square_opposite_edges_same_colour"),
-            H("Opposite edges of a Boolean square have the same colour"),
-            StatementSource.WithoutFormula(),
-            AssessedProvenance.FromRepo(),
-            Blocks(Paragraph(Text(
-                "In a nondegenerate four-cycle of Boolean words whose edges each change one "
-                    + "coordinate, the two opposite edges change the same coordinate."))),
-            DescribeRole.Theorem),
-        Describe.Lean(
             DescribeId.Create("unit-edge"),
             DeclarationHandle.Create(
                 "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.UnitEdge"),
@@ -70,16 +59,6 @@ internal sealed class CapacityBoxOneBitRigidityDocument : IScribeDocumentDefinit
             Blocks(Paragraph(Text(
                 "The colour of a capacity edge is the unique bit changed by its image."))),
             DescribeRole.Definition),
-        Describe.Lean(
-            DescribeId.Create("layer-colour-invariant"),
-            DeclarationHandle.Create(
-                "D5/S3/Arith/Coding/CapacityBoxOneBitRigidity.layer_colour_invariant"),
-            H("Transport across a coordinate square"),
-            StatementSource.WithoutFormula(),
-            AssessedProvenance.FromRepo(),
-            Blocks(Paragraph(Text(
-                "Increasing a different coordinate leaves the colour of a fixed layer edge unchanged. Injectivity keeps both diagonals of the image square nondegenerate."))),
-            DescribeRole.Theorem),
         Describe.Lean(
             DescribeId.Create("colour-depends-only-on-layer"),
             DeclarationHandle.Create(
