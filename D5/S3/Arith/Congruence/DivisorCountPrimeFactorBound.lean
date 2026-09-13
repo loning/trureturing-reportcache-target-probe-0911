@@ -30,7 +30,6 @@ theorem wiseman_a328959 : ∀ n : ℕ, 2 ≤ n → 0 ≤ a n := by
   have hexponent (p : ℕ) (hp : p ∈ n.primeFactors) : 1 ≤ n.factorization p := by
     obtain ⟨hpprime, hpdvd, -⟩ := Nat.mem_primeFactors.mp hp
     exact hpprime.factorization_pos_of_dvd hn0 hpdvd
-
   have product_linear_bound : ∀ (s : Finset ℕ) (b : ℕ → ℕ),
       2 ^ s.card + 2 ^ (s.card - 1) * ∑ i ∈ s, b i ≤
         ∏ i ∈ s, (2 + b i) := by
@@ -61,7 +60,6 @@ theorem wiseman_a328959 : ∀ n : ℕ, 2 ≤ n → 0 ≤ a n := by
               nlinarith [Nat.zero_le (2 ^ (s.card - 1) * (∑ i ∈ s, b i) * b x)]
             _ ≤ (∏ i ∈ s, (2 + b i)) * (2 + b x) := hmul
             _ = (2 + b x) * ∏ i ∈ s, (2 + b i) := by ac_rfl
-
   let r := n.primeFactors.card
   let B := ∑ p ∈ n.primeFactors, (n.factorization p - 1)
   have homega : ArithmeticFunction.cardDistinctFactors n = r := by
@@ -83,7 +81,6 @@ theorem wiseman_a328959 : ∀ n : ℕ, 2 ≤ n → 0 ≤ a n := by
       _ = r + B := by
         simp only [Finset.sum_add_distrib, Finset.sum_const, Nat.nsmul_eq_mul,
           mul_one, r, B]
-
   have hdivisors :
       2 ^ r + 2 ^ (r - 1) * B ≤ n.divisors.card := by
     calc
@@ -96,18 +93,11 @@ theorem wiseman_a328959 : ∀ n : ℕ, 2 ≤ n → 0 ≤ a n := by
         have := hexponent p hp
         omega
       _ = n.divisors.card := (Nat.card_divisors hn0).symm
-
-  have hlinear_pow : ∀ k : ℕ, k + 1 ≤ 2 ^ k := by
-    intro k
-    induction k with
-    | zero => norm_num
-    | succ k ih =>
-        rw [pow_succ]
-        omega
+  have hlinear_pow : ∀ k : ℕ, k + 1 ≤ 2 ^ k :=
+    fun k ↦ Nat.succ_le_of_lt Nat.lt_two_pow_self
   have hrpow : r ≤ 2 ^ (r - 1) := by
     have hr : r - 1 + 1 = r := by omega
     simpa only [hr] using hlinear_pow (r - 1)
-
   have hquadratic_pow_shift : ∀ k : ℕ, 2 + (k + 2) * (k + 1) ≤ 2 ^ (k + 2) := by
     intro k
     induction k with
@@ -124,7 +114,6 @@ theorem wiseman_a328959 : ∀ n : ℕ, 2 ≤ n → 0 ≤ a n := by
       have hpred : (r - 2 + 2) - 1 = r - 2 + 1 := by omega
       rw [hpred]
       exact hquadratic_pow_shift (r - 2)
-
   have hnat :
       2 + (ArithmeticFunction.cardFactors n - 1) *
           ArithmeticFunction.cardDistinctFactors n ≤
@@ -137,7 +126,6 @@ theorem wiseman_a328959 : ∀ n : ℕ, 2 ≤ n → 0 ≤ a n := by
       _ ≤ 2 ^ r + 2 ^ (r - 1) * B :=
         Nat.add_le_add hquadratic_pow (Nat.mul_le_mul_right B hrpow)
       _ ≤ n.divisors.card := hdivisors
-
   have hOmega : 1 ≤ ArithmeticFunction.cardFactors n := by omega
   have hcast := Int.ofNat_le.mpr hnat
   push_cast [Nat.cast_sub hOmega] at hcast
