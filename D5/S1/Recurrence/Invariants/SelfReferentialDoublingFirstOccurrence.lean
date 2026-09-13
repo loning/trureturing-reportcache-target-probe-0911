@@ -2,14 +2,12 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Invariants/SelfReferentialDoublingFirstOccurrence
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Basic, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.Ring]
+   anchors: [mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.Ring]
    utility: none
    digest: First occurrence thresholds in Alkan's self-referential doubling recurrence. -/
 
-import Mathlib.Data.Nat.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
-import Lean.Elab.Tactic.Omega
 
 /-!
 # First occurrences in a self-referential doubling recurrence

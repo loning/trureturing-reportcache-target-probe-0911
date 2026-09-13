@@ -38,6 +38,10 @@ $$\forall r \in \mathbb{N},\; \operatorname{a}\left(\operatorname{T}\left(r\righ
 
 *Proof.* Machine-checked in Lean as `D5/S1/Recurrence/Invariants/SelfReferentialDoublingFirstOccurrence.alkan_a335901` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a335901-self-referential-doubling-first-occurrence` (proved) by `D5/S1/Recurrence/Invariants/SelfReferentialDoublingFirstOccurrence.alkan_a335901`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a335901-self-referential-doubling-first-occurrence","declaration_gid":"D5/S1/Recurrence/Invariants/SelfReferentialDoublingFirstOccurrence.alkan_a335901","resolution_kind":"proved"} -->
+
 *Citation.* Altug Alkan (2020). *OEIS A335901, a(n) = 2*a(floor((n-1)/a(n-1))) with a(1) = 1*. URL: <https://oeis.org/A335901>.
 
 *Commentary.*

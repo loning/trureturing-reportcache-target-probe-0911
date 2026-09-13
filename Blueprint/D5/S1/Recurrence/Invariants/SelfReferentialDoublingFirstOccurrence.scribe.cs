@@ -37,7 +37,10 @@ internal sealed class SelfReferentialDoublingFirstOccurrenceDocument : IScribeDo
                 "For every natural r, the value at T(r) is 2^r. Every natural k with "
                 + "1 <= k and a(k)=2^r is at least T(r), so T(r) is the least positive "
                 + "index carrying that value.",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)))));
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create("oeis-a335901-self-referential-doubling-first-occurrence"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role, AssessedProvenance? provenance = null,
