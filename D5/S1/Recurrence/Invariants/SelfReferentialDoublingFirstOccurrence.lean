@@ -35,8 +35,6 @@ def T : ℕ → ℕ
   | 0 => 1
   | r + 1 => 2 ^ r * T r + 1
 
-#eval (List.range 40).map (fun n => a (n + 1))
-
 private theorem block_invariant (r : ℕ) :
     a (T r) = 2 ^ r ∧
       ∀ n, T r ≤ n → n < T (r + 1) →
@@ -132,7 +130,8 @@ private theorem block_invariant (r : ℕ) :
                     (2 ^ (r - 1) * 2 ^ (r + 2)) * T r := by ring
                 _ = 2 ^ ((r - 1) + (r + 2)) * T r := by
                   rw [(pow_add (2 : ℕ) (r - 1) (r + 2)).symm]
-                _ = 2 ^ ((r + 1) + r) * T r := by congr 2 <;> omega
+                _ = 2 ^ ((r + 1) + r) * T r := by
+                  rw [show (r - 1) + (r + 2) = (r + 1) + r by omega]
                 _ = (2 ^ (r + 1) * 2 ^ r) * T r := by rw [pow_add]
             rw [hcoef]
             omega
