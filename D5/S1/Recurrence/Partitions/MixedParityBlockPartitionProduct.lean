@@ -2,7 +2,7 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators, Mathlib.Data.Finset.Sum]
+   anchors: [Mathlib.Order.Partition.Finpartition, Mathlib.Data.Fintype.Powerset, Mathlib.Data.Fintype.Sigma, Mathlib.Data.Fintype.BigOperators, Mathlib.Data.Fintype.Perm, Mathlib.Data.Finset.Sum]
    utility: none
    digest: Marked set partitions and the odd-even mixed-block product conjecture. -/
 
@@ -10,6 +10,7 @@ import Mathlib.Order.Partition.Finpartition
 import Mathlib.Data.Fintype.Powerset
 import Mathlib.Data.Fintype.Sigma
 import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Data.Fintype.Perm
 import Mathlib.Data.Finset.Sum
 
 namespace D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
@@ -1034,6 +1035,45 @@ noncomputable def mixedRestrictionEquiv (n k : ℕ) :
   left_inv := glued_restriction
   right_inv := restriction_glued
 
+/-- Hanna's A124418 product formula: a partition with `k` mixed blocks is counted by
+choosing marked odd and even restrictions and one bijection between their marked blocks. -/
+theorem hanna_a124418 : ∀ n k, k ≤ n / 2 →
+    T n k = Nat.factorial k * A049020 (n / 2) k * A049020 ((n + 1) / 2) k := by
+  classical
+  intro n k _hk
+  have pairing_card (O : MarkedPartition ((n + 1) / 2) k)
+      (E : MarkedPartition (n / 2) k) :
+      Fintype.card (MarkedBlocks O ≃ MarkedBlocks E) = Nat.factorial k := by
+    let e : MarkedBlocks O ≃ MarkedBlocks E := Fintype.equivOfCardEq (by
+      simpa only [Fintype.card_coe] using O.2.2.trans E.2.2.symm)
+    calc
+      Fintype.card (MarkedBlocks O ≃ MarkedBlocks E) =
+          Nat.factorial (Fintype.card (MarkedBlocks O)) := Fintype.card_equiv e
+      _ = Nat.factorial O.2.1.card := congrArg Nat.factorial
+        (Fintype.card_coe (MarkedBlocks O))
+      _ = Nat.factorial k := congrArg Nat.factorial O.2.2
+  calc
+    T n k = Fintype.card (RestrictionPairingData n k) := by
+      exact Fintype.card_congr (mixedRestrictionEquiv n k)
+    _ = ∑ O : MarkedPartition ((n + 1) / 2) k,
+        ∑ E : MarkedPartition (n / 2) k,
+          Fintype.card (MarkedBlocks O ≃ MarkedBlocks E) := by
+      rw [Fintype.card_sigma]
+      apply Finset.sum_congr rfl
+      intro O _
+      rw [Fintype.card_sigma]
+    _ = Nat.factorial k * markedPartitions (n / 2) k *
+        markedPartitions ((n + 1) / 2) k := by
+      simp_rw [pairing_card]
+      simp only [Finset.sum_const, Finset.card_univ]
+      change Fintype.card (MarkedPartition ((n + 1) / 2) k) *
+          (Fintype.card (MarkedPartition (n / 2) k) * Nat.factorial k) = _
+      simp only [markedPartitions]
+      ac_rfl
+    _ = Nat.factorial k * A049020 (n / 2) k * A049020 ((n + 1) / 2) k := by
+      rw [markedPartitions_eq_A049020, markedPartitions_eq_A049020]
+
 #print axioms markedPartitions_eq_A049020
+#print axioms hanna_a124418
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
