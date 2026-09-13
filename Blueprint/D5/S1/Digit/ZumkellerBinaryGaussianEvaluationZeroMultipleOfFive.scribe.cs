@@ -46,7 +46,7 @@ internal sealed class ZumkellerBinaryGaussianEvaluationZeroMultipleOfFiveDocumen
         var n = F.Id("n");
         var initial = Equal(Call("z", D(0)), D(0));
         var digit = Call("if", b, D(1), D(0));
-        var gaussianUnit = QualifiedCall("GaussianInt", "mk", D(0), D(1));
+        var gaussianUnit = Seq(Langle, D(0), Comma, Sp, D(1), Rangle);
         var recursion = Universal("b", Booleans(), Universal("n", Naturals(), Equal(
             Call("z", Call("bit", b, n)),
             Add(digit, Multiply(gaussianUnit, Call("z", n))))));
@@ -67,9 +67,6 @@ internal sealed class ZumkellerBinaryGaussianEvaluationZeroMultipleOfFiveDocumen
     private static Formula Booleans() => F.Id("Bool");
     private static Formula Call(string name, params Formula[] arguments) =>
         new Formula.Apply(F.Id(name), [.. arguments]);
-    private static Formula QualifiedCall(
-        string prefix, string name, params Formula[] arguments) =>
-        new Formula.Apply(Seq(F.Id(prefix), Dot, F.Id(name)), [.. arguments]);
     private static Formula Parenthesized(Formula value) => Seq(Open, value, Close);
     private static Formula Universal(string variable, Formula domain, Formula body) =>
         new Formula.Bind(FormulaQuantifier.ForAll,

@@ -6,7 +6,7 @@ A vanishing binary digit polynomial at the Gaussian unit has an argument divisib
 
 **Definition 1.1 (The binary Gaussian evaluation).**
 
-$$z\left(0\right) = 0 \land (\forall b \in Bool,\; \forall n \in Nat,\; z\left(bit\left(b, n\right)\right) = if\left(b, 1, 0\right) + GaussianInt.mk\left(0, 1\right) \cdot z\left(n\right))$$
+$$z\left(0\right) = 0 \land (\forall b \in Bool,\; \forall n \in Nat,\; z\left(bit\left(b, n\right)\right) = if\left(b, 1, 0\right) + \langle0, 1\rangle \cdot z\left(n\right))$$
 
 *Formalization.* `D5/S1/Digit/ZumkellerBinaryGaussianEvaluationZeroMultipleOfFive.z` (`✓ std3`).
 
