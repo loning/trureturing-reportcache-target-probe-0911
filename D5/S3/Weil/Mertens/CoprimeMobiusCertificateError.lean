@@ -105,7 +105,8 @@ theorem certificate_error (N R : ℕ) (hR : Squarefree R) (hR1 : 1 < R) :
     have hf : R.divisors.filter (fun a : ℕ => (a : ℝ) ≤ u) = R.divisors := by
       apply filter_eq_self.mpr
       intro a ha
-      exact (Nat.cast_le.mpr (Nat.le_of_dvd (Nat.pos_of_ne_zero hR0) (Nat.dvd_of_mem_divisors ha))).trans hu
+      exact (Nat.cast_le.mpr
+        (Nat.le_of_dvd (Nat.pos_of_ne_zero hR0) (Nat.dvd_of_mem_divisors ha))).trans hu
     rw [B, hf]
     rw [← ArithmeticFunction.coe_mul_zeta_apply,
       ArithmeticFunction.moebius_mul_coe_zeta, ArithmeticFunction.one_apply, if_neg hRne]
@@ -207,7 +208,8 @@ theorem certificate_error (N R : ℕ) (hR : Squarefree R) (hR1 : 1 < R) :
         intro d hd
         have hd' := mem_Icc.mp (mem_filter.mp hd).1
         apply hpoint
-        exact (le_div_iff₀ (Nat.cast_pos.mpr (by omega))).mpr (by simpa only [one_mul] using Nat.cast_le.mpr hd'.2)
+        exact (le_div_iff₀ (Nat.cast_pos.mpr (by omega))).mpr
+          (by simpa only [one_mul] using Nat.cast_le.mpr hd'.2)
       _ = _ := by
         rw [hcomm]
         congr 1
