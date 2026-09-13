@@ -2,17 +2,11 @@
    generality: G
    mirror-B: D5/B/S1/Digit/Admissibility/SquarePrependOneAppendTwentyFive
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Digits.Lemmas, mathlib/module/Mathlib.Data.Nat.ModEq, mathlib/module/Mathlib.Data.Nat.Prime.Basic, mathlib/module/Mathlib.Tactic.IntervalCases, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Ring]
+   anchors: [mathlib/module/Mathlib.Data.Nat.Digits.Lemmas, mathlib/module/Mathlib.Data.Nat.Prime.Basic]
    utility: none
    digest: A square that remains square after prepending one and appending twenty-five ends in 00 or 56. -/
 import Mathlib.Data.Nat.Digits.Lemmas
-import Mathlib.Data.Nat.ModEq
 import Mathlib.Data.Nat.Prime.Basic
-import Mathlib.Tactic.IntervalCases
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Ring
-import Lean.Elab.Tactic.Omega
 
 /-!
 # Squares with a prefixed one and suffixed twenty-five
