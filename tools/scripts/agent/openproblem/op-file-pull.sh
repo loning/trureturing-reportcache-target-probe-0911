@@ -8,6 +8,8 @@
 # Each chunk is its own invocation returning exactly that chunk and nothing else; any other
 # output on the same command corrupts the base64 stream.
 set -u
+# shasum is a Perl script on macOS; pin the locale so its output is byte-stable.
+export LC_ALL=C
 PRINCIPAL="${OP_SSH_PRINCIPAL:-mstudio1}"
 SERVICE="${OP_SSH_SERVICE:-omega-m3-ssh}"
 CHUNK="${OP_TRANSFER_CHUNK:-6000}"

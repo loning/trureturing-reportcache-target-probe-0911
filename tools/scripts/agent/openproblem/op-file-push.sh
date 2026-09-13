@@ -13,6 +13,8 @@
 # Host selection comes from the environment so that a driver on another machine does not have
 # to edit this file.
 set -u
+# shasum is a Perl script on macOS; pin the locale so its output is byte-stable.
+export LC_ALL=C
 PRINCIPAL="${OP_SSH_PRINCIPAL:-mstudio1}"
 SERVICE="${OP_SSH_SERVICE:-omega-m3-ssh}"
 CHUNK="${OP_TRANSFER_CHUNK:-5000}"
