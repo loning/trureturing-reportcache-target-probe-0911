@@ -218,4 +218,7 @@ theorem lagneau_a193351 :
       exact Nat.odd_iff.mp hTodd
     exact square_or_twice_square_of_sigma_odd n (by omega) hsigmaOdd
 
+#print axioms T
+#print axioms lagneau_a193351
+
 end D5.S3.Arith.LagneauAlternatingDivisorSumPrimeSquare
