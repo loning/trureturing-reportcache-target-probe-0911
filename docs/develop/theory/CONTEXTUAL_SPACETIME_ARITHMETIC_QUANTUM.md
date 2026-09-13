@@ -528,3 +528,171 @@ J_0e^{-i\tau H/\hbar}=e^{-i\tau H'/\hbar}J_0\bigr).
 最后，维数相同本身不足以保证动力学等价：在同一个第2.4条三维空间上，\(H=0\)与\(H_g\)在\(g\ne0\)时分别有谱\(\{0,0,0\}\)和\(\{-\sqrt2g,0,\sqrt2g\}\)，即使允许整体能量平移也不能相互酉共轭。第5.1条只给指定边界的路径正交基对应，本条再给指定重结合矩阵下的局部投影。编织算符及其关系、拓扑保护和实验实现均需要额外结构与证明，不能从这些维数和基底等式推出。证毕。
 
 ## 追加锚（本行以下为增补区）
+
+## 6. 后选择规范化的相干界
+
+**定理 6.1（共同振幅与全态成功概率）。** 设非空有限集\(S\)、\(\mathcal T=f(S)\)，\(\mathcal H_S=\mathbb C^S\)、\(\mathcal H_{\mathcal T}=\mathbb C^{\mathcal T}\)均以标号为正交基，所有输入、输出基向量的相位固定，内积沿用定义1.1的首变量共轭线性约定。记
+\[
+S_y=f^{-1}(y),\qquad n_y=|S_y|,\qquad M=\max_{y\in\mathcal T}n_y,\qquad
+F|s\rangle=|f(s)\rangle.
+\]
+所谓共同振幅成功支路，要求同一个线性Kraus算子\(K:\mathcal H_S\to\mathcal H_{\mathcal T}\)满足
+\[
+K|s\rangle=\lambda|f(s)\rangle\qquad(s\in S),
+\]
+其中\(\lambda\in\mathbb C\)与\(s\)无关，且该成功支路自身不另留依赖\(s\)的记录；失败输出不受规范标签要求约束。这比仅指定基态输出密度矩阵更强。
+
+此支路可实现当且仅当\(|\lambda|\le M^{-1/2}\)；最大共同振幅的模为\(M^{-1/2}\)。对任意密度矩阵\(\varrho\)及单位向量\(\psi=\sum_{s\in S}\alpha_s|s\rangle\)，
+\[
+p_\lambda(\varrho)=|\lambda|^2\operatorname{tr}(F\varrho F^\dagger),\qquad
+p_\lambda(\psi)=|\lambda|^2\sum_{y\in\mathcal T}\left|\sum_{s\in S_y}\alpha_s\right|^2.
+\]
+成功概率为正时，条件输出为
+\[
+\frac{F\varrho F^\dagger}{\operatorname{tr}(F\varrho F^\dagger)};
+\]
+纯态对应\(F\psi/\|F\psi\|\)，忽略全局相位。成功概率为零时，条件态不定义。
+
+最优取\(\lambda=M^{-1/2}\)时，每个基态的成功率都是\(1/M\)，但对所有单位叠加态存在严格正的统一下界，当且仅当\(f\)单射；此时成功率恒为一。若\(f\)非单射，最小成功率为零，最大为一；即使排除零成功态，成功率下确界仍为零。
+
+证明。 线性性迫使\(K=\lambda F\)。置
+\[
+u_y=\frac1{\sqrt{n_y}}\sum_{s\in S_y}|s\rangle\qquad(y\in\mathcal T),
+\]
+则\(u_y\)两两正交且均为单位向量，直接作用于基向量可得
+\[
+F^\dagger F=\sum_{y\in\mathcal T}n_y|u_y\rangle\langle u_y|.
+\]
+故\(\|F\|^2=M\)，单Kraus支路的必要条件\(K^\dagger K\le I\)恰等价于\(|\lambda|^2M\le1\)。充分性可将\(K\)与失败算子
+\[
+L=(I-K^\dagger K)^{1/2}
+\]
+组成等距映射\(\psi\mapsto K\psi\oplus L\psi\)，再测量两个正交输出扇区。概率和条件态公式由\(K\varrho K^\dagger\)立即得到。
+
+最优时
+\[
+p(\psi)=\sum_{y\in\mathcal T}\frac{n_y}{M}|\langle u_y,\psi\rangle|^2.
+\]
+若\(f\)单射，\(F^\dagger F=I\)。否则在最大纤维取不同\(s,t\)，
+\[
+d=\frac{|s\rangle-|t\rangle}{\sqrt2}
+\]
+满足\(Fd=0\)；该纤维的\(u_y\)记为\(u\)，满足\(p(u)=1\)且\(d\perp u\)。于是
+\[
+\psi_\varepsilon=\sqrt{1-\varepsilon^2}\,d+\varepsilon u\qquad(0<\varepsilon\le1)
+\]
+为单位向量且成功率为\(\varepsilon^2\)，证明全部极值与下确界。若将若干成功Kraus算子\(K_j=\lambda_jF\)合并，约束变为
+\[
+\left(\sum_j|\lambda_j|^2\right)M\le1,
+\]
+也不能提升共同相干支路的总基态成功率。
+
+进一步，令\(\mathcal H_+=\operatorname{span}\{u_y:y\in\mathcal T\}\)。\(F\)的核恰由每个纤维内系数和都为零的向量组成，维数为\(|S|-|\mathcal T|\)；在\(\mathcal H_+\)的单位态上，最优支路的最小成功率恰为
+\[
+\frac{\min_{y\in\mathcal T}n_y}{M}.
+\]
+这是指定输入子空间后的正下界，不能替代全部输入上的保证；以上结论均直接由所示谱分解得到。证毕。
+
+本条的测量算子、概率及条件态框架见 John Watrous，*The Theory of Quantum Information*，Cambridge University Press，2018，[DOI: 10.1017/9781316848142](https://doi.org/10.1017/9781316848142)，[作者公开预出版版本](https://cs.uwaterloo.ca/~watrous/TQI/TQI.pdf)，§2.3.2，印刷页111–113（PDF页119–121），式 (2.255)–(2.262)。其中式 (2.255)–(2.256)给出每结果一个算符及完备性，式 (2.257)给出分支概率和正概率时的条件态；\(K^\dagger K\le I\)是完备性的直接必要推论，充分性由本条的失败支路补全给出。一般量子仪器结果不自动等于单Kraus支路。仓内 [FiniteKrausInstrumentBornMarginal 的 finite_kraus_instrument_born_marginal](../../../D5/S3/Quantum/Measurement/FiniteKrausInstrumentBornMarginal.lean)在完整归一化有限Kraus家族、输入输出同一有限非空载体上给出分支迹等于相应效应的Born权重；该结果不提供本条的最优振幅或统一成功率界。
+
+一般概率纯态变换见 Anthony Chefles、Richard Jozsa、Andreas Winter，*On the existence of physical transformations between sets of quantum states*，International Journal of Quantum Information **2**(1)，11–21（2004），[DOI: 10.1142/S0219749904000031](https://doi.org/10.1142/S0219749904000031)。这里所用正文定位为 [arXiv:quant-ph/0307227v1](https://arxiv.org/pdf/quant-ph/0307227v1)（2003年7月30日），第6页定理3及式 (7)–(8)、第7页式 (9)。该判据以Gram矩阵的Hadamard分解及半正定不等式处理一般概率变换，允许输入相关余记录；在固定基向量相位、共同复振幅且无输入相关余记录的本条条件下，单成功项的系数矩阵才特化为\(\Pi=|\lambda|^2\mathbf1\mathbf1^\dagger\)，其中\(\mathbf1\)为全一列向量。仅共同成功概率不能推出这一特化。所列页码属于arXiv v1，本条是该成熟框架下的有限函数特化。
+
+**定理 6.2（最小记录环境可达与测量平均）。** 沿用定理6.1的\(S,f,M,F\)。定理3.5（确定性纤维量子提升的最小环境）的\(M\)维正交记录上界构造已经足以达到定理6.1的最优值，不必增大被测记录空间。这里\(M\)计量测量前的量子记录环境，测量结果另作为经典输出；并未将测量及读出也要求为此空间内的封闭酉演化。此为可选构造的存在性，不保证任意预先固定的最小记录构造均可只靠环境测量达到。
+
+证明。 将各纤维枚举为\(s_{y,1},\ldots,s_{y,n_y}\)，直接使用定理3.5的正交记录上界，取等距映射
+\[
+W|s_{y,j}\rangle=|y\rangle\otimes b_j,
+\]
+其中\(b_1,\ldots,b_M\)为同一环境\(\mathcal E\)的正交基。取
+\[
+h=\frac1{\sqrt M}\sum_{j=1}^M b_j,\qquad P=|h\rangle\langle h|,
+\]
+测量投影\(P\)及\(I-P\)，并只接受\(P\)。因为\(\langle h,b_j\rangle=M^{-1/2}\)，
+\[
+(I\otimes P)W\psi=\frac{F\psi}{\sqrt M}\otimes h.
+\]
+故成功支路恰为\(K=F/\sqrt M\)，成功后的环境向量\(h\)与输入无关。\(M=1\)时\(P=I\)，失败结果概率为零。
+
+对已固定的等距记录\(W|s\rangle=|f(s)\rangle\otimes e_s\)，环境单独产生共同振幅\(\lambda\)的无记录支路，当且仅当存在\(\|h\|\le1\)使
+\[
+\langle h,e_s\rangle=\lambda\qquad(s\in S).
+\]
+确实，若成功环境算子\(B\)为收缩且满足\(Be_s=\lambda\eta\)、\(\|\eta\|=1\)，取\(h=B^\dagger\eta\)即可，因为
+\[
+\langle B^\dagger\eta,e_s\rangle=\langle\eta,Be_s\rangle=\lambda.
+\]
+反之取\(B=|\eta\rangle\langle h|\)，其为收缩且\(Be_s=\lambda\eta\)。两个二元纤维分别使用记录\((b_1,b_2)\)与\((b_1,-b_2)\)，仍是定理3.5允许的最小构造，却要求
+\[
+\langle h,b_2\rangle=\langle h,-b_2\rangle=\lambda,
+\]
+迫使\(\lambda=0\)。
+
+若固定环境恰为\(M\)维且\(\lambda=1/\sqrt M\)，则任一最大纤维的记录构成环境的正交基，上述内积条件唯一确定
+\[
+h=\frac1{\sqrt M}\sum_{s\in S_y}e_s;
+\]
+此向量还必须满足其余纤维的全部条件。因此，环境维数达到最小值，不等于跨纤维记录已经相位对齐。
+
+回到本条开头的枚举记录构造，将失败投影细分，取\(\mathcal E\)的正交基\(h_1=h,h_2,\ldots,h_M\)，记
+\[
+K_j=(I\otimes\langle h_j|)W.
+\]
+忘记测量结果并丢弃环境后，由定理3.2、3.4所用的部分迹公式，
+\[
+\Phi(\varrho)=\sum_{j=1}^M K_j\varrho K_j^\dagger
+=\operatorname{tr}_{\mathcal E}(W\varrho W^\dagger),\qquad
+\sum_{j=1}^M K_j^\dagger K_j=I.
+\]
+对这里的有限矩形Kraus家族，直接应用 [FiniteKrausChannel 的 finite_kraus_quantum_channel](../../../D5/S3/Quantum/Foundation/FiniteKrausChannel.lean)的完备性构造，\(\Phi\)是保迹通道，且
+\[
+\Phi(|s\rangle\langle s|)=|f(s)\rangle\langle f(s)|.
+\]
+当\(M>1\)时，\(\Phi\)不同于仅有成功项\(F\varrho F^\dagger/M\)：定理6.1的\(d\)在成功支路概率为零，平均通道却将其以总概率一送到该纤维的标签纯态。故基态确定输出并不等于共同振幅的相干汇聚；零成功率输入的条件态没有定义，不能以除法归一化将失败当成成功。证毕。
+
+测量结果的条件化及其通道之和沿用 Watrous，前引 §2.3.2，式 (2.257)–(2.262)：式 (2.258)–(2.260)给出一般完全正仪器求和为通道，式 (2.261)–(2.262)给出单算符特例及经典结果寄存器。在联合空间对完整正交投影测量作条件化时，亦可使用 [Conditioning 的 conditionalState_isState](../../../D5/S3/Observer/Conditioning.lean)的非零记录权重条件；它不定义零概率条件态。记录维数与一般部分迹直接复用定理3.5及上述既有公式，所引有限Kraus通道构造不承担任意单支收缩的补全或后选择最优界。
+
+**定理 6.3（Zeckendorf大纤维的后选择代价）。** 沿用定理3.6（Zeckendorf规范化的无损记录代价）的原始表、规范化\(\nu\)与低位到高位位序。对固定素数\(p\)和整数\(a\ge0\)，恰取有限输入族
+\[
+S_a=\left\{r_k=(a-2k)e_{p,0}+ke_{p,1}:0\le k\le\lfloor a/2\rfloor\right\},
+\]
+其中\(k\)取整数。记
+\[
+m_a=\lfloor a/2\rfloor+1,\qquad c_a=\nu(ae_{p,0}).
+\]
+在定理6.1的固定基态相位、共同振幅且成功支路无输入相关余记录条件下，共同振幅的最优模为\(m_a^{-1/2}\)，每个表基态成功率为\(1/m_a\)，而任意单位叠加\(\psi=\sum_{k=0}^{m_a-1}\alpha_k|r_k\rangle\)的最优成功率为
+\[
+p(\psi)=\frac1{m_a}\left|\sum_{k=0}^{m_a-1}\alpha_k\right|^2.
+\]
+不存在适用于全部有限原始表族的正的统一共同基态成功率下界。
+
+证明。 定理3.6已给出这些表互异且均满足\(\nu(r_k)=c_a\)，故\(\nu|_{S_a}\)只有一个大小为\(m_a\)的纤维，直接应用定理6.1与6.2即可。同相均匀纯态
+\[
+\frac1{\sqrt{m_a}}\sum_{k=0}^{m_a-1}|r_k\rangle
+\]
+的成功率为一，均匀经典混合
+\[
+\varrho_{\mathrm{mix}}=\frac1{m_a}\sum_{k=0}^{m_a-1}|r_k\rangle\langle r_k|
+\]
+的成功率为\(1/m_a\)；\(m_a\ge2\)时，任何系数和为零的单位态成功率为零。由于\(m_a\)任意大，最优共同基态成功率趋于零。更强地，若收缩算子
+\[
+K:\ell^2(\mathcal R)\longrightarrow\ell^2(\nu(\mathcal R))
+\]
+对全部原始表基态满足同一振幅等式\(K|r\rangle=\lambda|\nu(r)\rangle\)，限制到每个\(S_a\)都须满足\(m_a|\lambda|^2\le1\)，故只能有\(\lambda=0\)；此论证只用有限限制。
+
+回到有限输入族\(S_a\)，取其最优支路\(K=F/\sqrt{m_a}\)。若输入另与未测有限维参考空间\(\mathcal H_R\)纠缠，写成单位向量
+\[
+\Psi=\sum_{k=0}^{m_a-1}|r_k\rangle\otimes v_k,\qquad
+\sum_{k=0}^{m_a-1}\|v_k\|^2=1,
+\]
+则同一最优支路给出
+\[
+(K\otimes I_{\mathcal H_R})\Psi
+=|c_a\rangle\otimes\frac1{\sqrt{m_a}}\sum_{k=0}^{m_a-1}v_k,
+\qquad
+p(\Psi)=\frac1{m_a}\left\|\sum_{k=0}^{m_a-1}v_k\right\|^2.
+\]
+因而参考向量两两正交时成功率仍为\(1/m_a\)：只测量新增环境，不能同时擦去存于其他寄存器的历史。对固定\(S_a\)的这个正的统一率伴随参考记录保留，不是无记录归并的反例。此式由\(K\otimes I_{\mathcal H_R}\)逐项作用得到。
+
+因此，保留历史给出定理3.5、3.6的确定性无损提升；仅输出规范标签的后选择支路能消除同纤维记录并相干求和，却消去原始表空间中的全部零和方向，不能无损保留任意原始叠加。忽略结果仍回到定理6.2的平均通道，而非确定性无记录相干归并。这里的正交性属于可独立制备的原始表输入，不把同一个输入的未记录路径项另当正交历史。证毕。
+
+## 追加锚（本行以下为增补区）
