@@ -73,11 +73,19 @@ private def uncheckedArtifact (file : FilePath) (build : JobM PUnit)
   let art ← buildArtifactUnlessUpToDate file build (ext := "zip") (restore := true)
   return ⟨file, art.path, inputTrace, ← IO.mkRef (← getTrace), build, check, none⟩
 
+/-- Validator rejection also requires a rebuild. Preserve Lake's native job
+decision before scheduling repair production or removing rejected outputs. -/
+private def requireRebuildAllowed : JobM Unit := do
+  if (← getNoBuild) then
+    modify ({· with wantsRebuild := true})
+    error "target is out-of-date and needs to be rebuilt"
+
 /-- Rejected optional artifacts are rebuilt exactly once through Lake, with
 cache reads disabled for that reconstruction. Never write through a restored
 hard link or evict a blob. Required build and validation failures propagate. -/
 private def rebuildRejectedArtifact (pkg : Package) (row : UnvalidatedArtifact)
     (build? : Option (JobM PUnit) := none) : JobM FilePath := do
+  requireRebuildAllowed
   logWarning s!"inspector artifact rejected; rebuilding privately: {row.file}"
   removeFileIfExists row.file
   removeFileIfExists (row.file.addExtension "trace")
@@ -315,7 +323,9 @@ package_facet report (pkg : Package) : FilePath := withCurrPackage pkg do
       -- Missing legacy bindings and corrupt rows are exact validator rejections.
       -- Share extraction/import work, then let each original module job own its
       -- bounded private reconstruction through Lake, with cache reads disabled.
-      unless repairs.isEmpty do discard <| runBatch pkg repairs
+      unless repairs.isEmpty do
+        requireRebuildAllowed
+        discard <| runBatch pkg repairs
       let mut repaired := false
       let mut trace := BuildTrace.nil "<collection>"
       for (row, status) in artifacts.zip (statuses.extract 0 artifacts.size) do

@@ -298,6 +298,51 @@ root = "Cache"
             env=self.env, text=True, capture_output=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_input_verification_is_read_only(self):
+        self.build()
+        self.publish()
+        helper_root = self.root / 'tools'
+        report = self.root / 'public.json'
+        provenance = publication.member(report, '.provenance.json')
+        original = provenance.read_bytes()
+        environment = dict(self.env)
+        # The caller must not need a host bytecode mask or redirected cache.
+        environment.pop('PYTHONDONTWRITEBYTECODE', None)
+        environment.pop('PYTHONPYCACHEPREFIX', None)
+        working_directory = self.root / 'foreign working directory'
+        working_directory.mkdir()
+        for damage in ['none', 'malformed-origin', 'missing-origin', 'stale-dependency']:
+            with self.subTest(damage=damage):
+                provenance.write_bytes(original)
+                if damage == 'malformed-origin':
+                    provenance.write_bytes(b'{invalid')
+                elif damage == 'missing-origin':
+                    provenance.unlink()
+                elif damage == 'stale-dependency':
+                    self.write('ClaimSupport.lean', 'def claimSupport : Prop := True\n')
+                # Start with fresh writable source directories, as in the
+                # authoritative CoverBatch snapshot. Existing pyc files would
+                # conceal import-time writes on both success and error paths.
+                for directory in helper_root.rglob('__pycache__'):
+                    shutil.rmtree(directory)
+                def snapshot():
+                    paths = [helper_root, *helper_root.rglob('*'),
+                             *(publication.member(report, suffix) for suffix in publication.SUFFIXES)]
+                    return {str(path.relative_to(self.root)):
+                            (publication.digest(path) if path.is_file() else None)
+                            for path in paths if path.exists()}
+                before = snapshot()
+                result = subprocess.run(['bash', str(helper_root / 'scripts/report/lean-report-input.sh'),
+                    'verify', '--repository', str(self.root), '--report', str(report)],
+                    cwd=working_directory, env=environment, text=True, capture_output=True, timeout=120)
+                if damage == 'none':
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                else:
+                    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                    if damage == 'stale-dependency':
+                        self.assertIn('stale dependency', result.stderr)
+                self.assertEqual(before, snapshot(), result.stdout + result.stderr)
+
     def test_publication_validates_material_identities_once(self):
         self.build()
         rows, raw, material_bytes = self.report()
@@ -709,6 +754,44 @@ root = "Cache"
         self.copy('tools/lean-inspector/Inspector.lean')
         (self.root / 'tools/lean-inspector/materials.py').unlink()
         self.build(success=False)
+
+    def test_native_no_build_rejects_corruption_without_production(self):
+        cases = [('modules/D5.Alone.zip', targets) for targets in [(':report',),
+            ('D5.Alone:report',), (':report', 'D5.Alone:report'), ('D5.Alone:report', ':report')]]
+        cases.append(('report.zip', (':report',)))
+        for artifact, targets in cases:
+            with self.subTest(artifact=artifact, targets=targets):
+                self.build()
+                path = self.root / '.lake/build/lean-inspector' / artifact
+                expected = path.read_bytes()
+                path.unlink()  # Never mutate a Lake cache hard link.
+                path.write_bytes(b'corrupt optional artifact')
+                self.write('activity.jsonl', '')
+                rejected = self.run_lake('--no-build', 'build', *targets, success=False)
+                self.assertIn('needs to be rebuilt', rejected.stdout + rejected.stderr)
+                self.assertEqual((self.root / 'activity.jsonl').read_text(), '',
+                                 'no-build must reject before repair extraction or aggregation')
+                self.assertTrue(path.is_file(), 'no-build must not remove the rejected artifact')
+                self.assertEqual(path.read_bytes(), b'corrupt optional artifact',
+                                 'no-build must not start private reconstruction')
+                recovered = self.build() if targets == (':report',) else self.run_lake('build', *targets)
+                self.assertIn('inspector artifact rejected; rebuilding privately', recovered.stdout + recovered.stderr)
+                self.assertEqual(path.read_bytes(), expected)
+                self.assertEqual(path.stat().st_nlink, 1)
+                records = [json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()]
+                self.assertEqual(sum(row['count'] for row in records if row['kind'] == 'extract'),
+                                 0 if artifact == 'report.zip' else 1)
+                aggregates = sum(row['count'] for row in records if row['kind'] == 'aggregate')
+                if artifact == 'report.zip':
+                    self.assertEqual(aggregates, 1)
+                else:
+                    self.assertLessEqual(aggregates, int(':report' in targets))
+                self.build()
+                self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
+        self.write('D5/Alone.lean', (self.root / 'D5/Alone.lean').read_text() + '-- native miss\n')
+        rejected = self.run_lake('--no-build', 'build', ':report', success=False)
+        self.assertIn('needs to be rebuilt', rejected.stdout + rejected.stderr)
+        self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
 
     def test_public_module_validates_and_private_job_is_not_a_target(self):
         self.build()

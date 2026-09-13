@@ -6,6 +6,8 @@ public sealed class InspectorNativeTests
 {
     [Theory]
     [InlineData("test_streaming")]
+    [InlineData("test_native.NativeTests.test_input_verification_is_read_only")]
+    [InlineData("test_native.NativeTests.test_native_no_build_rejects_corruption_without_production")]
     [InlineData("test_native.NativeTests.test_publication_validates_material_identities_once")]
     [InlineData("test_native.NativeTests.test_native_publication_rejects_incoming_damage_before_normalization")]
     [InlineData("test_native.NativeTests.test_publication_snapshot_integrity_and_replace_failure")]
