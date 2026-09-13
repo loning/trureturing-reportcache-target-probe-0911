@@ -1000,6 +1000,40 @@ private theorem restrictionPairing_glued {n k : ℕ} (D : RestrictionPairingData
       _ = (D.2.2 x').1.1 := by rw [hqx]
   exact heq_of_raw R D.2.1 hR (F x) (D.2.2 x') hout
 
+private theorem restriction_glued {n k : ℕ} (D : RestrictionPairingData n k) :
+    restrictionData (gluedMixedPartition D) = D := by
+  classical
+  let X := restrictionData (gluedMixedPartition D)
+  have hO : X.1 = D.1 := by
+    simpa [X, restrictionData] using leftMarkedPartition_glued D
+  have hE : X.2.1 = D.2.1 := by
+    simpa [X, restrictionData] using rightMarkedPartition_glued D
+  have hpair : X.2.2 ≍ D.2.2 := by
+    simpa [X] using restrictionPairing_glued D
+  have data_ext :
+      ∀ (O O' : MarkedPartition ((n + 1) / 2) k) (hO : O = O')
+        (E E' : MarkedPartition (n / 2) k) (hE : E = E')
+        (f : MarkedBlocks O ≃ MarkedBlocks E)
+        (g : MarkedBlocks O' ≃ MarkedBlocks E'),
+        f ≍ g →
+          (⟨O, ⟨E, f⟩⟩ : RestrictionPairingData n k) = ⟨O', ⟨E', g⟩⟩ := by
+    intro O O' hO' E E' hE' f g hfg
+    subst O'
+    subst E'
+    have hfg' : f = g := eq_of_heq hfg
+    subst g
+    rfl
+  exact data_ext X.1 D.1 hO X.2.1 D.2.1 hE X.2.2 D.2.2 hpair
+
+/-- Restricting a parity partition to its marked odd and even blocks, together with
+their pairing, is an equivalence whose inverse glues every paired pair of blocks. -/
+noncomputable def mixedRestrictionEquiv (n k : ℕ) :
+    MixedParityPartition n k ≃ RestrictionPairingData n k where
+  toFun := restrictionData
+  invFun := gluedMixedPartition
+  left_inv := glued_restriction
+  right_inv := restriction_glued
+
 #print axioms markedPartitions_eq_A049020
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
