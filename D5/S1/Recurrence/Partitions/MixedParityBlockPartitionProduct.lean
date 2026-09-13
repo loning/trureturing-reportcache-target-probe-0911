@@ -2,11 +2,10 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Partitions/MixedParityBlockPartitionProduct
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Order.Partition.Finpartition, mathlib/module/Mathlib.Data.Fintype.Powerset, mathlib/module/Mathlib.Data.Fintype.Sigma, mathlib/module/Mathlib.Data.Fintype.BigOperators, mathlib/module/Mathlib.Data.Fintype.Perm, mathlib/module/Mathlib.Data.Finset.Sum, mathlib/module/Mathlib.Algebra.Ring.Parity]
+   anchors: [mathlib/module/Mathlib.Order.Partition.Finpartition, mathlib/module/Mathlib.Data.Fintype.Sigma, mathlib/module/Mathlib.Data.Fintype.BigOperators, mathlib/module/Mathlib.Data.Fintype.Perm, mathlib/module/Mathlib.Data.Finset.Sum, mathlib/module/Mathlib.Algebra.Ring.Parity]
    utility: none
    digest: Marked set partitions and the odd-even mixed-block product conjecture. -/
 import Mathlib.Order.Partition.Finpartition
-import Mathlib.Data.Fintype.Powerset
 import Mathlib.Data.Fintype.Sigma
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.Fintype.Perm
