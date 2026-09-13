@@ -36,9 +36,10 @@ settles the stated terminal-digit alternative for all positive members.
 
 The dated surfaces recorded in preregistration issue #7463 and its probe report
 were checked on 2026-09-13. The OEIS family entries only restate the conjecture;
-OpenAlex, Crossref, DataCite, arXiv, MathOverflow, and Math.StackExchange
-returned 0 exact-identifier results. GitHub returned mirrors only. This is a
-bounded literature search and does not establish exhaustive coverage.
+OpenAlex, Crossref, DataCite, MathOverflow, and Math.StackExchange returned 0
+exact-identifier results. arXiv was not verified (export API HTTP 429 on
+2026-09-13); this reading is ASSUMED-UNVERIFIED. GitHub returned mirrors only.
+This is a bounded literature search and does not establish exhaustive coverage.
 
 ## Route
 
