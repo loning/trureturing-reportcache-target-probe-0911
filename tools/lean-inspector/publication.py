@@ -175,6 +175,8 @@ def validate_rows(report, archive_path):
             info = archive.getinfo(name)
             if info.is_dir() or stat.S_ISLNK(info.external_attr >> 16):
                 raise ValueError('nonregular material')
+            if info.flag_bits & 1:
+                raise ValueError('encrypted material')
             for row, decl in references[name]:
                 with archive.open(info) as source:
                     actual = materials.material_identities(source, row['source_path'], decl['kind'], decl['name_key'])
@@ -265,6 +267,8 @@ def unpack(artifact, directory, suffixes=SUFFIXES):
             info = archive.getinfo(name)
             if info.is_dir() or stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG):
                 raise ValueError('nonregular native artifact member')
+            if info.flag_bits & 1:
+                raise ValueError('encrypted native artifact member')
             with archive.open(name) as reader, (Path(directory) / name).open('wb') as writer:
                 shutil.copyfileobj(reader, writer, materials.BUFFER_BYTES)
     return Path(directory) / RAW

@@ -522,6 +522,52 @@ root = "Cache"
                     return bytes(damaged)
                 self.check_row_decoder_recovery(damage, NotImplementedError)
 
+    def encrypted_member(self, data):
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            offset = archive.start_dir + 8
+        damaged = bytearray(data)
+        self.assertEqual(damaged[offset] & 1, 0)
+        damaged[offset] ^= 1
+        return bytes(damaged)
+
+    def test_native_recovers_only_row_with_encrypted_member(self):
+        self.check_row_decoder_recovery(self.encrypted_member, ValueError)
+
+    def test_native_recovers_only_row_with_encrypted_material(self):
+        def damage(data):
+            result = io.BytesIO()
+            with zipfile.ZipFile(io.BytesIO(data)) as source, zipfile.ZipFile(result, 'w') as target:
+                for info in source.infolist():
+                    payload = source.read(info)
+                    if info.filename.endswith('.materials.zip'):
+                        payload = self.encrypted_member(payload)
+                    target.writestr(info, payload)
+            return result.getvalue()
+        self.check_row_decoder_recovery(damage, ValueError)
+
+    def test_native_recovers_encrypted_report(self):
+        self.build()
+        before = self.stamps()
+        expected_report = self.report()
+        origins = self.origins()
+        path = self.root / '.lake/build/lean-inspector/report.zip'
+        expected = path.read_bytes()
+        damaged = self.encrypted_member(expected)
+        path.unlink()
+        path.write_bytes(damaged)
+        with tempfile.TemporaryDirectory(dir=self.root) as directory:
+            with self.assertRaisesRegex(ValueError, 'encrypted'):
+                publication.unpack(path, directory)
+        recovered = self.build()
+        self.assertIn('inspector artifact rejected; rebuilding privately', recovered.stdout + recovered.stderr)
+        self.assertEqual(self.stamps(), before)
+        records = [json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()]
+        self.assertEqual(records, [dict(kind='aggregate', count=1)])
+        self.assertEqual(path.read_bytes(), expected)
+        self.assertEqual(path.stat().st_nlink, 1, 'reconstruction must be private')
+        self.assertEqual(self.report(), expected_report)
+        self.assertEqual(self.origins(), origins)
+
     def test_native_recovery_and_required_failures(self):
         self.build()
         for artifact in ['modules/D5.Alone.zip', 'report.zip']:
