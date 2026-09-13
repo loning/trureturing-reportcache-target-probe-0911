@@ -22,6 +22,10 @@ $$\forall n \in \mathbb{N}, 1 \le n \Rightarrow \operatorname{IsSquare}\left(\op
 
 *Proof.* Machine-checked in Lean as `D5/S3/Arith/KrizekDivisorCountPowerRatioDenominatorSquare.krizek_a302975` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a302975-divisor-count-power-ratio-denominator-square` (proved) by `D5/S3/Arith/KrizekDivisorCountPowerRatioDenominatorSquare.krizek_a302975`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a302975-divisor-count-power-ratio-denominator-square","declaration_gid":"D5/S3/Arith/KrizekDivisorCountPowerRatioDenominatorSquare.krizek_a302975","resolution_kind":"proved"} -->
+
 *Source.* Repository-derived.
 
 *Commentary.*

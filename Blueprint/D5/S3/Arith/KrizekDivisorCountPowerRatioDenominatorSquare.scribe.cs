@@ -39,7 +39,11 @@ internal sealed class KrizekDivisorCountPowerRatioDenominatorSquareDocument : IS
                         + "the parity of n and the divisor count; the odd case is forced to "
                         + "have zero valuation whenever a prime divides the divisor count. "
                         + "Reconstructing from the even valuations gives a square."))),
-                DescribeRole.Theorem))));
+                DescribeRole.Theorem,
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a302975-divisor-count-power-ratio-denominator-square"),
+                    ResolutionKind.Proved)))));
 
     private static Formula DFormula()
     {
