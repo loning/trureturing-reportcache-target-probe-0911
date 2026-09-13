@@ -74,4 +74,38 @@ private theorem digits_of_pow_blocks (j : ℕ) (blocks : List ℕ)
             (fun x hx => hlt x (by simp [hx]))]
           simp only [blockDigits, Nat.digitsAppend, List.append_assoc]
 
+private example (k : ℕ) :
+    (blockDigits (k + 5) [1, 11, 90, 110, 100]).reverse =
+      blockDigits (k + 5) [1, 11, 90, 110, 100] := by
+  let z := List.replicate (k + 4) 0
+  have hform :
+      blockDigits (k + 5) [1, 11, 90, 110, 100] =
+        [1] ++ z ++ [1, 1] ++ z ++ [9] ++ z ++ [1, 1] ++ z ++ [1] := by
+    simp [blockDigits, Nat.digitsAppend, z,
+      List.replicate_add, List.append_assoc]
+  rw [hform]
+  simp [z, List.reverse_append, List.reverse_replicate, List.append_assoc]
+
+private example (k : ℕ) :
+    (blockDigits (k + 5)
+      [1, 22, 301, 2200, 10720, 22000, 30100, 22000, 10000]).reverse =
+    blockDigits (k + 5)
+      [1, 22, 103, 22, 2701, 220, 10300, 22000, 10000] := by
+  let z := List.replicate k 0
+  have hpad (n : ℕ) (hn : n < 10 ^ 5) :
+      Nat.digitsAppend 10 (k + 5) n = Nat.digitsAppend 10 5 n ++ z := by
+    have hlen : (Nat.digits 10 n).length ≤ 5 :=
+      (Nat.digits_length_le_iff (by norm_num) n).2 hn
+    simp only [Nat.digitsAppend, z]
+    rw [show k + 5 - (Nat.digits 10 n).length =
+      (5 - (Nat.digits 10 n).length) + k by omega]
+    rw [List.replicate_add, List.append_assoc]
+  simp only [blockDigits]
+  rw [hpad 1 (by norm_num), hpad 22 (by norm_num), hpad 301 (by norm_num),
+    hpad 2200 (by norm_num), hpad 10720 (by norm_num), hpad 22000 (by norm_num),
+    hpad 30100 (by norm_num), hpad 103 (by norm_num), hpad 2701 (by norm_num),
+    hpad 220 (by norm_num), hpad 10300 (by norm_num)]
+  simp [Nat.digitsAppend, z, List.reverse_append, List.reverse_replicate,
+    List.append_assoc]
+
 end D5.S1.Digit.Admissibility.PalindromeSquareReversalInfinitude
