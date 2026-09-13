@@ -10,7 +10,7 @@ internal sealed class CloitrePowerMinusIndexPrimeBoundRefutationDocument
     private const string Prefix =
         "D5/S3/Arith/Congruence/CloitrePowerMinusIndexPrimeBoundRefutation.";
     private static readonly LibraryNoteRef Source =
-        LibraryNoteRef.Create("D5/L/Factorization/cloitre2002a072872");
+        LibraryNoteRef.Create("D5/L/cloitre2002a072872");
 
     public DocumentDefinition Create() => DocumentDefinition.Create(ScribeNode.Create(
         "The n = 6298 certificate refutes Cloitre's A072872 prime-index upper bound.",
