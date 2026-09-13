@@ -244,3 +244,33 @@ $$
 令 $P=p_0\lor\neg p_0$，取仅含 $P$ 的单点账本，以其真值表为见证。该点无引用，按定义 3.1 不缘生；它有许可依赖和引用同时为空的合格证明项，按定义 4.3 不依缘空；于是定义 4.7 的中道合取也不成立。另一方面它确实有表述，满足假名的表述接口。故存在节点不满足所述四项合取；这反驳的是从本卷结构定义推出的全称合取，不是对佛典自身作形式反驳。∎
 
 **评注 9.2（本卷的非主张）**〔semantic〕。本卷不主张佛教文本与账本结构历史同一，不主张解脱、轮回或业报的经验内容，不主张八正道对应八条形式义务，不主张无记等于 Gödel 边界，不主张两点互摄可以由 DAG 的严格祖先关系表达，也不具 kernel-verified 地位。依缘空的核相对性不证明所有命题依缘空；寂静的三态定义不令所有不可证命题寂静；善的保持律不保证从浮账初态到达账平；地址由祖先决定不把有限深度变成无限深度。这些限制分别由本卷的参数、前件及反例限定，不以名字的相似性补足缺少的蕴含。
+
+## 10. 文献状态
+
+**约定 10.1（文献三值记录）**〔semantic〕。文献标签按其支持的确切断言使用：$\mathsf{literature\text{-}attested}$ 表示所列文本和定位支持该项断言；$\mathsf{repo\text{-}derived}$ 表示本卷结构定义、散文推导或已注明编号的仓内结果，不主张先创；$\mathsf{suspected\text{-}novel}$ 只用于给出认真检索范围后仍未找到前例的候选，本卷不使用此标签。未经核对的出处须另记 $\mathsf{ASSUMED\text{-}UNVERIFIED}$，不得算作 attested。下表的核对方式只限定文本证据的范围，不赋予相应模型解释额外的逻辑蕴涵。这里与字典一样约定索引格式，不新增待证明的数学对象。
+
+| 来源 | 精确定位 | 支持的确切命题或解释范围 | 状态 | 核对方式 |
+| --- | --- | --- | --- | --- |
+| [SN 12.61](https://suttacentral.net/sn12.61/en/sujato) | 5.2–5.3 | 经文含存在、发生、消失、止息的条件句形态；不证明定义 3.1 是其完整解释 | literature-attested | SuttaCentral Bilara 的 Sujato 英译，逐项核对 sn12.61:5.2、5.3 |
+| [杂阿含·262](https://raw.githubusercontent.com/cbeta-git/xml-p5a/master/T/T02/T02n0099.xml) | T02n0099；经号起于 0066b06，条件句在 0067a05–07 | “此有故彼有”等句与中道、缘起的语境相连 | literature-attested | CBETA XML 的经号标记及大正藏逐行定位 |
+| 杂阿含·296 | T02n0099 0084b12–23 | 文中区分因缘法、缘生法，含“此有故彼有”；不等于每个有限 DAG 节点都有前置 | literature-attested | 同一 CBETA XML，核对经号及 0084b14 起正文 |
+| [中论·15.2](https://raw.githubusercontent.com/cbeta-git/xml-p5a/master/T/T30/T30n1564.xml) | T30n1564 0019c27–28 | 偈文以“无作、不待异法成”表述性；用作定义 4.3 的受限命名参照 | literature-attested | CBETA XML，核对偈文及其前后问答 |
+| 中论·24.18 偈文 | T30n1564 0033b11–12 | 偈文写“我说即是无”，并接假名与中道 | literature-attested | CBETA XML，逐行核对，保留“无”字 |
+| 中论·24.18 释文 | T30n1564 0033b15–19 | 释文写“我说即是空”“空亦复空”，并解释假名、中道；不证明命题 4.4 的核相对性与释文同义 | literature-attested | CBETA XML，将释文与前置偈文分别核对 |
+| 中论·24.8–9 | T30n1564 0032c16–19 | 偈文分别说世俗谛、第一义谛，及不分别二谛的后果 | literature-attested | CBETA XML 对应偈文；不以后代术语替换偈文层次 |
+| 中论·24.10 及释文 | T30n1564 0033a02–05 | “不依俗谛，不得第一义”及因言说表达第一义的说明 | literature-attested | CBETA XML 的偈文与紧接释文 |
+| [Dhp 277–279](https://www.accesstoinsight.org/tipitaka/kn/dhp/dhp.20.than.html) | Dhammapada 第 20 品，277–279 | 三偈依次以诸行无常、诸行苦、诸法无我为所观对象；不是含涅槃的同一组三印列举 | literature-attested | Access to Insight 所载 Ṭhānissaro 英译，核对连续三偈及偈号 |
+| [大智度论·卷 22](https://raw.githubusercontent.com/cbeta-git/xml-p5a/master/T/T25/T25n1509.xml) | T25n1509 0222a28–0222b10 | 三种法印包括有为法念念生灭无常、一切法无我、寂灭涅槃 | literature-attested | CBETA XML，核对三种法印的问答及续释 |
+| [SN 56.11](https://suttacentral.net/sn56.11/en/sujato) | 4.1–4.9，5.1–8.3 | 苦、集、灭、道及各自应遍知、断、证、修的陈述；不把苦定义为浮账 | literature-attested | SuttaCentral Bilara 的 Sujato 英译，核对四项正文及其任务表述 |
+| [SN 12.15](https://suttacentral.net/sn12.15/en/sujato) | 3.1–3.3 | 文中以“全有”“全无”为两端而说中道 | literature-attested | SuttaCentral Bilara 的 Sujato 英译，对照两个 extreme 与 middle way 三段 |
+| [MN 63](https://suttacentral.net/mn63/en/sujato) | 7.4–7.21，8.1–8.3 | 列十项未宣说问题，理由与梵行目的及止息相关；不提供双侧不可证的形式证明 | literature-attested | SuttaCentral Bilara 的 Sujato 英译，逐项计十个内容段并核对 8.2 |
+| 大智度论·卷 2 | T25n1509 0074c08–21 | 十四难分为四项常无常、四项边无边、四项死后、两项身神关系；答语含无实、非问、无利有失 | literature-attested | CBETA XML，按 4+4+4+2 核对条目，并连读答语 |
+| [AN 6.63](https://suttacentral.net/an6.63/en/sujato) | 33.3–33.5 | 业的解释涉及思及身、语、意行为；定义 7.1 没有这组心理变量 | literature-attested | SuttaCentral Bilara 的 Sujato 英译，核对 intention、choice 与三类行为 |
+| 杂阿含·335 | T02n0099 0092c12–24 | “有业报而无作者”连同异阴相续、除俗数法的上下文 | literature-attested | CBETA XML，经号与 0092c16–24 连读，不截断限定语 |
+| [华严一乘教义分齐章·卷 4](https://raw.githubusercontent.com/cbeta-git/xml-p5a/master/T/T45/T45n1866.xml) | T45n1866 0506a12–25 | 因陀罗网境界门说重重无尽及微尘中示现，非只谈后代传播 | literature-attested | CBETA XML，核对门名、比喻与后续引文 |
+| [华严金师子章注·因陀罗网境界门](https://raw.githubusercontent.com/cbeta-git/xml-p5a/master/T/T45/T45n1881.xml) | T45n1881 0669c06–12 | 毛中师子、重重相入与帝网天珠的比喻 | literature-attested | CBETA XML，连读原句与注释，限定于所列行 |
+| FPP 的账本结果 | 本卷所有〔引 FPP …〕条目；FPP 定义 1.5、2.4、3.1、3.2、4.5、5.1、9.1 及各处列明的假设、定理 | 提供账本、见证、状态、主张及其保持结论；3.7、5.7 是已有论证的承接 | repo-derived | 对照《不动点哲学》相应编号的陈述、前件及证明 |
+| 最小支持的数学近邻 | SourceCutsetHittingDuality，source_cutset_hitting_duality | 有限来源域上单调可证谓词的割集—击中对偶；本卷不重复该结论 | repo-derived | 对照该声明的有限性、单调性前件与两项结论 |
+| OSUV 的解释约束与语料索引 | 卷首解释约束；第 5 章第 12–14 项 | 本卷只沿用结构重构的解释限制，并给出已有佛教语料的索引指针，不重新摘录这些语料 | repo-derived | 对照《观察者结构与普世价值》的上述文本；该表各外部出处不由此转为本卷 attested |
+| 本卷模型论证 | 3.3、3.4、3.8、3.10、4.4、5.2、5.8、6.3、6.4、7.4、7.6、7.7、8.6、9.1 | 各条显示的存在反例、有限界、类型分离或策略证明；文献先创性不在结论内 | repo-derived | 证明随对应条目列出，其前件以第 2 章及条目自身为准 |
+| 本卷定义的量化对偶 | 5.9 | 可动与三态寂静按定义互补，不作为新的通用数学成果 | repo-derived | 展开定义 5.1、5.6 的存在量词与全称量词 |
