@@ -1,5 +1,6 @@
 using static StrataLint.Scribe.DefinitionDsl;
 using static StrataLint.Scribe.FormulaDsl;
+using F = StrataLint.Scribe.FormulaDsl;
 
 namespace StrataLint.Scribe.Blueprint.D5.S1.Digit.Admissibility;
 
@@ -40,10 +41,10 @@ internal sealed class SquarePrependOneAppendTwentyFiveDocument : IScribeDocument
         var x = F.Id("x");
         var square = new Formula.Bind(
             FormulaQuantifier.Exists, FormulaIdentifier.Create("z"), Naturals(),
-            Equal(x, new Formula.Power(z, D(2))));
+            Equal(x, new Formula.Power(F.Id("z"), D(2))));
         var appended = new Formula.Bind(
             FormulaQuantifier.Exists, FormulaIdentifier.Create("y"), Naturals(),
-            Equal(new Formula.Power(y, D(2)),
+            Equal(new Formula.Power(F.Id("y"), D(2)),
                 Add(Add(new Formula.Power(D(1, 0), Add(DigitLength(x), D(2))),
                     Multiply(D(1, 0, 0), x)), D(2, 5))));
         return Disp(new Formula.Bind(
