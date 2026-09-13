@@ -48,7 +48,11 @@ internal sealed class CloitrePowerMinusIndexPrimeBoundRefutationDocument
                     "The modular certificate proves a(6298) = 77742, while the prime-count "
                         + "certificate proves that the 6298th prime is 62753. Hence the "
                         + "universal upper bound is false."))),
-                DescribeRole.Theorem))));
+                DescribeRole.Theorem,
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a072872-power-minus-index-prime-bound-refutation"),
+                    ResolutionKind.Refuted)))));
 
     private static Formula AFormula()
     {

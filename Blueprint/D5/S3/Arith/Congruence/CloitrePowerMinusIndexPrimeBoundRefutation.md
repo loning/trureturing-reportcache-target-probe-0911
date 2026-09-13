@@ -34,6 +34,10 @@ $$\neg claim$$
 
 *Proof.* Machine-checked in Lean as `D5/S3/Arith/Congruence/CloitrePowerMinusIndexPrimeBoundRefutation.result` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a072872-power-minus-index-prime-bound-refutation` (refuted) by `D5/S3/Arith/Congruence/CloitrePowerMinusIndexPrimeBoundRefutation.result`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a072872-power-minus-index-prime-bound-refutation","declaration_gid":"D5/S3/Arith/Congruence/CloitrePowerMinusIndexPrimeBoundRefutation.result","resolution_kind":"refuted"} -->
+
 *Source.* Repository-derived.
 
 *Acknowledgement.* Benoit Cloitre (2002). *OEIS A072872, a(n) is the smallest positive number k such that n divides 2^k - k*. URL: <https://oeis.org/A072872>.
