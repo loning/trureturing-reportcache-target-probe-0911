@@ -14,7 +14,7 @@ $$\forall n \in \mathbb{N}, \operatorname{a}\left(n\right) = \frac{\operatorname
 
 *Commentary.*
 
-For every natural n, a(n) is the positive reduced denominator Rat.den of 8 divided by 9 times n squared, followed by natural-number division by 9. The denominator is always divisible by 9, so this final division is exact.
+For n >= 1, the reduced denominator Rat.den of 8/(9*n^2) is divisible by 9, so the natural-number division by 9 defining a(n) is exact. At n = 0, 8/(9*0^2) is 0 in the rationals with denominator 1, and a(0) = 0 is the junk value of the totalized definition. The theorem quantifies over n >= 1 only.
 
 **Theorem 1.2 (Cicuttin's denominator formula).**
 
