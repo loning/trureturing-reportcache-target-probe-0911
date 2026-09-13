@@ -22,6 +22,10 @@ $$\forall n \in \mathbb{N},\; (2 < n) \Rightarrow (a\left(n\right) = minFac\left
 
 *Proof.* Machine-checked in Lean as `D5/S3/Arith/Congruence/FiroozbakhtLeastSelfDivisorPowerMinusOne.firoozbakht_a092028` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a092028-least-self-divisor-power-minus-one` (proved) by `D5/S3/Arith/Congruence/FiroozbakhtLeastSelfDivisorPowerMinusOne.firoozbakht_a092028`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a092028-least-self-divisor-power-minus-one","declaration_gid":"D5/S3/Arith/Congruence/FiroozbakhtLeastSelfDivisorPowerMinusOne.firoozbakht_a092028","resolution_kind":"proved"} -->
+
 *Source.* Repository-derived.
 
 *Commentary.*

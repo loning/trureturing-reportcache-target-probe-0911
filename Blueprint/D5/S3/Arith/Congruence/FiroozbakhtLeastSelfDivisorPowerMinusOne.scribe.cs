@@ -26,13 +26,18 @@ internal sealed class FiroozbakhtLeastSelfDivisorPowerMinusOneDocument : IScribe
                 + "modulo q divides both m and q-1; minimality of q makes those integers coprime, "
                 + "so the order is one and q divides n-1. Firoozbakht's first conjecture follows "
                 + "because minFac(n-1) is prime when n is greater than two.",
-                DescribeRole.Theorem, AssessedProvenance.FromRepo()))));
+                DescribeRole.Theorem, AssessedProvenance.FromRepo(),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a092028-least-self-divisor-power-minus-one"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
-        string prose, DescribeRole role, AssessedProvenance provenance) => Describe.Lean(
+        string prose, DescribeRole role, AssessedProvenance provenance,
+        OpenProblemResolutionClaim? claim = null) => Describe.Lean(
         DescribeId.Create("a092028-" + name.Replace('_', '-').ToLowerInvariant()),
         DeclarationHandle.Create(Prefix + name), H(title), StatementSource.FromAuthor(formula),
-        provenance, Blocks(Paragraph(Text(prose))), role);
+        provenance, Blocks(Paragraph(Text(prose))), role, claim);
 
     private static Formula DefinitionFormula()
     {
