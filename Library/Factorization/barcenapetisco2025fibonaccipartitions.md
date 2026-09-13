@@ -39,6 +39,21 @@ Verified for `n = 1..120` with no violation. Row 2 begins `0, 2, 1, 5, 7, 3, 10,
 18, 20, 23, 26`. So row 2 is the involution exchanging the two Wythoff sequences, which is what
 the paper's title refers to and what connects this construction to Zeckendorf representations.
 
+The paper states this identification itself, and the reconstruction above was avoidable. In the
+paragraph following Proposition 5.6: "The sequence q_n corresponds with sequence A002251 in
+Sloane's on-line encyclopedia of integer sequences, obtained by swapping a(k) and b(k) for all
+k >= 1. This is evident from the expression for q_n given in Lemma 5.5." So row 2 is A002251 on
+the authors' own account, not on ours; what the computation above adds is only an independent
+check of their claim through index 120.
+
+A002251 is defined as "start with the nonnegative integers; then swap L(k) and U(k) for all
+k >= 1, where L = A000201, U = A001950 (lower and upper Wythoff sequences)". Querying OEIS with
+the terms `0, 2, 1, 5, 7, 3, 10, 4, 13, 15, 6, 18, 20, 8` returns it directly, which is how the
+same identification is reachable when a source does not supply it.
+
+The same query on the first twenty terms of row 3 returns nothing. That is evidence that row 3
+has not been catalogued; it is not evidence that row 3 has no description.
+
 ## Why row 3 does not follow by analogy
 
 The extra translates available at `l = 2` break the involution. The smallest violation is at
@@ -71,6 +86,31 @@ most once" half. The other half is a limit statement: on a prefix the rows are n
 and the difference sets have gaps, because small values arrive late. Only the proven pair
 `(1,2)` has its difference set filling an interval at that width. Finite computation here is
 evidence of no counterexample, never of the claim.
+
+## Three descriptions of row 3 that are ruled out
+
+Probes run after the seat returned, over 300 to 400 columns. All three are negative, and they
+are recorded because each closes a direction a later attempt would otherwise try.
+
+**Row 3 is not an involution.** Not merely at one point: 222 of 300 positions violate
+`q(3, q(3,j)) = j`. Its cycle structure under iteration is irregular — orbits of length
+1, 2, 2, 3, 3, 2, 13, 10, 11, 2, 1, 1, 5, 2 among the first fourteen from `j < 120`. No
+ternary analogue of the row-2 Wythoff pairing describes it.
+
+**The up-set is not the upper Wythoff sequence.** With `A(n) = ⌊nφ⌋` and `C(n) = ⌊nφ²⌋`, which
+partition the positive integers by Rayleigh, over `[1,400)` there are 247 elements of `A` and
+152 of `C`, and row 3 has 246 ascents, 153 descents and no fixed point. The relation is
+containment, not equality: `C ⊆ up` with the single exception `j = 5`, and `down ⊆ A` with one
+exception. So `up = C ⊔ (A ∩ up)` where `A ∩ up` has 95 elements.
+
+**Those 95 positions are not a Beatty sequence.** Their indices within `A` begin
+1, 3, 4, 8, 9, 11, 14, 16, 18, 21, 23, 26, 27, 29, 36, 40, 43, 45. Against `⌊nφ⌋` the overlap is
+21 of 39, against `⌊nφ²⌋` 10 of 38, against `⌊2n⌋` and `⌊1.5n⌋` 15 of 39 — no better than
+chance. The splitting inside the lower Wythoff sequence is not of Beatty type.
+
+Taken together: the sign pattern of row 3 is governed by the Wythoff partition only at the
+coarse level, and the refinement inside `A` is something else. A further attempt should look for
+the explicit description elsewhere than in this family.
 
 ## Object status
 
