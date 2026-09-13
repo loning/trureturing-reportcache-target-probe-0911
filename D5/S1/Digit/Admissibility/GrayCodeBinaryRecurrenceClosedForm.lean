@@ -2,9 +2,10 @@
    generality: G
    mirror-B: D5/B/S1/Digit/Admissibility/GrayCodeBinaryRecurrenceClosedForm
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Bitwise, mathlib/module/Mathlib.Data.Nat.EvenOddRec]
+   anchors: [mathlib/module/Mathlib.Algebra.Ring.Int.Parity, mathlib/module/Mathlib.Data.Nat.Bitwise, mathlib/module/Mathlib.Data.Nat.EvenOddRec]
    utility: none
    digest: Yanev's Gray-code closed form for the nonnegative half of OEIS A163617. -/
+import Mathlib.Algebra.Ring.Int.Parity
 import Mathlib.Data.Nat.Bitwise
 import Mathlib.Data.Nat.EvenOddRec
 
@@ -36,6 +37,20 @@ def gray (n : ℕ) : ℕ := n ^^^ (n / 2)
 /-- The integral parity split of Yanev's correction term. -/
 def corr (n : ℕ) : ℕ :=
   if n % 2 = 0 then 3 * n / 2 else (3 * n + 1) / 2
+
+/-- Yanev's correction term: `corr n` is the integer `(6 n + 1 − (−1)^n) / 4`. -/
+example (n : ℕ) : (corr n : ℤ) = (6 * n + 1 - (-1) ^ n) / 4 := by
+  rcases Nat.even_or_odd n with hn | hn
+  · obtain ⟨m, rfl⟩ := hn
+    rw [Even.neg_one_pow (α := ℤ) ⟨m, rfl⟩]
+    push_cast
+    simp [corr]
+    omega
+  · obtain ⟨m, rfl⟩ := hn
+    rw [Odd.neg_one_pow (α := ℤ) ⟨m, rfl⟩]
+    push_cast
+    simp [corr]
+    omega
 
 /-- Velin Yanev's 2016 conjectured closed form for every nonnegative index. -/
 theorem yanev_a163617 : ∀ n, a n = gray n + corr n := by

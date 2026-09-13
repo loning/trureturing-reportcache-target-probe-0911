@@ -84,5 +84,6 @@ natural number. It does not assert the separate negative-index sequence.
 The external search counts beyond the OEIS entries are supplied by
 preregistration issue 7413 and were not independently repeated by this
 implementation seat. The literature search is bounded, so exhaustive coverage
-and publication priority remain unverified. Source-to-Lean identification is
-not itself a kernel-checked fact.
+and publication priority remain unverified. The module kernel-checks
+`(corr n : ℤ) = (6n + 1 − (−1)^n)/4` as an `example` immediately after the
+definition of `corr`.
