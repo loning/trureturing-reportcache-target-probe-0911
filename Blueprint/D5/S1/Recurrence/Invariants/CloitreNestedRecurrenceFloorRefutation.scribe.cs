@@ -44,13 +44,18 @@ internal sealed class CloitreNestedRecurrenceFloorRefutationDocument
                 "At n=1167, the recurrence gives a(1167)=664, while the cubic-root "
                     + "isolation gives floor(1167c)=665. Their difference is -1, outside "
                     + "{0,1,2}, so the second conjunct and hence the conjunction are false.",
-                DescribeRole.Theorem, AssessedProvenance.FromRepo(Source)))));
+                DescribeRole.Theorem, AssessedProvenance.FromRepo(Source),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a076502-nested-recurrence-floor-refutation"),
+                    ResolutionKind.Refuted)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
-        string prose, DescribeRole role, AssessedProvenance provenance) => Describe.Lean(
+        string prose, DescribeRole role, AssessedProvenance provenance,
+        OpenProblemResolutionClaim? resolution = null) => Describe.Lean(
         DescribeId.Create("a076502-" + name.Replace('_', '-').ToLowerInvariant()),
         DeclarationHandle.Create(Prefix + name), H(title), StatementSource.FromAuthor(formula),
-        provenance, Blocks(Paragraph(Text(prose))), role);
+        provenance, Blocks(Paragraph(Text(prose))), role, resolution);
 
     private static Formula SequenceFormula()
     {

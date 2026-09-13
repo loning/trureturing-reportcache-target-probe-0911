@@ -70,6 +70,10 @@ $$\neg claim$$
 
 *Proof.* Machine-checked in Lean as `D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.result` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a076502-nested-recurrence-floor-refutation` (refuted) by `D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.result`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a076502-nested-recurrence-floor-refutation","declaration_gid":"D5/S1/Recurrence/Invariants/CloitreNestedRecurrenceFloorRefutation.result","resolution_kind":"refuted"} -->
+
 *Source.* Repository-derived.
 
 *Acknowledgement.* Benoit Cloitre (2002). *OEIS A076502, a(1)=1, a(n)=n-a(n-a(n-a(n-1)))*. URL: <https://oeis.org/A076502>.
