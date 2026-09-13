@@ -2,14 +2,10 @@
    generality: G
    mirror-B: D5/B/S1/Digit/Admissibility/PalindromeSquareReversalInfinitude
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Digits.Lemmas, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Ring]
+   anchors: [mathlib/module/Mathlib.Data.Nat.Digits.Lemmas]
    utility: none
    digest: Infinitely many decimal palindromes have nonpalindromic squares whose reversals are squares. -/
 import Mathlib.Data.Nat.Digits.Lemmas
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Ring
-import Lean.Elab.Tactic.Omega
 
 /-!
 # Palindromes whose reversed square is a square
