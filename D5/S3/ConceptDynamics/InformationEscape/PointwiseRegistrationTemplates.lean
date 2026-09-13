@@ -58,4 +58,45 @@ theorem pointwiseEq_sensitivity (A : Arena) {Y : Type} [DecidableEq Y]
 #print axioms pointwiseEqLegacy
 #print axioms pointwiseEq_sensitivity
 
+/-- Two CUT slots record the two values which must differ at each state. -/
+abbrev pointwiseNeSignature (X Y : Type) [DecidableEq Y] := separationSignature X Y Y
+
+def pointwiseNeRealization {X Y : Type} [DecidableEq Y] (f g : X → Y) :
+    PrimitiveRealization (pointwiseNeSignature X Y) := separationRealization f g
+
+def pointwiseNeArena (A : Arena) (Y : Type) [DecidableEq Y] : PrimitiveLawArena where
+  toArena := A
+  signature := pointwiseNeSignature A.State Y
+  Law r := ∀ x, r.readout false x ≠ r.readout true x
+
+theorem pointwiseNeLegacy (A : Arena) {Y : Type} [DecidableEq Y] (f g : A.State → Y) :
+    LegacyPrimitiveRealization (pointwiseNeArena A Y) (∀ x, f x ≠ g x)
+      (pointwiseNeRealization f g) := ⟨Iff.rfl⟩
+
+theorem pointwiseNe_sensitivity (A : Arena) {Y : Type} [DecidableEq Y]
+    (x : A.State) (a b : Y) (hne : a ≠ b) : FiniteSlotSensitivity (pointwiseNeArena A Y) := by
+  constructor
+  · intro i
+    cases i with
+    | false =>
+        refine ⟨pointwiseNeRealization (fun _ => a) (fun _ => b),
+          pointwiseNeRealization (fun _ => b) (fun _ => b), ?_, ?_, ?_⟩
+        · intro j hj; cases j
+          · exact (hj rfl).elim
+          · rfl
+        · intro j; exact Fin.elim0 j
+        · exact ⟨fun _ h => h x rfl, fun _ _ => hne⟩
+    | true =>
+        refine ⟨pointwiseNeRealization (fun _ => a) (fun _ => b),
+          pointwiseNeRealization (fun _ => a) (fun _ => a), ?_, ?_, ?_⟩
+        · intro j hj; cases j
+          · rfl
+          · exact (hj rfl).elim
+        · intro j; exact Fin.elim0 j
+        · exact ⟨fun _ h => h x rfl, fun _ _ => hne⟩
+  · intro i; exact Fin.elim0 i
+
+#print axioms pointwiseNeLegacy
+#print axioms pointwiseNe_sensitivity
+
 end D5.S3.ConceptDynamics.InformationEscape.PointwiseRegistrationTemplates

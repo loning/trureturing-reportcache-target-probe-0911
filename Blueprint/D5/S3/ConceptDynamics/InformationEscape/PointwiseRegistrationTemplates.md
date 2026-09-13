@@ -64,6 +64,66 @@ Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTe
 
 Two distinct output values and an inhabited arena witness sensitivity of each individual CUT slot.
 
+**Definition 1.6 (pointwiseNeSignature).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeSignature`
+
+*Formalization.* `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeSignature` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+Two typed CUT readouts retain the two terms of a pointwise disequality.
+
+**Definition 1.7 (pointwiseNeRealization).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeRealization`
+
+*Formalization.* `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeRealization` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+Both supplied functions remain unchanged in the realization.
+
+**Definition 1.8 (pointwiseNeArena).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeArena`
+
+*Formalization.* `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeArena` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+The law requires different readout values at every state.
+
+**Theorem 1.9 (pointwiseNeLegacy).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeLegacy`
+
+*Proof.* Machine-checked in Lean as `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeLegacy` (`✓ std3`). ∎
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+The complete universally quantified disequality is definitionally the generated law.
+
+**Theorem 1.10 (pointwiseNe_sensitivity).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNe_sensitivity`
+
+*Proof.* Machine-checked in Lean as `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNe_sensitivity` (`✓ std3`). ∎
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+An inhabited state and distinct output values witness both readout slots independently.
+
 ## References
 
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseEqArena`
@@ -71,4 +131,9 @@ Two distinct output values and an inhabited arena witness sensitivity of each in
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseEqRealization`
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseEqSignature`
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseEq_sensitivity`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeArena`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeLegacy`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeRealization`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeSignature`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNe_sensitivity`
 - Dependency: [D5/S3/ConceptDynamics/InformationEscape/RegistrationTemplates](RegistrationTemplates.md)

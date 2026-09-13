@@ -12,7 +12,12 @@ internal sealed class PointwiseRegistrationTemplatesDocument : IScribeDocumentDe
             Node("pointwiseEqRealization", "The two supplied functions remain the readouts, with no theorem-based reduction.", DescribeRole.Definition),
             Node("pointwiseEqArena", "The law equates the two readouts at every state of the supplied finite arena.", DescribeRole.Definition),
             Node("pointwiseEqLegacy", "The complete universally quantified equation is definitionally the generated law.", DescribeRole.Theorem),
-            Node("pointwiseEq_sensitivity", "Two distinct output values and an inhabited arena witness sensitivity of each individual CUT slot.", DescribeRole.Theorem))));
+            Node("pointwiseEq_sensitivity", "Two distinct output values and an inhabited arena witness sensitivity of each individual CUT slot.", DescribeRole.Theorem),
+            Node("pointwiseNeSignature", "Two typed CUT readouts retain the two terms of a pointwise disequality.", DescribeRole.Definition),
+            Node("pointwiseNeRealization", "Both supplied functions remain unchanged in the realization.", DescribeRole.Definition),
+            Node("pointwiseNeArena", "The law requires different readout values at every state.", DescribeRole.Definition),
+            Node("pointwiseNeLegacy", "The complete universally quantified disequality is definitionally the generated law.", DescribeRole.Theorem),
+            Node("pointwiseNe_sensitivity", "An inhabited state and distinct output values witness both readout slots independently.", DescribeRole.Theorem))));
 
     private static DocumentBlock.Describe Node(string declaration, string text, DescribeRole role) =>
         Describe.Lean(
