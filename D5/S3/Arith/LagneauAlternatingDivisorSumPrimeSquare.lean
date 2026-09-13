@@ -92,4 +92,83 @@ private theorem alternatingSum_modEq_sum :
       simpa only [List.alternatingSum, List.sum_cons, sub_eq_add_neg, neg_sub, add_assoc] using
         (ha.add hb).add (alternatingSum_modEq_sum tail)
 
+private theorem square_or_twice_square_of_sigma_odd (n : ℕ) (hn0 : n ≠ 0)
+    (hsigmaOdd : Odd (ArithmeticFunction.sigma 1 n)) :
+    (∃ t : ℕ, n = t ^ 2) ∨ (∃ t : ℕ, n = 2 * t ^ 2) := by
+  have hsigmaProd :
+      ArithmeticFunction.sigma 1 n =
+        ∏ p ∈ n.primeFactors,
+          ∑ i ∈ Finset.range (n.factorization p + 1), p ^ i := by
+    simpa using
+      (ArithmeticFunction.sigma_eq_prod_primeFactors_sum_range_factorization_pow_mul
+        (k := 1) hn0)
+  have hEvenExponent : ∀ p ∈ n.primeFactors, p ≠ 2 → Even (n.factorization p) := by
+    intro p hpMem hpTwo
+    have hgeomDvd :
+        (∑ i ∈ Finset.range (n.factorization p + 1), p ^ i) ∣
+          ArithmeticFunction.sigma 1 n := by
+      rw [hsigmaProd]
+      exact Finset.dvd_prod_of_mem _ hpMem
+    have hgeomOdd := hsigmaOdd.of_dvd_nat hgeomDvd
+    have hpPrime : p.Prime := Nat.prime_of_mem_primeFactors hpMem
+    have hpOdd : Odd p := hpPrime.odd_of_ne_two hpTwo
+    rw [Finset.odd_sum_iff_odd_card_odd] at hgeomOdd
+    simp only [hpOdd.pow, Finset.filter_true, Finset.card_range] at hgeomOdd
+    exact Nat.not_odd_iff_even.mp (Nat.odd_add_one.mp hgeomOdd)
+  obtain ⟨k, m, hmOdd, hnm⟩ := Nat.exists_eq_two_pow_mul_odd hn0
+  have hm0 : m ≠ 0 := by
+    intro h
+    subst m
+    exact Nat.not_odd_zero hmOdd
+  have hmDivN : m ∣ n := ⟨2 ^ k, by simpa [mul_comm] using hnm⟩
+  have hEvenM : ∀ p ∈ m.primeFactors, Even (m.factorization p) := by
+    intro p hpMem
+    have hpPrime : p.Prime := Nat.prime_of_mem_primeFactors hpMem
+    have hpDivM : p ∣ m := Nat.dvd_of_mem_primeFactors hpMem
+    have hpTwo : p ≠ 2 := by
+      intro h
+      subst p
+      exact hmOdd.not_two_dvd_nat hpDivM
+    have hpMemN : p ∈ n.primeFactors :=
+      Nat.mem_primeFactors.mpr ⟨hpPrime, hpDivM.trans hmDivN, hn0⟩
+    have hpNotDvdTwo : ¬p ∣ 2 := by
+      intro hpDivTwo
+      exact hpTwo ((Nat.prime_dvd_prime_iff_eq hpPrime Nat.prime_two).mp hpDivTwo)
+    have hfactorTwo : (Nat.factorization 2) p = 0 :=
+      Nat.factorization_eq_zero_of_not_dvd hpNotDvdTwo
+    have hnFactor : n.factorization p = m.factorization p := by
+      rw [hnm, Nat.factorization_mul (pow_ne_zero _ (by decide)) hm0]
+      simp [Nat.factorization_pow, hfactorTwo]
+    rw [← hnFactor]
+    exact hEvenExponent p hpMemN hpTwo
+  let t := ∏ p ∈ m.primeFactors, p ^ (m.factorization p / 2)
+  have hmSquare : m = t ^ 2 := by
+    have hprod := Nat.prod_factorization_pow_eq_self hm0
+    change (∏ p ∈ m.primeFactors, p ^ m.factorization p) = m at hprod
+    rw [← hprod]
+    rw [show t = ∏ p ∈ m.primeFactors, p ^ (m.factorization p / 2) by rfl]
+    rw [← Finset.prod_pow]
+    apply Finset.prod_congr rfl
+    intro p hpMem
+    obtain ⟨q, hq⟩ := hEvenM p hpMem
+    rw [hq]
+    have hhalf : (q + q) / 2 = q := by omega
+    rw [hhalf]
+    simp [pow_add, pow_two]
+  rcases Nat.even_or_odd k with hk | hk
+  · obtain ⟨j, hj⟩ := hk
+    left
+    refine ⟨2 ^ j * t, ?_⟩
+    rw [hnm, hmSquare, hj]
+    simp [pow_add, pow_two]
+    ring
+  · obtain ⟨j, hj⟩ := hk
+    right
+    refine ⟨2 ^ j * t, ?_⟩
+    rw [hnm, hmSquare, hj]
+    simp [pow_succ]
+    rw [show 2 ^ (2 * j) = (2 ^ j) ^ 2 by
+      rw [show 2 * j = j * 2 by omega, pow_mul]]
+    ring
+
 end D5.S3.Arith.LagneauAlternatingDivisorSumPrimeSquare
