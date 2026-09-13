@@ -25,7 +25,10 @@ internal sealed class DaleTwinPrimeAverageMultipleOfFiveDocument : IScribeDocume
                     + "6n-1, 6n+1, 12n-1, and 12n+1 that is divisible by five. Its primality "
                     + "collapses that value to five: residue one gives n=1, while residues two, "
                     + "three, and four are impossible. The converse is false at n=10.",
-                DescribeRole.Theorem, AssessedProvenance.FromRepo()))));
+                DescribeRole.Theorem, AssessedProvenance.FromRepo(),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create("oeis-a177680-twin-prime-average-multiple-of-five"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role, AssessedProvenance provenance,

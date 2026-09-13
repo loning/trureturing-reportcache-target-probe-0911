@@ -22,6 +22,10 @@ $$\forall n \in {\mathbb N},\; IsMember\left(n\right) \Rightarrow \left(n = 1 \l
 
 *Proof.* Machine-checked in Lean as `D5/S3/Arith/Congruence/DaleTwinPrimeAverageMultipleOfFive.dale_a177680` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a177680-twin-prime-average-multiple-of-five` (proved) by `D5/S3/Arith/Congruence/DaleTwinPrimeAverageMultipleOfFive.dale_a177680`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a177680-twin-prime-average-multiple-of-five","declaration_gid":"D5/S3/Arith/Congruence/DaleTwinPrimeAverageMultipleOfFive.dale_a177680","resolution_kind":"proved"} -->
+
 *Source.* Repository-derived.
 
 *Commentary.*
