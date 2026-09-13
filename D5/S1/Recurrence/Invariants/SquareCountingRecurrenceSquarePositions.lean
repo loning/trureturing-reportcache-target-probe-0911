@@ -2,11 +2,10 @@
    generality: G
    mirror-B: D5/B/S1/Recurrence/Invariants/SquareCountingRecurrenceSquarePositions
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Algebra.Order.Interval.Finset.SuccPred, mathlib/module/Mathlib.Data.Nat.Sqrt, mathlib/module/Mathlib.Order.Interval.Finset.Nat, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Ring]
+   anchors: [mathlib/module/Mathlib.Data.Nat.Sqrt, mathlib/module/Mathlib.Order.Interval.Finset.Nat, mathlib/module/Mathlib.Tactic.Linarith, mathlib/module/Mathlib.Tactic.NormNum, mathlib/module/Mathlib.Tactic.Ring]
    utility: none
    digest: Square positions and values in Zumkeller's square-counting recurrence. -/
 
-import Mathlib.Algebra.Order.Interval.Finset.SuccPred
 import Mathlib.Data.Nat.Sqrt
 import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.Tactic.Linarith
