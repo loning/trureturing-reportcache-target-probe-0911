@@ -16,6 +16,10 @@ namespace D5.S1.Digit.Carry.SuccessorShortest
 
 open D5.S1.Digit D5.S1.Digit.Carry.Successor
 
+open private gapCount_spec gapCount_prefix_eq_one carried_original_zero_zero
+  carried_original_zero_one carryState_final_canonical carrySteps_to_state_zero
+  carrySteps_to_state_one from D5.S1.Digit.Carry.Successor
+
 /-- Every directed carry path has at least the decrease in its total digit multiplicity steps. -/
 theorem carry_steps_mass_lower_bound {k : Nat} {r s : RawDigits}
     (path : CarrySteps k r s) : tokenCount r ≤ tokenCount s + k := by
@@ -84,16 +88,10 @@ theorem successor_erasure_and_shortest (n : Nat) :
   have canonicalS : CanonicalRaw s :=
     canonicalRaw_rawOfZeckendorf (Nat.isZeckendorfRep_zeckendorf (n + 1))
   have gap : r (prefixIndex offset k) = 0 := by
-    run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-      goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-        `D5.S1.Digit.Carry.Successor.gapCount_spec))
+    exact gapCount_spec r offset
   have prefix_bits : ∀ j < k, r (prefixIndex offset j) = 1 := by
     intro j hj
-    run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-      goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-        `D5.S1.Digit.Carry.Successor.gapCount_prefix_eq_one))
-    · exact canonical
-    · exact hj
+    exact gapCount_prefix_eq_one canonical offset j hj
   have offset_cases : offset = 0 ∨ offset = 1 := by
     dsimp [offset]
     split <;> simp
@@ -110,44 +108,22 @@ theorem successor_erasure_and_shortest (n : Nat) :
     · have ho : offset = 0 := by simp [offset, hz]
       change r (carriedIndex offset (gapCount r offset)) = 0
       rw [ho]
-      run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-        goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-          `D5.S1.Digit.Carry.Successor.carried_original_zero_zero))
-      · exact canonical
-      · exact hz
+      exact carried_original_zero_zero canonical hz
     · have hz0 : r 0 = 0 := by have := canonical.1 0; omega
       have ho : offset = 1 := by simp [offset, hz]
       change r (carriedIndex offset (gapCount r offset)) = 0
       rw [ho]
-      run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-        goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-          `D5.S1.Digit.Carry.Successor.carried_original_zero_one))
-      · exact canonical
-      · exact hz0
+      exact carried_original_zero_one canonical hz0
   have targetCanonical : CanonicalRaw (carryState r offset k) := by
-    run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-      goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-        `D5.S1.Digit.Carry.Successor.carryState_final_canonical))
-    · exact canonical
-    · exact offset_cases
-    · exact positive
-    · exact new_bit
+    exact carryState_final_canonical canonical offset offset_cases positive new_bit
   have chain : CarrySteps k (r + Finsupp.single 0 1) (carryState r offset k) := by
     rcases offset_cases with ho | ho
     · change CarrySteps (gapCount r offset) _ (carryState r offset (gapCount r offset))
       rw [ho]
-      run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-        goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-          `D5.S1.Digit.Carry.Successor.carrySteps_to_state_zero))
-      · exact canonical
-      · exact le_rfl
+      exact carrySteps_to_state_zero canonical le_rfl
     · change CarrySteps (gapCount r offset) _ (carryState r offset (gapCount r offset))
       rw [ho]
-      run_tac Lean.Elab.Tactic.liftMetaTactic fun goal =>
-        goal.apply (Lean.mkConst ((Lean.Name.num `_private.D5.S1.Digit.Carry.Successor 0) ++
-          `D5.S1.Digit.Carry.Successor.carrySteps_to_state_one))
-      · exact canonical
-      · exact le_rfl
+      exact carrySteps_to_state_one canonical le_rfl
   have target : carryState r offset k = s := by
     apply canonicalRaw_unique targetCanonical canonicalS
     rw [← rawValue_carrySteps chain]
