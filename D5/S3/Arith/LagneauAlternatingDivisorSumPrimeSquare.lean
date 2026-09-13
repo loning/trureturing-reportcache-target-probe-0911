@@ -80,4 +80,16 @@ private theorem le_twice_T (n : ℕ) (hn : 3 < n) : (n : ℤ) ≤ 2 * T n := by
       have htwice' : (2 : ℤ) * b ≤ n := by exact_mod_cast htwice
       omega
 
+private theorem alternatingSum_modEq_sum :
+  ∀ l : List ℤ, l.alternatingSum ≡ l.sum [ZMOD 2]
+  | [] => Int.ModEq.rfl
+  | [a] => by simp [List.alternatingSum]
+  | a :: b :: tail => by
+      have hb : -b ≡ b [ZMOD 2] := by
+        rw [Int.modEq_iff_dvd]
+        exact ⟨b, by ring⟩
+      have ha : a ≡ a [ZMOD 2] := Int.ModEq.rfl
+      simpa only [List.alternatingSum, List.sum_cons, sub_eq_add_neg, neg_sub, add_assoc] using
+        (ha.add hb).add (alternatingSum_modEq_sum tail)
+
 end D5.S3.Arith.LagneauAlternatingDivisorSumPrimeSquare
