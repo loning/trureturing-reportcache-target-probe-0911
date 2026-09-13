@@ -29,7 +29,7 @@ dotnet run --project tools/StrataLint.Cli/StrataLint.Cli.csproj --configuration 
 dotnet run --project tools/StrataLint.Cli/StrataLint.Cli.csproj --configuration Release -- route MANIFEST|-
 dotnet run --project tools/StrataLint.Cli/StrataLint.Cli.csproj --configuration Release -- selftest
 dotnet run --project tools/StrataLint.Cli/StrataLint.Cli.csproj --configuration Release -- topology
-dotnet run --project tools/StrataLint.Cli/StrataLint.Cli.csproj --configuration Release -- worktree --branch NAME --path DIR [--base REV] [--skip-restore]
+dotnet run --project tools/StrataLint.Cli/StrataLint.Cli.csproj --configuration Release -- worktree --kind KIND --name NAME --path DIR [--base REV] [--skip-restore]
 ```
 
 Lean inspection and .NET admission are separate programs. The inspector runs in
