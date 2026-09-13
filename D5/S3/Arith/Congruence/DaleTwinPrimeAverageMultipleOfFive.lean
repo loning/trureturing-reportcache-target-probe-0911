@@ -2,12 +2,12 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/DaleTwinPrimeAverageMultipleOfFive
    mirror-E: none(waiver:unbounded-symbolic-proof)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Prime.Basic, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Tactic.NormNum.Ineq, mathlib/module/Mathlib.Tactic.NormNum.Prime]
    utility: none
    digest: Twin prime pairs centered at both 6n and 12n force n to be one or divisible by five. -/
 
-import Mathlib.Data.Nat.Prime.Basic
-import Mathlib.Tactic
+import Mathlib.Tactic.NormNum.Ineq
+import Mathlib.Tactic.NormNum.Prime
 
 namespace D5.S3.Arith.Congruence.DaleTwinPrimeAverageMultipleOfFive
 
