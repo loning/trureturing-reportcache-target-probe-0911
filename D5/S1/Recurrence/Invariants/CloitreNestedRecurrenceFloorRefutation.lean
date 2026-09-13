@@ -125,4 +125,68 @@ def claim : Prop :=
     ∀ n : ℕ, 1 <= n -> ∃ j ∈ ({0, 1, 2} : Finset ℤ),
       (a n : ℤ) = ⌊c * n⌋ + j
 
+private inductive PrefixTable where
+  | empty
+  | branch (index value : ℕ) (left right : PrefixTable)
+
+private def PrefixTable.lookup (index : ℕ) : PrefixTable -> Option ℕ
+  | .empty => none
+  | .branch key value left right =>
+      if index = key then some value
+      else if index < key then left.lookup index
+      else right.lookup index
+
+private def PrefixTable.value (table : PrefixTable) (index : ℕ) : ℕ :=
+  (table.lookup index).getD 0
+
+private def entryChecks (table : PrefixTable) (index : ℕ) : Prop :=
+  (table.lookup index).isSome = true /\
+    match index with
+    | 0 => table.value 0 = 0
+    | 1 => table.value 1 = 1
+    | n + 2 => table.value (n + 2) =
+        n + 2 - table.value (n + 2 - table.value
+          (n + 2 - table.value (n + 1)))
+
+private def prefixChecks (table : PrefixTable) (last : ℕ) : Prop :=
+  ∀ index : Fin (last + 1), entryChecks table index
+
+private theorem prefixChecks_sound (table : PrefixTable) (last : ℕ)
+    (hchecks : prefixChecks table last) :
+    ∀ index, index <= last -> a index = table.value index := by
+  intro index
+  induction index using Nat.strong_induction_on with
+  | h index ih =>
+      intro hindex
+      have hentry := hchecks ⟨index, by omega⟩
+      rcases index with _ | _ | n
+      · simpa [a, entryChecks] using hentry.2.symm
+      · simpa [a, entryChecks] using hentry.2.symm
+      · have heq : table.value (n + 2) =
+            n + 2 - table.value (n + 2 - table.value
+              (n + 2 - table.value (n + 1))) := by
+          simpa [entryChecks] using hentry.2
+        rw [a_succ]
+        have ha1 := a_bounds (n + 1)
+        have h1 := ih (n + 1) (by omega) (by omega)
+        rw [h1]
+        have hi2pos : 0 < n + 2 - table.value (n + 1) := by
+          rw [← h1]
+          omega
+        have hi2lt : n + 2 - table.value (n + 1) < n + 2 := by
+          rw [← h1]
+          omega
+        have h2 := ih (n + 2 - table.value (n + 1)) hi2lt (by omega)
+        rw [h2]
+        have ha2 := a_bounds (n + 2 - table.value (n + 1))
+        have hi3lt :
+            n + 2 - table.value (n + 2 - table.value (n + 1)) < n + 2 := by
+          rw [← h2]
+          have ha2pos := ha2.2 hi2pos
+          omega
+        have h3 := ih
+          (n + 2 - table.value (n + 2 - table.value (n + 1))) hi3lt (by omega)
+        rw [h3]
+        exact heq.symm
+
 end D5.S1.Recurrence.Invariants.CloitreNestedRecurrenceFloorRefutation
