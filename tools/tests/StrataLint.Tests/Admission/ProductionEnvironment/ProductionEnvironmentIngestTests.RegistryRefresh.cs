@@ -157,7 +157,7 @@ public sealed partial class ProductionEnvironmentTests
         var sourcePath = Path.Combine(temporary.Path, RuleFixture.FixtureDigestionSourcePath);
         Directory.CreateDirectory(Path.GetDirectoryName(sourcePath)!);
         File.WriteAllText(sourcePath, fixture.Files[RuleFixture.FixtureDigestionSourcePath]);
-        string[] LedgerFiles() => Directory.GetFiles(
+        string[] LedgerFiles() => Directory.EnumerateFiles(
                 Path.Combine(temporary.Path, BackfillInventoryLoader.RootPath), "*", SearchOption.AllDirectories)
             .Order(StringComparer.Ordinal)
             .Select(path => Path.GetRelativePath(temporary.Path, path) + ":" + Convert.ToBase64String(File.ReadAllBytes(path)))
@@ -215,7 +215,7 @@ public sealed partial class ProductionEnvironmentTests
         var fixture = RegistryRefreshFixture();
         using var temporary = new TemporaryDirectory();
         WriteDirectoryLedger(temporary.Path, fixture.Files);
-        string[] Files() => Directory.GetFiles(temporary.Path, "*", SearchOption.AllDirectories)
+        string[] Files() => Directory.EnumerateFiles(temporary.Path, "*", SearchOption.AllDirectories)
             .Order(StringComparer.Ordinal)
             .Select(path => Path.GetRelativePath(temporary.Path, path) + ":" + Convert.ToBase64String(File.ReadAllBytes(path)))
             .ToArray();
