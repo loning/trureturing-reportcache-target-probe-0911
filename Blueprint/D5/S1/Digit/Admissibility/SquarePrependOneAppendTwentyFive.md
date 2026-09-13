@@ -24,6 +24,10 @@ $$\forall x \in Nat,\; x > 0 \Rightarrow \left(\operatorname{IsMember}\left(x\ri
 
 *Proof.* Machine-checked in Lean as `D5/S1/Digit/Admissibility/SquarePrependOneAppendTwentyFive.wu_a249621` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a249621-square-prepend-one-append-twenty-five` (proved) by `D5/S1/Digit/Admissibility/SquarePrependOneAppendTwentyFive.wu_a249621`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a249621-square-prepend-one-append-twenty-five","declaration_gid":"D5/S1/Digit/Admissibility/SquarePrependOneAppendTwentyFive.wu_a249621","resolution_kind":"proved"} -->
+
 *Citation.* Chai Wah Wu (2014). *OEIS A249621, Squares that remain squares when prepended with 1 and appended with 25 in base 10*. URL: <https://oeis.org/A249621>.
 
 *Commentary.*

@@ -27,7 +27,10 @@ internal sealed class SquarePrependOneAppendTwentyFiveDocument : IScribeDocument
                 "Every member x with x at least 1 has final two decimal digits 00 or 56. "
                 + "The proof reduces the second square root modulo 5, then classifies the "
                 + "resulting square congruence modulo 400.",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)))));
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create("oeis-a249621-square-prepend-one-append-twenty-five"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role, AssessedProvenance provenance,
