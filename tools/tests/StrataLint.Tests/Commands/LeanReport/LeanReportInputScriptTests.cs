@@ -437,9 +437,10 @@ public sealed partial class LeanReportInputScriptTests
                         "tools", "lean-inspector", "native.py"),
                     Encoding.UTF8));
             Write(CacheEnsureScriptPath, "#!/usr/bin/env bash\n");
-            foreach (var name in new[] { "publication.py", "materials.py" })
-                Write("tools/lean-inspector/" + name, File.ReadAllText(
-                    Path.Combine(TestRepositoryLayout.FindRoot(), "tools/lean-inspector", name)));
+            Write("tools/lean-inspector/publication.py", File.ReadAllText(
+                Path.Combine(TestRepositoryLayout.FindRoot(), "tools", "lean-inspector", "publication.py")));
+            Write("tools/lean-inspector/materials.py", File.ReadAllText(
+                Path.Combine(TestRepositoryLayout.FindRoot(), "tools", "lean-inspector", "materials.py")));
             Write(
                 CachePublishScriptPath,
                 File.ReadAllText(

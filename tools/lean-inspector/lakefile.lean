@@ -38,6 +38,14 @@ package_facet reportInputs (pkg : Package) : FilePath := do
 private def readJson (path : FilePath) : IO Json := do
   IO.ofExcept (Json.parse (← IO.FS.readFile path))
 
+private def writeBinFileIfChanged (path : FilePath) (contents : ByteArray) : IO Unit := do
+  let unchanged ← try
+    pure ((← IO.FS.readBinFile path) == contents)
+  catch _ =>
+    pure false
+  unless unchanged do
+    IO.FS.writeBinFile path contents
+
 private def strings (json : Json) (key : String) : IO (Array String) :=
   IO.ofExcept (json.getObjValAs? (Array String) key)
 
@@ -157,7 +165,8 @@ private def prepareNativeModuleReport (mod : Module) : FetchM (Job PreparedArtif
     let path := (relPathFrom pkg.dir dependency.leanFile).toString
     unless path.startsWith ".lake/" || path.startsWith "../" do
       sourcePaths := sourcePaths.push path
-  IO.FS.writeFile (utility.addExtension "sources.json") (Lean.toJson sourcePaths).compress
+  writeBinFileIfChanged (utility.addExtension "sources.json")
+    (String.toUTF8 (Lean.toJson sourcePaths).compress)
   -- Await without mixing: recompilation must succeed, but its implementation
   -- identity is not a report-semantic dependency.
   let inspector ← reportInspector.fetch
