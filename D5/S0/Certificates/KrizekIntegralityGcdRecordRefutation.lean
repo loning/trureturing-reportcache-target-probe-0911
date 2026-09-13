@@ -2,11 +2,10 @@
    generality: I
    mirror-B: D5/B/S0/Certificates/KrizekIntegralityGcdRecordRefutation
    mirror-E: none(waiver:kernel-checked-refutation)
-   anchors: [mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Tactic]
    utility: kind=certified-instance; basis=refutes=gid:D5/S0/Certificates/KrizekIntegralityGcdRecordRefutation.claim; result=D5/S0/Certificates/KrizekIntegralityGcdRecordRefutation.result; claim=D5/S0/Certificates/KrizekIntegralityGcdRecordRefutation.claim
    digest: The seventh listed member of OEIS A245786 is not a record point of OEIS A216793. -/
 
-import Mathlib.NumberTheory.ArithmeticFunction.Misc
 import Mathlib.Tactic
 
 set_option autoImplicit false
