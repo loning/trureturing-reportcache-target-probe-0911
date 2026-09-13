@@ -21,11 +21,11 @@ open scoped ArithmeticFunction
 
 /-- The alternating sum of all divisors of `n`, in nonincreasing order starting with `n`. -/
 def T (n : ℕ) : ℤ :=
-  ((n.divisors.sort (· ≥ ·)).map fun d ↦ (d : ℤ)).alternatingSum
+  ((n.divisors.sort (· ≥ ·)).map fun d : ℕ ↦ (d : ℤ)).alternatingSum
 
 private theorem alternatingSum_nonneg_of_pairwise_ge :
     ∀ l : List ℕ, l.Pairwise (· ≥ ·) →
-      0 ≤ (l.map fun d ↦ (d : ℤ)).alternatingSum
+      0 ≤ (l.map fun d : ℕ ↦ (d : ℤ)).alternatingSum
   | [], _ => by simp
   | [a], _ => by simp [List.alternatingSum]
   | a :: b :: l, hsorted => by
@@ -33,7 +33,8 @@ private theorem alternatingSum_nonneg_of_pairwise_ge :
       have hab : b ≤ a := hsorted.1 b (by simp)
       have htail : l.Pairwise (· ≥ ·) := hsorted.2.2
       have ih := alternatingSum_nonneg_of_pairwise_ge l htail
-      change 0 ≤ (a : ℤ) + -(b : ℤ) + (l.map fun d ↦ (d : ℤ)).alternatingSum
+      change 0 ≤ (a : ℤ) + -(b : ℤ) +
+        (l.map fun d : ℕ ↦ (d : ℤ)).alternatingSum
       omega
 
 private theorem le_twice_T (n : ℕ) (hn : 3 < n) : (n : ℤ) ≤ 2 * T n := by
@@ -76,7 +77,8 @@ private theorem le_twice_T (n : ℕ) (hn : 3 < n) : (n : ℤ) ≤ 2 * T n := by
       have htailNonneg := alternatingSum_nonneg_of_pairwise_ge tail hpair.tail
       rw [T, hsorted, hproper]
       change (n : ℤ) ≤
-        2 * ((n : ℤ) + -(b : ℤ) + (tail.map fun d ↦ (d : ℤ)).alternatingSum)
+        2 * ((n : ℤ) + -(b : ℤ) +
+          (tail.map fun d : ℕ ↦ (d : ℤ)).alternatingSum)
       have htwice' : (2 : ℤ) * b ≤ n := by exact_mod_cast htwice
       omega
 
@@ -170,5 +172,50 @@ private theorem square_or_twice_square_of_sigma_odd (n : ℕ) (hn0 : n ≠ 0)
     rw [show 2 ^ (2 * j) = (2 ^ j) ^ 2 by
       rw [show 2 * j = j * 2 by omega, pow_mul]]
     ring
+
+/-- Lagneau's OEIS A193351 conjecture. The alternating sum is integer-valued; for
+`n > 3` the proof shows it is nonnegative, so `toNat` preserves its literal value. -/
+theorem lagneau_a193351 :
+    ∀ n : ℕ, 3 < n → Nat.Prime (T n).toNat →
+      (∃ t : ℕ, n = t ^ 2) ∨ (∃ t : ℕ, n = 2 * t ^ 2) := by
+  intro n hn hprime
+  by_cases hn4 : n = 4
+  · subst n
+    exact Or.inl ⟨2, by norm_num⟩
+  · have hn5 : 5 ≤ n := by omega
+    have hbound := le_twice_T n hn
+    have hTnonneg : 0 ≤ T n := by omega
+    have hTcast : ((T n).toNat : ℤ) = T n := Int.toNat_of_nonneg hTnonneg
+    have hTthree : 3 ≤ (T n).toNat := by omega
+    have hTodd : Odd (T n).toNat := hprime.odd_of_ne_two (by omega)
+    have hsumNat :
+        (n.divisors.sort (· ≥ ·)).sum = ∑ d ∈ n.divisors, d := by
+      simpa using
+        (Finset.sort_perm_toList n.divisors (fun a b : ℕ => a ≥ b)).sum_eq
+    have hsumInt :
+        ((n.divisors.sort (· ≥ ·)).map (fun d : ℕ ↦ (d : ℤ))).sum =
+          (ArithmeticFunction.sigma 1 n : ℤ) := by
+      calc
+        ((n.divisors.sort (· ≥ ·)).map (fun d : ℕ ↦ (d : ℤ))).sum =
+            ((n.divisors.sort (· ≥ ·)).sum : ℤ) := by
+          induction n.divisors.sort (· ≥ ·) with
+          | nil => rfl
+          | cons a tail ih =>
+              simp only [List.map_cons, List.sum_cons, Nat.cast_add, ih]
+        _ = ((∑ d ∈ n.divisors, d : ℕ) : ℤ) := by exact_mod_cast hsumNat
+        _ = (ArithmeticFunction.sigma 1 n : ℤ) := by
+          exact_mod_cast (ArithmeticFunction.sigma_one_apply n).symm
+    have hparity : T n ≡ (ArithmeticFunction.sigma 1 n : ℤ) [ZMOD 2] := by
+      rw [T, ← hsumInt]
+      exact alternatingSum_modEq_sum _
+    have hmodInt := hparity.eq
+    rw [← hTcast] at hmodInt
+    have hmodNat :
+        (T n).toNat % 2 = ArithmeticFunction.sigma 1 n % 2 := by
+      exact_mod_cast hmodInt
+    have hsigmaOdd : Odd (ArithmeticFunction.sigma 1 n) := by
+      rw [Nat.odd_iff, ← hmodNat]
+      exact Nat.odd_iff.mp hTodd
+    exact square_or_twice_square_of_sigma_odd n (by omega) hsigmaOdd
 
 end D5.S3.Arith.LagneauAlternatingDivisorSumPrimeSquare
