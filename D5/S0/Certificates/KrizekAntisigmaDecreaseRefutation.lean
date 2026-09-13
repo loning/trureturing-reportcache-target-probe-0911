@@ -100,4 +100,21 @@ private theorem sigma_332637 :
     ArithmeticFunction.sigma_one_apply_prime_pow (by norm_num : Nat.Prime 110879)]
   norm_num [Finset.sum_range_succ]
 
+/-- At `n = 332640`, antisigma is smaller than at `n - 3 = 332637`,
+contradicting the literal A231548 conjecture. -/
+theorem result : ¬ claim := by
+  have hprevious : antisigma (332640 - 3) = 55323409683 := by
+    rw [show 332640 - 3 = 332637 by norm_num,
+      antisigma_eq_triangular_sub_sigma, sigma_332637]
+  have hcurrent : antisigma 332640 = 55323399600 := by
+    rw [antisigma_eq_triangular_sub_sigma, sigma_332640]
+  intro hclaim
+  have hle := hclaim 332640 (by norm_num)
+  rw [hprevious, hcurrent] at hle
+  norm_num at hle
+
+#print axioms antisigma
+#print axioms claim
+#print axioms result
+
 end D5.S0.Certificates.KrizekAntisigmaDecreaseRefutation
