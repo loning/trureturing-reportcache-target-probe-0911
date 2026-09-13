@@ -34,6 +34,10 @@ $$\neg claim$$
 
 *Proof.* Machine-checked in Lean as `D5/S0/Certificates/StephanFloorSqrtRecurrenceRefutation.result` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a104863-floor-sqrt-recurrence-refutation` (refuted) by `D5/S0/Certificates/StephanFloorSqrtRecurrenceRefutation.result`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a104863-floor-sqrt-recurrence-refutation","declaration_gid":"D5/S0/Certificates/StephanFloorSqrtRecurrenceRefutation.result","resolution_kind":"refuted"} -->
+
 *Source.* Repository-derived.
 
 *Acknowledgement.* Zak Seidov; Ralf Stephan (2005). *OEIS A104863, a(n) = floor(sqrt(a(n-1)^2 + a(n-2)^2)), a(1)=10, a(2)=30*. URL: <https://oeis.org/A104863>.

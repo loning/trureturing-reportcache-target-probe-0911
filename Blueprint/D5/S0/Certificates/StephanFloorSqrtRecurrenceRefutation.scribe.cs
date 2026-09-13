@@ -47,7 +47,11 @@ internal sealed class StephanFloorSqrtRecurrenceRefutationDocument : IScribeDocu
                         + "The sign-corrected reading also fails numerically at n = 33, and "
                         + "the odd and even closed forms fail at m = 16 and m = 19, "
                         + "respectively, as detailed in the dossier."))),
-                DescribeRole.Theorem))));
+                DescribeRole.Theorem,
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create(
+                        "oeis-a104863-floor-sqrt-recurrence-refutation"),
+                    ResolutionKind.Refuted)))));
 
     private static Formula SequenceFormula()
     {
