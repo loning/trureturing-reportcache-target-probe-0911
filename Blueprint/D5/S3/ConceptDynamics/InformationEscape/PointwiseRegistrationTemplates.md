@@ -124,6 +124,66 @@ Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTe
 
 An inhabited state and distinct output values witness both readout slots independently.
 
+**Definition 1.11 (pointwiseOrderSignature).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderSignature`
+
+*Formalization.* `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderSignature` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+Two typed CUT readouts carry values in a linear order.
+
+**Definition 1.12 (pointwiseOrderRealization).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderRealization`
+
+*Formalization.* `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderRealization` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+The supplied left and right functions are retained verbatim.
+
+**Definition 1.13 (pointwiseOrderArena).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderArena`
+
+*Formalization.* `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderArena` (`✓ std3`).
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+An explicit strictness selector chooses pointwise less-than or less-than-or-equal, with no arbitrary law parameter.
+
+**Theorem 1.14 (pointwiseOrderLegacy).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderLegacy`
+
+*Proof.* Machine-checked in Lean as `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderLegacy` (`✓ std3`). ∎
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+The full universal comparison is definitionally the law selected by strictness.
+
+**Theorem 1.15 (pointwiseOrder_sensitivity).**
+
+Lean statement: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrder_sensitivity`
+
+*Proof.* Machine-checked in Lean as `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrder_sensitivity` (`✓ std3`). ∎
+
+*Source.* Repository-derived.
+
+*Commentary.*
+
+Strictly ordered values witness independent sensitivity of each slot for both strict and weak laws.
+
 ## References
 
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseEqArena`
@@ -136,4 +196,9 @@ An inhabited state and distinct output values witness both readout slots indepen
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeRealization`
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNeSignature`
 - Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseNe_sensitivity`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderArena`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderLegacy`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderRealization`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrderSignature`
+- Truth anchor: `D5/S3/ConceptDynamics/InformationEscape/PointwiseRegistrationTemplates.pointwiseOrder_sensitivity`
 - Dependency: [D5/S3/ConceptDynamics/InformationEscape/RegistrationTemplates](RegistrationTemplates.md)

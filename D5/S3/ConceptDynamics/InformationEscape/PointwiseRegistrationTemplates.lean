@@ -99,4 +99,70 @@ theorem pointwiseNe_sensitivity (A : Arena) {Y : Type} [DecidableEq Y]
 #print axioms pointwiseNeLegacy
 #print axioms pointwiseNe_sensitivity
 
+/-- Ordered comparison keeps both values as typed CUT readouts. -/
+abbrev pointwiseOrderSignature (X Y : Type) [LinearOrder Y] := separationSignature X Y Y
+
+def pointwiseOrderRealization {X Y : Type} [LinearOrder Y] (f g : X → Y) :
+    PrimitiveRealization (pointwiseOrderSignature X Y) := separationRealization f g
+
+def pointwiseOrderArena (A : Arena) (Y : Type) [LinearOrder Y]
+    (strict : Bool) : PrimitiveLawArena where
+  toArena := A
+  signature := pointwiseOrderSignature A.State Y
+  Law r := ∀ x, if strict then @LT.lt Y _ (r.readout false x) (r.readout true x)
+    else @LE.le Y _ (r.readout false x) (r.readout true x)
+
+theorem pointwiseOrderLegacy (A : Arena) {Y : Type} [LinearOrder Y]
+    (strict : Bool) (f g : A.State → Y) :
+    LegacyPrimitiveRealization (pointwiseOrderArena A Y strict)
+      (∀ x, if strict then f x < g x else f x ≤ g x)
+      (pointwiseOrderRealization f g) := ⟨Iff.rfl⟩
+
+theorem pointwiseOrder_sensitivity (A : Arena) {Y : Type} [LinearOrder Y]
+    (strict : Bool) (x : A.State) (a b : Y) (hab : a < b) :
+    FiniteSlotSensitivity (pointwiseOrderArena A Y strict) := by
+  constructor
+  · intro i
+    cases strict with
+    | false =>
+        cases i with
+        | false =>
+            refine ⟨pointwiseOrderRealization (fun _ => a) (fun _ => a),
+              pointwiseOrderRealization (fun _ => b) (fun _ => a), ?_, ?_, ?_⟩
+            · intro j hj; cases j
+              · exact (hj rfl).elim
+              · rfl
+            · intro j; exact Fin.elim0 j
+            · exact ⟨fun _ h => (not_le_of_gt hab) (h x), fun _ _ => le_refl a⟩
+        | true =>
+            refine ⟨pointwiseOrderRealization (fun _ => b) (fun _ => b),
+              pointwiseOrderRealization (fun _ => b) (fun _ => a), ?_, ?_, ?_⟩
+            · intro j hj; cases j
+              · rfl
+              · exact (hj rfl).elim
+            · intro j; exact Fin.elim0 j
+            · exact ⟨fun _ h => (not_le_of_gt hab) (h x), fun _ _ => le_refl b⟩
+    | true =>
+        cases i with
+        | false =>
+            refine ⟨pointwiseOrderRealization (fun _ => a) (fun _ => b),
+              pointwiseOrderRealization (fun _ => b) (fun _ => b), ?_, ?_, ?_⟩
+            · intro j hj; cases j
+              · exact (hj rfl).elim
+              · rfl
+            · intro j; exact Fin.elim0 j
+            · exact ⟨fun _ h => lt_irrefl b (h x), fun _ _ => hab⟩
+        | true =>
+            refine ⟨pointwiseOrderRealization (fun _ => a) (fun _ => b),
+              pointwiseOrderRealization (fun _ => a) (fun _ => a), ?_, ?_, ?_⟩
+            · intro j hj; cases j
+              · rfl
+              · exact (hj rfl).elim
+            · intro j; exact Fin.elim0 j
+            · exact ⟨fun _ h => lt_irrefl a (h x), fun _ _ => hab⟩
+  · intro i; exact Fin.elim0 i
+
+#print axioms pointwiseOrderLegacy
+#print axioms pointwiseOrder_sensitivity
+
 end D5.S3.ConceptDynamics.InformationEscape.PointwiseRegistrationTemplates
