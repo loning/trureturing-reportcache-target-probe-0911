@@ -12,6 +12,7 @@ import Mathlib.Tactic.NormNum.Prime
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
+set_option Elab.async false
 
 namespace D5.S3.Arith.Congruence.CloitrePowerMinusIndexPrimeBoundRefutation
 
@@ -269,3 +270,45 @@ private theorem scan_sound : ∀ {len k r : ℕ},
         simp only [Nat.mul_mod, Nat.mod_mod,
           Nat.mod_eq_of_lt (by decide : 2 < 6298)]
         rw [Nat.mul_comm]
+
+private theorem sc00 : scan 1 2 5000 = true ∧ advance 2 5000 = 4784 := by set_option maxRecDepth 30000 in decide
+private theorem sc01 : scan 5001 4784 5000 = true ∧ advance 4784 5000 = 6160 := by set_option maxRecDepth 30000 in decide
+private theorem sc02 : scan 10001 6160 5000 = true ∧ advance 6160 5000 = 3698 := by set_option maxRecDepth 30000 in decide
+private theorem sc03 : scan 15001 3698 5000 = true ∧ advance 3698 5000 = 3224 := by set_option maxRecDepth 30000 in decide
+private theorem sc04 : scan 20001 3224 5000 = true ∧ advance 3224 5000 = 3056 := by set_option maxRecDepth 30000 in decide
+private theorem sc05 : scan 25001 3056 5000 = true ∧ advance 3056 5000 = 4272 := by set_option maxRecDepth 30000 in decide
+private theorem sc06 : scan 30001 4272 5000 = true ∧ advance 4272 5000 = 3268 := by set_option maxRecDepth 30000 in decide
+private theorem sc07 : scan 35001 3268 5000 = true ∧ advance 3268 5000 = 1238 := by set_option maxRecDepth 30000 in decide
+private theorem sc08 : scan 40001 1238 5000 = true ∧ advance 1238 5000 = 1236 := by set_option maxRecDepth 30000 in decide
+private theorem sc09 : scan 45001 1236 5000 = true ∧ advance 1236 5000 = 2750 := by set_option maxRecDepth 30000 in decide
+private theorem sc10 : scan 50001 2750 5000 = true ∧ advance 2750 5000 = 2888 := by set_option maxRecDepth 30000 in decide
+private theorem sc11 : scan 55001 2888 5000 = true ∧ advance 2888 5000 = 5488 := by set_option maxRecDepth 30000 in decide
+private theorem sc12 : scan 60001 5488 5000 = true ∧ advance 5488 5000 = 2264 := by set_option maxRecDepth 30000 in decide
+private theorem sc13 : scan 65001 2264 5000 = true ∧ advance 2264 5000 = 5506 := by set_option maxRecDepth 30000 in decide
+private theorem sc14 : scan 70001 5506 5000 = true ∧ advance 5506 5000 = 1234 := by set_option maxRecDepth 30000 in decide
+private theorem sc15 : scan 75001 1234 2741 = true ∧ advance 1234 2741 = 2166 := by set_option maxRecDepth 20000 in decide
+
+private theorem scan_prepend {k r m n r' : ℕ}
+    (hchunk : scan k r m = true ∧ advance r m = r')
+    (htail : scan (k + m) r' n = true) :
+    scan k r (m + n) = true := by
+  rw [scan_add, hchunk.1, hchunk.2, htail]
+  rfl
+
+private theorem fullScan : scan 1 2 77741 = true := by
+  refine scan_prepend (n := 72741) sc00 ?_
+  refine scan_prepend (n := 67741) sc01 ?_
+  refine scan_prepend (n := 62741) sc02 ?_
+  refine scan_prepend (n := 57741) sc03 ?_
+  refine scan_prepend (n := 52741) sc04 ?_
+  refine scan_prepend (n := 47741) sc05 ?_
+  refine scan_prepend (n := 42741) sc06 ?_
+  refine scan_prepend (n := 37741) sc07 ?_
+  refine scan_prepend (n := 32741) sc08 ?_
+  refine scan_prepend (n := 27741) sc09 ?_
+  refine scan_prepend (n := 22741) sc10 ?_
+  refine scan_prepend (n := 17741) sc11 ?_
+  refine scan_prepend (n := 12741) sc12 ?_
+  refine scan_prepend (n := 7741) sc13 ?_
+  refine scan_prepend (n := 2741) sc14 ?_
+  exact sc15.1
