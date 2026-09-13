@@ -141,6 +141,51 @@ theorem wiseman_a258409 : ∀ n, 2 ≤ n →
     a n = primeIndexGcd (heinzDifferences n) ∧
       a n = consecutiveDifferenceGcd n := by
   intro n hn
-  sorry
+  have hn0 : n ≠ 0 := by omega
+  have hperm : (divisorList n).toFinset = n.divisors := by
+    simp [divisorList]
+  have hsorted : (divisorList n).Pairwise (· ≤ ·) := by
+    simp [divisorList]
+  have h1mem : 1 ∈ divisorList n := by
+    have : 1 ∈ n.divisors := Nat.one_mem_divisors.mpr hn0
+    have hfin : 1 ∈ (divisorList n).toFinset := by simpa [hperm] using this
+    exact List.mem_toFinset.mp hfin
+  have hhead : ∃ rest, divisorList n = 1 :: rest := by
+    cases h : divisorList n with
+    | nil =>
+        have : 1 ∈ ([] : List ℕ) := by simpa [h] using h1mem
+        simp at this
+    | cons x xs =>
+        refine ⟨xs, ?_⟩
+        have hxmem : x ∈ n.divisors := by
+          rw [← hperm]
+          simpa [h]
+        have h1list : 1 ∈ x :: xs := by simpa [h] using h1mem
+        have hx1 : x = 1 := by
+          by_cases hxeq : x = 1
+          · exact hxeq
+          · have h1xs : 1 ∈ xs := by
+              have hor : 1 = x ∨ 1 ∈ xs := by simpa only [List.mem_cons] using h1list
+              exact hor.resolve_left (fun h => hxeq h.symm)
+            have hxle : x ≤ 1 :=
+              (List.pairwise_cons.mp (by simpa [h] using hsorted)).1 1 h1xs
+            have hxge : 1 ≤ x :=
+              Nat.one_le_iff_ne_zero.mpr (Nat.ne_of_gt (Nat.pos_of_mem_divisors hxmem))
+            omega
+        simpa [h, hx1]
+  rcases hhead with ⟨rest, hrest⟩
+  have hsrest : (1 :: rest).Pairwise (· ≤ ·) := by simpa [hrest] using hsorted
+  have haeq : a n = (divisorList n).toFinset.gcd (fun d => d - 1) := by
+    simp only [a]
+    rw [hperm]
+  have hconsec : a n = consecutiveDifferenceGcd n := by
+    calc
+      a n = (divisorList n).toFinset.gcd (fun d => d - 1) := haeq
+      _ = ((1 :: rest).zipWith (fun x y => y - x) (1 :: rest).tail).toFinset.gcd id := by
+        rw [hrest]
+        exact sorted_list_gcd_sub_one_eq_gaps rest hsrest
+      _ = consecutiveDifferenceGcd n := by
+        simp [consecutiveDifferenceGcd, consecutiveDivisorDifferences, hrest]
+  exact ⟨by sorry, hconsec⟩
 
 end D5.S3.Arith.Congruence.DivisorDifferenceGcdHeinz
