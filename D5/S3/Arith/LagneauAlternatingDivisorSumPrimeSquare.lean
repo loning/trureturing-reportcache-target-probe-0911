@@ -36,6 +36,48 @@ private theorem alternatingSum_nonneg_of_pairwise_ge :
       change 0 ≤ (a : ℤ) + -(b : ℤ) + (l.map fun d ↦ (d : ℤ)).alternatingSum
       omega
 
-#eval (List.range 20).map fun i ↦ T (i + 1)
+private theorem le_twice_T (n : ℕ) (hn : 3 < n) : (n : ℤ) ≤ 2 * T n := by
+  have hn0 : n ≠ 0 := by omega
+  have hsorted :
+      n.divisors.sort (· ≥ ·) = n :: n.properDivisors.sort (· ≥ ·) := by
+    rw [← Nat.insert_self_properDivisors hn0]
+    exact Finset.sort_insert (r := fun a b : ℕ => a ≥ b)
+      (fun b hb => (Nat.mem_properDivisors.mp hb).2.le) Nat.self_notMem_properDivisors
+  have hproperPairwise :
+      (n.properDivisors.sort (· ≥ ·)).Pairwise (· ≥ ·) :=
+    Finset.pairwise_sort _ _
+  cases hproper : n.properDivisors.sort (· ≥ ·) with
+  | nil =>
+      have h1 : 1 ∈ n.properDivisors :=
+        Nat.mem_properDivisors.mpr ⟨one_dvd n, by omega⟩
+      have h1sort : 1 ∈ n.properDivisors.sort (· ≥ ·) :=
+        (Finset.mem_sort _).mpr h1
+      rw [hproper] at h1sort
+      simp at h1sort
+  | cons b tail =>
+      have hpair : (b :: tail).Pairwise (· ≥ ·) := by
+        simpa only [hproper] using hproperPairwise
+      have hbSort : b ∈ n.properDivisors.sort (· ≥ ·) := by
+        rw [hproper]
+        simp
+      have hbMem : b ∈ n.properDivisors := (Finset.mem_sort _).mp hbSort
+      have hbDiv : b ∣ n := (Nat.mem_properDivisors.mp hbMem).1
+      have hbLt : b < n := (Nat.mem_properDivisors.mp hbMem).2
+      have hbPos : 0 < b := Nat.pos_of_dvd_of_pos hbDiv (by omega)
+      have hquot : 2 ≤ n / b := by
+        have hmul : b * (n / b) = n := Nat.mul_div_cancel' hbDiv
+        by_contra h
+        interval_cases hq : n / b <;> omega
+      have htwice : 2 * b ≤ n := by
+        calc
+          2 * b = b * 2 := by omega
+          _ ≤ b * (n / b) := Nat.mul_le_mul_left b hquot
+          _ = n := Nat.mul_div_cancel' hbDiv
+      have htailNonneg := alternatingSum_nonneg_of_pairwise_ge tail hpair.tail
+      rw [T, hsorted, hproper]
+      change (n : ℤ) ≤
+        2 * ((n : ℤ) + -(b : ℤ) + (tail.map fun d ↦ (d : ℤ)).alternatingSum)
+      have htwice' : (2 : ℤ) * b ≤ n := by exact_mod_cast htwice
+      omega
 
 end D5.S3.Arith.LagneauAlternatingDivisorSumPrimeSquare
