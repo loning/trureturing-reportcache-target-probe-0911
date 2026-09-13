@@ -2,12 +2,12 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/LibrandiSundaramTriangleComplementPrime
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Prime.Basic, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Data.Nat.Prime.Basic, mathlib/module/Mathlib.Tactic.Linarith]
    utility: none
    digest: The complement of Librandi's triangle maps to primes through odd factorization. -/
 
 import Mathlib.Data.Nat.Prime.Basic
-import Mathlib.Tactic
+import Mathlib.Tactic.Linarith
 
 namespace D5.S3.Arith.Congruence.LibrandiSundaramTriangleComplementPrime
 
