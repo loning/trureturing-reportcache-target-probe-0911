@@ -91,6 +91,135 @@ private theorem count_add_trialCount (start len : ℕ)
           hp ((trialPrime_iff_prime (by omega)).1 h)
         simp [hp, ht]
 
+private theorem pc00 : trialCount 0 1000 = 168 := by set_option maxRecDepth 10000 in decide
+private theorem pc01 : trialCount 1000 1000 = 135 := by set_option maxRecDepth 10000 in decide
+private theorem pc02 : trialCount 2000 1000 = 127 := by set_option maxRecDepth 10000 in decide
+private theorem pc03 : trialCount 3000 1000 = 120 := by set_option maxRecDepth 10000 in decide
+private theorem pc04 : trialCount 4000 1000 = 119 := by set_option maxRecDepth 10000 in decide
+private theorem pc05 : trialCount 5000 1000 = 114 := by set_option maxRecDepth 10000 in decide
+private theorem pc06 : trialCount 6000 1000 = 117 := by set_option maxRecDepth 10000 in decide
+private theorem pc07 : trialCount 7000 1000 = 107 := by set_option maxRecDepth 10000 in decide
+private theorem pc08 : trialCount 8000 1000 = 110 := by set_option maxRecDepth 10000 in decide
+private theorem pc09 : trialCount 9000 1000 = 112 := by set_option maxRecDepth 10000 in decide
+private theorem pc10 : trialCount 10000 1000 = 106 := by set_option maxRecDepth 10000 in decide
+private theorem pc11 : trialCount 11000 1000 = 103 := by set_option maxRecDepth 10000 in decide
+private theorem pc12 : trialCount 12000 1000 = 109 := by set_option maxRecDepth 10000 in decide
+private theorem pc13 : trialCount 13000 1000 = 105 := by set_option maxRecDepth 10000 in decide
+private theorem pc14 : trialCount 14000 1000 = 102 := by set_option maxRecDepth 10000 in decide
+private theorem pc15 : trialCount 15000 1000 = 108 := by set_option maxRecDepth 10000 in decide
+private theorem pc16 : trialCount 16000 1000 = 98 := by set_option maxRecDepth 10000 in decide
+private theorem pc17 : trialCount 17000 1000 = 104 := by set_option maxRecDepth 10000 in decide
+private theorem pc18 : trialCount 18000 1000 = 94 := by set_option maxRecDepth 10000 in decide
+private theorem pc19 : trialCount 19000 1000 = 104 := by set_option maxRecDepth 10000 in decide
+private theorem pc20 : trialCount 20000 1000 = 98 := by set_option maxRecDepth 10000 in decide
+private theorem pc21 : trialCount 21000 1000 = 104 := by set_option maxRecDepth 10000 in decide
+private theorem pc22 : trialCount 22000 1000 = 100 := by set_option maxRecDepth 10000 in decide
+private theorem pc23 : trialCount 23000 1000 = 104 := by set_option maxRecDepth 10000 in decide
+private theorem pc24 : trialCount 24000 1000 = 94 := by set_option maxRecDepth 10000 in decide
+private theorem pc25 : trialCount 25000 1000 = 98 := by set_option maxRecDepth 10000 in decide
+private theorem pc26 : trialCount 26000 1000 = 101 := by set_option maxRecDepth 10000 in decide
+private theorem pc27 : trialCount 27000 1000 = 94 := by set_option maxRecDepth 10000 in decide
+private theorem pc28 : trialCount 28000 1000 = 98 := by set_option maxRecDepth 10000 in decide
+private theorem pc29 : trialCount 29000 1000 = 92 := by set_option maxRecDepth 10000 in decide
+private theorem pc30 : trialCount 30000 1000 = 95 := by set_option maxRecDepth 10000 in decide
+private theorem pc31 : trialCount 31000 1000 = 92 := by set_option maxRecDepth 10000 in decide
+private theorem pc32 : trialCount 32000 1000 = 106 := by set_option maxRecDepth 10000 in decide
+private theorem pc33 : trialCount 33000 1000 = 100 := by set_option maxRecDepth 10000 in decide
+private theorem pc34 : trialCount 34000 1000 = 94 := by set_option maxRecDepth 10000 in decide
+private theorem pc35 : trialCount 35000 1000 = 92 := by set_option maxRecDepth 10000 in decide
+private theorem pc36 : trialCount 36000 1000 = 99 := by set_option maxRecDepth 10000 in decide
+private theorem pc37 : trialCount 37000 1000 = 94 := by set_option maxRecDepth 10000 in decide
+private theorem pc38 : trialCount 38000 1000 = 90 := by set_option maxRecDepth 10000 in decide
+private theorem pc39 : trialCount 39000 1000 = 96 := by set_option maxRecDepth 10000 in decide
+private theorem pc40 : trialCount 40000 1000 = 88 := by set_option maxRecDepth 10000 in decide
+private theorem pc41 : trialCount 41000 1000 = 101 := by set_option maxRecDepth 10000 in decide
+private theorem pc42 : trialCount 42000 1000 = 102 := by set_option maxRecDepth 10000 in decide
+private theorem pc43 : trialCount 43000 1000 = 85 := by set_option maxRecDepth 10000 in decide
+private theorem pc44 : trialCount 44000 1000 = 96 := by set_option maxRecDepth 10000 in decide
+private theorem pc45 : trialCount 45000 1000 = 86 := by set_option maxRecDepth 10000 in decide
+private theorem pc46 : trialCount 46000 1000 = 90 := by set_option maxRecDepth 10000 in decide
+private theorem pc47 : trialCount 47000 1000 = 95 := by set_option maxRecDepth 10000 in decide
+private theorem pc48 : trialCount 48000 1000 = 89 := by set_option maxRecDepth 10000 in decide
+private theorem pc49 : trialCount 49000 1000 = 98 := by set_option maxRecDepth 10000 in decide
+private theorem pc50 : trialCount 50000 1000 = 89 := by set_option maxRecDepth 10000 in decide
+private theorem pc51 : trialCount 51000 1000 = 97 := by set_option maxRecDepth 10000 in decide
+private theorem pc52 : trialCount 52000 1000 = 89 := by set_option maxRecDepth 10000 in decide
+private theorem pc53 : trialCount 53000 1000 = 92 := by set_option maxRecDepth 10000 in decide
+private theorem pc54 : trialCount 54000 1000 = 90 := by set_option maxRecDepth 10000 in decide
+private theorem pc55 : trialCount 55000 1000 = 93 := by set_option maxRecDepth 10000 in decide
+private theorem pc56 : trialCount 56000 1000 = 99 := by set_option maxRecDepth 10000 in decide
+private theorem pc57 : trialCount 57000 1000 = 91 := by set_option maxRecDepth 10000 in decide
+private theorem pc58 : trialCount 58000 1000 = 90 := by set_option maxRecDepth 10000 in decide
+private theorem pc59 : trialCount 59000 1000 = 94 := by set_option maxRecDepth 10000 in decide
+private theorem pc60 : trialCount 60000 1000 = 88 := by set_option maxRecDepth 10000 in decide
+private theorem pc61 : trialCount 61000 1000 = 87 := by set_option maxRecDepth 10000 in decide
+private theorem pc62 : trialCount 62000 753 = 65 := by set_option maxRecDepth 10000 in decide
+
+private theorem primeCountCertificate : Nat.count Nat.Prime 62753 = 6297 := by
+  have h01 : Nat.count Nat.Prime 1000 = 168 := by simpa [pc00] using count_add_trialCount 0 1000 (by decide)
+  have h02 : Nat.count Nat.Prime 2000 = 303 := by simpa [h01, pc01] using count_add_trialCount 1000 1000 (by decide)
+  have h03 : Nat.count Nat.Prime 3000 = 430 := by simpa [h02, pc02] using count_add_trialCount 2000 1000 (by decide)
+  have h04 : Nat.count Nat.Prime 4000 = 550 := by simpa [h03, pc03] using count_add_trialCount 3000 1000 (by decide)
+  have h05 : Nat.count Nat.Prime 5000 = 669 := by simpa [h04, pc04] using count_add_trialCount 4000 1000 (by decide)
+  have h06 : Nat.count Nat.Prime 6000 = 783 := by simpa [h05, pc05] using count_add_trialCount 5000 1000 (by decide)
+  have h07 : Nat.count Nat.Prime 7000 = 900 := by simpa [h06, pc06] using count_add_trialCount 6000 1000 (by decide)
+  have h08 : Nat.count Nat.Prime 8000 = 1007 := by simpa [h07, pc07] using count_add_trialCount 7000 1000 (by decide)
+  have h09 : Nat.count Nat.Prime 9000 = 1117 := by simpa [h08, pc08] using count_add_trialCount 8000 1000 (by decide)
+  have h10 : Nat.count Nat.Prime 10000 = 1229 := by simpa [h09, pc09] using count_add_trialCount 9000 1000 (by decide)
+  have h11 : Nat.count Nat.Prime 11000 = 1335 := by simpa [h10, pc10] using count_add_trialCount 10000 1000 (by decide)
+  have h12 : Nat.count Nat.Prime 12000 = 1438 := by simpa [h11, pc11] using count_add_trialCount 11000 1000 (by decide)
+  have h13 : Nat.count Nat.Prime 13000 = 1547 := by simpa [h12, pc12] using count_add_trialCount 12000 1000 (by decide)
+  have h14 : Nat.count Nat.Prime 14000 = 1652 := by simpa [h13, pc13] using count_add_trialCount 13000 1000 (by decide)
+  have h15 : Nat.count Nat.Prime 15000 = 1754 := by simpa [h14, pc14] using count_add_trialCount 14000 1000 (by decide)
+  have h16 : Nat.count Nat.Prime 16000 = 1862 := by simpa [h15, pc15] using count_add_trialCount 15000 1000 (by decide)
+  have h17 : Nat.count Nat.Prime 17000 = 1960 := by simpa [h16, pc16] using count_add_trialCount 16000 1000 (by decide)
+  have h18 : Nat.count Nat.Prime 18000 = 2064 := by simpa [h17, pc17] using count_add_trialCount 17000 1000 (by decide)
+  have h19 : Nat.count Nat.Prime 19000 = 2158 := by simpa [h18, pc18] using count_add_trialCount 18000 1000 (by decide)
+  have h20 : Nat.count Nat.Prime 20000 = 2262 := by simpa [h19, pc19] using count_add_trialCount 19000 1000 (by decide)
+  have h21 : Nat.count Nat.Prime 21000 = 2360 := by simpa [h20, pc20] using count_add_trialCount 20000 1000 (by decide)
+  have h22 : Nat.count Nat.Prime 22000 = 2464 := by simpa [h21, pc21] using count_add_trialCount 21000 1000 (by decide)
+  have h23 : Nat.count Nat.Prime 23000 = 2564 := by simpa [h22, pc22] using count_add_trialCount 22000 1000 (by decide)
+  have h24 : Nat.count Nat.Prime 24000 = 2668 := by simpa [h23, pc23] using count_add_trialCount 23000 1000 (by decide)
+  have h25 : Nat.count Nat.Prime 25000 = 2762 := by simpa [h24, pc24] using count_add_trialCount 24000 1000 (by decide)
+  have h26 : Nat.count Nat.Prime 26000 = 2860 := by simpa [h25, pc25] using count_add_trialCount 25000 1000 (by decide)
+  have h27 : Nat.count Nat.Prime 27000 = 2961 := by simpa [h26, pc26] using count_add_trialCount 26000 1000 (by decide)
+  have h28 : Nat.count Nat.Prime 28000 = 3055 := by simpa [h27, pc27] using count_add_trialCount 27000 1000 (by decide)
+  have h29 : Nat.count Nat.Prime 29000 = 3153 := by simpa [h28, pc28] using count_add_trialCount 28000 1000 (by decide)
+  have h30 : Nat.count Nat.Prime 30000 = 3245 := by simpa [h29, pc29] using count_add_trialCount 29000 1000 (by decide)
+  have h31 : Nat.count Nat.Prime 31000 = 3340 := by simpa [h30, pc30] using count_add_trialCount 30000 1000 (by decide)
+  have h32 : Nat.count Nat.Prime 32000 = 3432 := by simpa [h31, pc31] using count_add_trialCount 31000 1000 (by decide)
+  have h33 : Nat.count Nat.Prime 33000 = 3538 := by simpa [h32, pc32] using count_add_trialCount 32000 1000 (by decide)
+  have h34 : Nat.count Nat.Prime 34000 = 3638 := by simpa [h33, pc33] using count_add_trialCount 33000 1000 (by decide)
+  have h35 : Nat.count Nat.Prime 35000 = 3732 := by simpa [h34, pc34] using count_add_trialCount 34000 1000 (by decide)
+  have h36 : Nat.count Nat.Prime 36000 = 3824 := by simpa [h35, pc35] using count_add_trialCount 35000 1000 (by decide)
+  have h37 : Nat.count Nat.Prime 37000 = 3923 := by simpa [h36, pc36] using count_add_trialCount 36000 1000 (by decide)
+  have h38 : Nat.count Nat.Prime 38000 = 4017 := by simpa [h37, pc37] using count_add_trialCount 37000 1000 (by decide)
+  have h39 : Nat.count Nat.Prime 39000 = 4107 := by simpa [h38, pc38] using count_add_trialCount 38000 1000 (by decide)
+  have h40 : Nat.count Nat.Prime 40000 = 4203 := by simpa [h39, pc39] using count_add_trialCount 39000 1000 (by decide)
+  have h41 : Nat.count Nat.Prime 41000 = 4291 := by simpa [h40, pc40] using count_add_trialCount 40000 1000 (by decide)
+  have h42 : Nat.count Nat.Prime 42000 = 4392 := by simpa [h41, pc41] using count_add_trialCount 41000 1000 (by decide)
+  have h43 : Nat.count Nat.Prime 43000 = 4494 := by simpa [h42, pc42] using count_add_trialCount 42000 1000 (by decide)
+  have h44 : Nat.count Nat.Prime 44000 = 4579 := by simpa [h43, pc43] using count_add_trialCount 43000 1000 (by decide)
+  have h45 : Nat.count Nat.Prime 45000 = 4675 := by simpa [h44, pc44] using count_add_trialCount 44000 1000 (by decide)
+  have h46 : Nat.count Nat.Prime 46000 = 4761 := by simpa [h45, pc45] using count_add_trialCount 45000 1000 (by decide)
+  have h47 : Nat.count Nat.Prime 47000 = 4851 := by simpa [h46, pc46] using count_add_trialCount 46000 1000 (by decide)
+  have h48 : Nat.count Nat.Prime 48000 = 4946 := by simpa [h47, pc47] using count_add_trialCount 47000 1000 (by decide)
+  have h49 : Nat.count Nat.Prime 49000 = 5035 := by simpa [h48, pc48] using count_add_trialCount 48000 1000 (by decide)
+  have h50 : Nat.count Nat.Prime 50000 = 5133 := by simpa [h49, pc49] using count_add_trialCount 49000 1000 (by decide)
+  have h51 : Nat.count Nat.Prime 51000 = 5222 := by simpa [h50, pc50] using count_add_trialCount 50000 1000 (by decide)
+  have h52 : Nat.count Nat.Prime 52000 = 5319 := by simpa [h51, pc51] using count_add_trialCount 51000 1000 (by decide)
+  have h53 : Nat.count Nat.Prime 53000 = 5408 := by simpa [h52, pc52] using count_add_trialCount 52000 1000 (by decide)
+  have h54 : Nat.count Nat.Prime 54000 = 5500 := by simpa [h53, pc53] using count_add_trialCount 53000 1000 (by decide)
+  have h55 : Nat.count Nat.Prime 55000 = 5590 := by simpa [h54, pc54] using count_add_trialCount 54000 1000 (by decide)
+  have h56 : Nat.count Nat.Prime 56000 = 5683 := by simpa [h55, pc55] using count_add_trialCount 55000 1000 (by decide)
+  have h57 : Nat.count Nat.Prime 57000 = 5782 := by simpa [h56, pc56] using count_add_trialCount 56000 1000 (by decide)
+  have h58 : Nat.count Nat.Prime 58000 = 5873 := by simpa [h57, pc57] using count_add_trialCount 57000 1000 (by decide)
+  have h59 : Nat.count Nat.Prime 59000 = 5963 := by simpa [h58, pc58] using count_add_trialCount 58000 1000 (by decide)
+  have h60 : Nat.count Nat.Prime 60000 = 6057 := by simpa [h59, pc59] using count_add_trialCount 59000 1000 (by decide)
+  have h61 : Nat.count Nat.Prime 61000 = 6145 := by simpa [h60, pc60] using count_add_trialCount 60000 1000 (by decide)
+  have h62 : Nat.count Nat.Prime 62000 = 6232 := by simpa [h61, pc61] using count_add_trialCount 61000 1000 (by decide)
+  simpa [h62, pc62] using count_add_trialCount 62000 753 (by decide)
+
 private def advance : ℕ → ℕ → ℕ
   | r, 0 => r
   | r, len + 1 => advance ((2 * r) % 6298) len
