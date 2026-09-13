@@ -72,6 +72,31 @@ and the difference sets have gaps, because small values arrive late. Only the pr
 `(1,2)` has its difference set filling an interval at that width. Finite computation here is
 evidence of no counterexample, never of the claim.
 
+## Three descriptions of row 3 that are ruled out
+
+Probes run after the seat returned, over 300 to 400 columns. All three are negative, and they
+are recorded because each closes a direction a later attempt would otherwise try.
+
+**Row 3 is not an involution.** Not merely at one point: 222 of 300 positions violate
+`q(3, q(3,j)) = j`. Its cycle structure under iteration is irregular — orbits of length
+1, 2, 2, 3, 3, 2, 13, 10, 11, 2, 1, 1, 5, 2 among the first fourteen from `j < 120`. No
+ternary analogue of the row-2 Wythoff pairing describes it.
+
+**The up-set is not the upper Wythoff sequence.** With `A(n) = ⌊nφ⌋` and `C(n) = ⌊nφ²⌋`, which
+partition the positive integers by Rayleigh, over `[1,400)` there are 247 elements of `A` and
+152 of `C`, and row 3 has 246 ascents, 153 descents and no fixed point. The relation is
+containment, not equality: `C ⊆ up` with the single exception `j = 5`, and `down ⊆ A` with one
+exception. So `up = C ⊔ (A ∩ up)` where `A ∩ up` has 95 elements.
+
+**Those 95 positions are not a Beatty sequence.** Their indices within `A` begin
+1, 3, 4, 8, 9, 11, 14, 16, 18, 21, 23, 26, 27, 29, 36, 40, 43, 45. Against `⌊nφ⌋` the overlap is
+21 of 39, against `⌊nφ²⌋` 10 of 38, against `⌊2n⌋` and `⌊1.5n⌋` 15 of 39 — no better than
+chance. The splitting inside the lower Wythoff sequence is not of Beatty type.
+
+Taken together: the sign pattern of row 3 is governed by the Wythoff partition only at the
+coarse level, and the refinement inside `A` is something else. A further attempt should look for
+the explicit description elsewhere than in this family.
+
 ## Object status
 
 Pinned Mathlib has `mex` only in the ordinal and cardinal development, and no difference matrix
