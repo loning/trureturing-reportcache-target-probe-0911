@@ -2,14 +2,13 @@
    generality: G
    mirror-B: D5/B/S3/Arith/KrizekDivisorCountPowerRatioDenominatorSquare
    mirror-E: none(waiver:open-problem-resolution)
-   anchors: [mathlib/module/Mathlib.Data.Nat.Factorization.Basic, mathlib/module/Mathlib.Data.Rat.Lemmas, mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Data.Nat.Cast.Field, mathlib/module/Mathlib.Algebra.Order.Ring.Pow, mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc]
    utility: none
    digest: OEIS A302975: every reduced denominator of tau(n)^n / n^tau(n) is a square. -/
 
-import Mathlib.Data.Nat.Factorization.Basic
-import Mathlib.Data.Rat.Lemmas
+import Mathlib.Data.Nat.Cast.Field
+import Mathlib.Algebra.Order.Ring.Pow
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
-import Mathlib.Tactic
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
