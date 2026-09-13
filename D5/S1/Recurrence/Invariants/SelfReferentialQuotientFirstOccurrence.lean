@@ -39,6 +39,13 @@ private theorem block_invariant (r : ℕ) :
     a (T r) = r + 1 ∧
       ∀ n, T r ≤ n → n < T (r + 1) →
         (a n = r ∨ a n = r + 1) ∧ (a n = r → n < r * T r) := by
+  have a_pos (n : ℕ) : 0 < a n := by
+    cases n with
+    | zero => simp [a]
+    | succ n =>
+        cases n with
+        | zero => simp [a]
+        | succ n => simp [a]
   have T_pos (j : ℕ) : 0 < T j := by
     induction j with
     | zero => simp [T]
@@ -111,7 +118,7 @@ private theorem block_invariant (r : ℕ) :
             intro hnext_upper
             have hn_upper : n < T (r + 2 + 1) := by omega
             have hn_mem := ih hn_upper
-            have hden_pos : 0 < a n := by rcases hn_mem.1 with h | h <;> omega
+            have hden_pos : 0 < a n := a_pos n
             have hden_le : a n ≤ r + 3 := by rcases hn_mem.1 with h | h <;> omega
             have hq_upper : n / a n < T (r + 2) := by
               rcases hn_mem.1 with hlow | hupp
