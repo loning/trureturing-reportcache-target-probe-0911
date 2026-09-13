@@ -16571,7 +16571,7 @@ $$
 
 反例。不能把“固定 $a$”无证明地换成任意 $a_X$。取 $k(X)\to\infty$ 使 $X\alpha^{k(X)}\to0$，令 $a_X=F_{k(X)},b_X=0$。P5 给 $\|\alpha a_Xp\|\le X\alpha^{k(X)}$ 对全部 $p\le X$ 成立，故这些像经验概率弱趋 $\delta_0$。这排除任意增长乘数的一致 Haar 结论。
 
-分析假设（已核作者转引）。Michael Drmota、Clemens Müllner、Lukas Spiegelhofer，〈Primes as Sums of Fibonacci Numbers〉，arXiv:2109.04068v2（2022-08-16，[原文](https://arxiv.org/pdf/2109.04068v2)）Lemma 3.21 的证明（原 PDF 第 44 页，印刷第 32 页；同版作者原文的对应证明）显示下列估计，并转引 Henryk Iwaniec、Emmanuel Kowalski，〈Analytic Number Theory〉（2004）Theorem 13.6。这里核对到 DMS 作者原文的转引层级；IK04 原书的直接核验为 ASSUMED-UNVERIFIED。对实数 $X\ge2,\theta\in\mathbb R$、互素整数 $a,q$、$q\ge1$ 及 $|\theta-a/q|\le q^{-2}$，使用素数指数和估计
+分析假设。Michael Drmota、Clemens Müllner、Lukas Spiegelhofer，〈Primes as Sums of Fibonacci Numbers〉，arXiv:2109.04068v2（2022-08-16，[原文](https://arxiv.org/pdf/2109.04068v2)）Lemma 3.21 的证明（原 PDF 第 44 页，印刷第 32 页；同版作者原文的对应证明）显示下列估计，并转引 Henryk Iwaniec、Emmanuel Kowalski，〈Analytic Number Theory〉（2004）Theorem 13.6。对实数 $X\ge2,\theta\in\mathbb R$、互素整数 $a,q$、$q\ge1$ 及 $|\theta-a/q|\le q^{-2}$，使用素数指数和估计
 $$
 \left|\sum_{p\le X}e(\theta p)\right|\ll(\log X)^3\left(\frac X{\sqrt q}+\sqrt{Xq}+X^{4/5}\right).
 $$
@@ -16607,7 +16607,7 @@ $$
 $$
 **证明。**固定有限区间 $[a,b]$，其中所含归一化格点数为 $O(\sqrt{L_X})$。取 $\varepsilon=1/4$，逐点累加局部误差的总量为 $O((\log X)^{-1/4})$。主项是网格间距 $1/\sqrt{vL_X}$ 的 Gaussian Riemann 和，收敛到 $\Phi(b)-\Phi(a)$。特别 $[-T,T]$ 的概率趋于 $\Phi(T)-\Phi(-T)$。先取 $T>|t|$，用此式控制区间外总质量，再让 $T\to\infty$，得到全部半直线概率的结论。证毕。
 
-分析假设与常数核验。DS02 Theorem 3 要求 $G$ 为 Theorem 2 的系统：$a\ge1$ 为整数，$G_0=1,G_1=a+1,G_{k+2}=aG_{k+1}+G_k$；$f$ 为 $G$-additive，$f_k(b)=f(bG_k)=O(1)$ 对 $b\in\{0,\ldots,a\}$ 成立，且 Theorem 2 的对角协方差统一正下界成立。其 $P$ 为整系数、正首项、次数 $r\ge1$ 的多项式；结论使用 $M(N^r),D_G(N^r)$，包括素数上的 CLT 及每个正整数阶的矩极限。负多项式值按 $f(P(n))=-f(-P(n))$ 延拓；正首项使该分支只有有限多个输入。此处只取 $a=1,f_k(0)=0,f_k(1)=1,P(n)=n$，不借用其他多项式的一致估计。
+分析假设。DS02 指 Michael Drmota、Wolfgang Steiner，〈The Zeckendorf expansion of polynomial sequences〉，Journal de Théorie des Nombres de Bordeaux **14** (2002), no. 2, 439–475，Theorems 2–3，[原文](https://www.numdam.org/item/JTNB_2002__14_2_439_0.pdf)。下列系统条件、均值与协方差公式及矩极限作为本节分析前提使用。DS02 Theorem 3 要求 $G$ 为 Theorem 2 的系统：$a\ge1$ 为整数，$G_0=1,G_1=a+1,G_{k+2}=aG_{k+1}+G_k$；$f$ 为 $G$-additive，$f_k(b)=f(bG_k)=O(1)$ 对 $b\in\{0,\ldots,a\}$ 成立，且 Theorem 2 的对角协方差统一正下界成立。其 $P$ 为整系数、正首项、次数 $r\ge1$ 的多项式；结论使用 $M(N^r),D_G(N^r)$，包括素数上的 CLT 及每个正整数阶的矩极限。负多项式值按 $f(P(n))=-f(-P(n))$ 延拓；正首项使该分支只有有限多个输入。此处只取 $a=1,f_k(0)=0,f_k(1)=1,P(n)=n$，不借用其他多项式的一致估计。
 
 **证明（DS02 常数的专门化）。**令 $J=\lfloor\log_\varphi N\rfloor$，该文均值项为 $M(N)=c(J+1)$，对角协方差为 $c(1-c)>0$，相隔 $h$ 的协方差为 $c(1-c)(-\varphi^{-2})^h$。因此
 $$
@@ -16662,7 +16662,7 @@ $$
 $$
 第一乘积收敛到正数，因为各减项小于一且其和由收敛的平方倒数和控制；第二乘积每因子至少一。因此全部偶数差具有共同正下界 $\mathfrak S_W(d)\ge\sigma_0>0$。
 
-每个乘积 $d=nm$ 在上述范围的原像数至多 $\lfloor\frac1{10}\log(2K)\rfloor$。先把该分析输入的指数 $A$ 取得足够大，便对任意固定 $B>0$ 得到仅 $O_B(K(\log K)^{-B})$ 个例外对，因而除去同阶数量的 $n$ 后，每个剩余 $n$ 的全部允许 $m$ 均无例外。对这些 $n$ 和偶数 $nm$，已证 $J_W(nm)\ge X_W/2$，故充分大 $K$ 时 $r_W(nm)\ge\sigma_0X_W/4$。每对素数的对数权至多 $(\log X_W)^2$，去权后表示数至少为 $\sigma_0X_W/(4(\log X_W)^2)$，这又至少为某个绝对正常数乘 $n/\log n$，因为 $K\le n<2K$ 且 $\log X_W$ 与 $\log K$ 同阶。$1\le m\le\lfloor\frac1{10}\log n\rfloor$ 中至少有常数乘 $\log n$ 个偶数 $m$，并且 $X_W\le\frac12n\log n$。把该文的正常数缩小，便仍得到 Proposition 6 的第二条件。这里仅核该局部长度界及其所需上下文；Theorem 5 的例外集估计和该文引用的 Harman 逼近定理仍为分析输入，其所引原始书证为 ASSUMED-UNVERIFIED。这个修正不改变前述满测集量词，也不给指定黄金参数的新结论。证毕。
+每个乘积 $d=nm$ 在上述范围的原像数至多 $\lfloor\frac1{10}\log(2K)\rfloor$。先把该分析输入的指数 $A$ 取得足够大，便对任意固定 $B>0$ 得到仅 $O_B(K(\log K)^{-B})$ 个例外对，因而除去同阶数量的 $n$ 后，每个剩余 $n$ 的全部允许 $m$ 均无例外。对这些 $n$ 和偶数 $nm$，已证 $J_W(nm)\ge X_W/2$，故充分大 $K$ 时 $r_W(nm)\ge\sigma_0X_W/4$。每对素数的对数权至多 $(\log X_W)^2$，去权后表示数至少为 $\sigma_0X_W/(4(\log X_W)^2)$，这又至少为某个绝对正常数乘 $n/\log n$，因为 $K\le n<2K$ 且 $\log X_W$ 与 $\log K$ 同阶。$1\le m\le\lfloor\frac1{10}\log n\rfloor$ 中至少有常数乘 $\log n$ 个偶数 $m$，并且 $X_W\le\frac12n\log n$。把该文的正常数缩小，便仍得到 Proposition 6 的第二条件。Theorem 5 的例外集估计和该文 Theorem 4 引用的 Harman 逼近定理仍为分析输入。前者的证明转引 R. C. Vaughan，〈The Hardy–Littlewood Method〉，第二版（1997），§3.2，或 Iwaniec–Kowalski，〈Analytic Number Theory〉（2004），Chapter 19 中 Theorem 19.1 的证明；后者转引 Glyn Harman，〈Metric Number Theory〉（1998），Theorem 4.2，保留其正、非增且至多 $1/2$ 的逼近函数、发散和及 Lebesgue 几乎处处量词。这个修正不改变前述满测集量词，也不给指定黄金参数的新结论。证毕。
 
 **定理 462.4。**不能以该满测集结论代入指定 $\alpha=\varphi^{-1}$；其证明所需的逼近机制恰不能用于此 $\alpha$。
 
@@ -16901,50 +16901,15 @@ $$
 $$
 这里对为原 Kuratowski 对；$\mathfrak V_Z=\{c:\exists x\ \operatorname{Enc}(x)=c\}$ 是有效码类。$\operatorname{Dec}$ 是其逆，$d\in_Zc$ 表示 $\operatorname{Dec}(d)\in\operatorname{Dec}(c)$。普通成员 $\in$ 与语义成员 $\in_Z$ 不作字面认同。
 
-**定理 467.2。**上述 $\operatorname{Enc}$ 是唯一总可定义类函数，单射且双射到 $\mathfrak V_Z$；其两侧互逆及成员关系均保持反映。$\mathfrak V_Z$ 为真类，有限字不能编码全部集合。
+直接使用第 71–72 条的存在唯一性、逆图与成员比较，以及第 79 条的真类与有限字障碍；原集合参数 $x,y$ 任意，有效码参数 $c,d$ 遍历全部 $\mathfrak V_Z$。第 467.1 条的递归式正是第 71 条原式，全部集合域及普通成员与语义成员的区别均按原条款使用。
 
-**证明。**对给定 $x$，在传递集合 $\operatorname{TC}(\{x\})$ 上按秩构造集合函数：自然分支已固定，其余分支只调用更低秩成员的值；替代保证成员像为集合，极限步取已有图之并。取超过此传递闭包各秩的集合序数即完成函数。两个这样的函数在交集上由成员归纳一致，因此定义“存在上述集合递归解且在 $x$ 取 $c$”的固定一阶公式给全域唯一类函数。对两集合最大秩作归纳证明单射：不同标签不同；自然分支由 $\zeta$ 单射；非自然分支的成员码集相等，逐成员用归纳解码相等，再以外延公理得原集合相等。逆图因此可定义，两个互逆式及成员式直接由定义得到。
+成员展开与打包直接使用第 72–73 条：取任意有效码 $c$、任意环境集合 $B\subseteq\mathfrak V_Z$ 和全部 $n\in\omega$，包括 $n=0$；原有限序数分支、其标签一竞争节点的无效性及唯一语义空集一并适用。
 
-若有效码为集合，替代对其解码得到包含全部集合的集合，与 Russell 分离矛盾。有限二进字集可数，而 $\mathcal P(\omega)$ 的 Cantor 对角论证排除可数枚举，故连全部实数型对象都不能以有限字单射编码。此递归编码的任意输出仍是集合，并未声称是有限字符串。证毕。
+语义配对、全部子集、幂集、全函数空间及评价直接使用第 74、440.3–440.6 条。原参数取任意集合 $A,D,Y$、任意全函数 $f:D\to Y$、任意索引集合 $J$ 和集合族 $(Y_i)_{i\in J}$；关系取相应积的任意子集。普通外部图 $G_{f^*}$ 与单个语义图码 $\operatorname{Enc}(G_f)$ 按第 440.5 条的逐配对桥及 $\operatorname{Pack}$ 比较。全部输入、零值边、域外无边、空域、空值域、空积和空因子保持原域与约定。
 
-**定理 467.3（定义与定理）。**对有效码定义
-$$
-\operatorname{El}(c)=\operatorname{Enc}[\operatorname{Dec}(c)],
-\quad
-\operatorname{Pack}(B)=\operatorname{Enc}(\operatorname{Dec}[B])
-\quad(B\subseteq\mathfrak V_Z\text{ 为集合}).
-$$
-则 $\operatorname{El}(\operatorname{Pack}(B))=B$，$\operatorname{Pack}(\operatorname{El}(c))=c$。若 $B=\{\operatorname{NatZ}(j):j<n\}$，$\operatorname{Pack}(B)=\operatorname{NatZ}(n)$；否则为 $\langle1,B\rangle$。第一种情况下 $\langle1,B\rangle$ 无效，尤其不能另加第二个语义空集。
+公式翻译直接使用定义 75、定理 76–78 及第 440.11 条：取每个固定有限集合论公式和任意集合参数，新图符号先展开完整域与图；给定模型时只按第 78 条使用内部递归、幂集、函数空间与内部有限性，外部公式限于标准有限公式。
 
-**证明。**替代使两个像为集合，逐点应用互逆给两个式子。解码集合为自然数 $n$ 恰好是第一分支；否则用非自然分支。若第一种 $B$ 的标签一节点有效，其解码虽非自然却与 $n$ 有同一成员集，违反外延公理。证毕。
-
-**定理 467.4（定义与定理）。**令语义配对为 $\langle c,d\rangle_Z=\operatorname{Enc}(\langle\operatorname{Dec}(c),\operatorname{Dec}(d)\rangle)$。对任意集合 $A$，
-$$
-\mathcal P_Z(\operatorname{Enc}(A))
-=\operatorname{Pack}\{\operatorname{Pack}(B):B\subseteq\operatorname{Enc}[A]\}
-=\operatorname{Enc}(\mathcal P(A)).
-$$
-对任意全函数 $f:D\to Y$，包括无限域、空域及零值，完整图的码为
-$$
-\operatorname{Enc}(G_f)
-=\operatorname{Pack}\{\langle\operatorname{Enc}(x),\operatorname{Enc}(f(x))\rangle_Z:x\in D\},
-\quad G_f=\{\langle x,f(x)\rangle:x\in D\}.
-$$
-其语义评价在 $\operatorname{Enc}(x)$ 处为 $\operatorname{Enc}(f(x))$，域外无图边。外部共轭函数的普通图则为
-$$
-G_{f^*}=\{\langle\operatorname{Enc}(x),\operatorname{Enc}(f(x))\rangle:x\in D\};
-$$
-两种图不能混写。任意关系、子集、积、全函数空间 $Y^D$ 都同样运输。
-
-**证明。**子集 $S\subseteq A$ 与外部子集 $\operatorname{Enc}[S]\subseteq\operatorname{Enc}[A]$ 逐点互逆，遍历全部子集给幂集公式。逐个原图边应用语义配对定义给图公式；全域和单值性由全部 $x\in D$ 及原函数性保持反映，零输出不删边。语义函数图的集合恰为原全部函数图的码：对任一外部编码域上的全函数，逐输入解码其值给原函数，替代构造其全图，所以满到全函数空间而非某个可编码子类。关系用任意元组同样处理。证毕。
-
-**定理 467.5。**对每个固定有限集合论公式 $\psi$，任意元数及全部集合参数 $\boldsymbol a$，将量词限制到有效码类、将成员换成 $\in_Z$，得到固定公式 $\psi^Z$，满足
-$$
-\psi(\boldsymbol a)\ \Longleftrightarrow\ \psi^Z(\operatorname{Enc}(\boldsymbol a)).
-$$
-全部 ZFC 公理及分离、替代的每个实例均保留；原语言扩充仅为定义性保守解释。
-
-**证明。**等号由单射，成员由定义，布尔联结由逻辑等价；存在见证逐个编码，反向将有效码解码；全称量词由全域满性给出。按该固定公式的有限构造归纳即得；参数没有可数性或有限编码限制。逐个固定的 ZFC 实例应用同一结论，再把新符号的定义公式消去，得到保守性。本证明是逐公式的元数学模式，没有添加全宇宙真理谓词或断言 ZFC 的绝对一致性。对任意模型只使用其内部的集合、递归、幂集和量词；非标准模型的内部码不自动成为外部良基集合宇宙。证毕。
+在第 467.6–467.9 条中，上述参数取完整 $X,C,E,\Omega,A$、全部属性图、来源树、因果关系、原操作的联合部分域、观察与费用图，以及带标词和全部快照记录。第 467.7 条证明中的“前面的全函数定理”即第 74、440.3、440.5–440.6 条，守卫的固定公式使用第 75–78、440.11 条。
 
 **定义 467.6。**保留原 CSA 的嵌套对象 $X=(C,A)$、
 $$
@@ -17116,19 +17081,13 @@ $$
 $$
 各坐标下确界不被假定由同一路径达到；标量化为声明非负权重后的加权和。
 
+在时域和实际层均有限的分支，直接使用第 436.1–436.5 条及其完整证明。其 $T,d$ 取本任务的自然数时域与费用维数，$S_t$ 取实际有限状态层，$E_{t+1}$ 取从 $S_t$ 到 $S_{t+1}$ 的实际有限带身份边层。每条边保留源靶、标签、执行数据与全部真实守卫；需带层区分时使用 $(t,e)$。边费依层记为 $g_{t+1}(e)$；简记 $g(e)$ 时仅省略已确定的层指标，不要求各层费用相同。允许终态取 $F_T\subseteq S_T$，终端费取 $h:F_T\to\mathbb R_{\ge0}^d$，边费也取有限非负实向量。
+
+$A_t(s)$ 取从 $s$ 到 $F_T$ 的全部完整合法尾路径的边费和加终端费的集合，$P_t(s)=\operatorname{Min}A_t(s)$。第 436.4 条直接给其首边递推、每个极小费用的取到及全部达到路径恢复；同费用的平行边身份仍分别保留。有限允许初态集 $I\subseteq S_0$ 与初态费 $\alpha_0:I\to\mathbb R_{\ge0}^d$ 按第 436.5 条使用 $\operatorname{Min}\bigcup_{s\in I}(\alpha_0(s)+P_0(s))$，不在尾费用中重复初态费。空后继、$T=0$、$d=0$ 仍按该条处理，接受的零边路径总费为 $\alpha_0(s)+h(s)$。无限实际边、宏内部路径和取到性的界限直接使用第 438.2–438.4、438.7–438.8 条；广域费用与有限实费用的域区别保持第 470.30 条的原约定。
+
 **定理 469.9。**完整状态与实际边身份的双向共轭，若保持任务、守卫、失败及每一费用项，则保持 $\mathcal A(\tau)$、取到或不取到、标量下确界及 Pareto 集。它本身不给严格改进。
 
 **证明。**逐边和状态施共轭得到合法路径；起终点保持使相邻边接合，逆映射恢复唯一原路径。各费用项相等，有限求和相等，因而费用集合双向包含并相等。空集、下确界、是否存在达到者及所有逐坐标比较条件都由同一集合决定。若只是数值编码同构却未运输费用，两个状态间唯一边分别收费一与二即给反例。即使同一费用模型，$(0,1)$ 与 $(1,0)$ 两条实际路径都极小，坐标下确界 $(0,0)$ 没有达到者；不能称一个共同最优。证毕。
-
-**定理 469.10。**若时域 $T$、每层状态和实际边集均有限，保留平行边，非负实向量边费为 $g$，允许末态及终端费为 $h$，则尾路径 Pareto 集满足
-$$
-P_T(s)=\begin{cases}\{h(s)\},&s\text{ 为允许末态},\\\varnothing,&\text{否则},\end{cases}
-\quad
-P_t(s)=\operatorname{Min}\bigcup_{e:s\to u}(g(e)+P_{t+1}(u)).
-$$
-每个保留费用实际达到，保留全部等号边可恢复全部达到路径。
-
-**证明。**有限完整路径集的费用像有限；非空有限向量集每个元素都有一个弱支配它的极小元，例如在它的有限下集中选坐标和最小者，零维向量情形直接成立。每条尾路径唯一分解为首边和更短尾路径。用极小尾费用替换原尾费用不增任何坐标，向量平移保持并反映支配；故对首边并集后取极小与先剪掉非极小尾费用给同一集，倒向归纳得到公式。若极小总费用路径有可严格改善的尾段，替换就严格改善总费用，矛盾；所以保留全部等号边既不丢失也不新增极小路径。空并为空，$T=0$ 由终端公式处理。这使用有限状态及有限实际边，不能只凭时域有限就对无限宏操作族断言取到。证毕。
 
 **定理 469.11。**已发表补充基线的静态容量阈值和切换费动态递推仅在其原共同任务和费用下使用。例如只要求至少六十态、费用 $B(C)+\lambda\log C$ 的最优比较，不能自动施于 $\mathcal T_b$ 或全素数历史任务。
 

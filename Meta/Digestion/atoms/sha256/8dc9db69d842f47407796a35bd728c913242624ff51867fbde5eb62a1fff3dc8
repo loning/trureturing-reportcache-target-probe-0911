@@ -1,6 +1,0 @@
-**定理 467.5。**对每个固定有限集合论公式 $\psi$，任意元数及全部集合参数 $\boldsymbol a$，将量词限制到有效码类、将成员换成 $\in_Z$，得到固定公式 $\psi^Z$，满足
-$$
-\psi(\boldsymbol a)\ \Longleftrightarrow\ \psi^Z(\operatorname{Enc}(\boldsymbol a)).
-$$
-全部 ZFC 公理及分离、替代的每个实例均保留；原语言扩充仅为定义性保守解释。
-
