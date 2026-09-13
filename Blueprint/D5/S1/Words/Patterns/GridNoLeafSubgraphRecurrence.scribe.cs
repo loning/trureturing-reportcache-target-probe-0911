@@ -54,17 +54,11 @@ internal sealed class GridNoLeafSubgraphRecurrenceDocument : IScribeDocumentDefi
                 "A bijection sends edge sets to compatible column-mask paths. Their eight-state "
                 + "transfer recurrence satisfies the displayed order-four identity, which gives "
                 + "the result after the path count is identified with a(n).",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
-                new OpenProblemResolutionClaim(
-                    ProblemSlugRef.Create("oeis-a301976-grid-no-leaf-recurrence"),
-                    ResolutionKind.Proved)),
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)),
             Node("kagey_a301976_mod10", "Kagey's modulo-ten congruence", KageyFormula(),
                 "The initial residues at indices three through six are three. Strong induction "
                 + "then applies Barker's recurrence modulo ten.",
-                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source),
-                new OpenProblemResolutionClaim(
-                    ProblemSlugRef.Create("oeis-a301976-grid-no-leaf-mod-ten"),
-                    ResolutionKind.Proved)))));
+                DescribeRole.Theorem, AssessedProvenance.FromLiterature(Source)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role, AssessedProvenance provenance,
