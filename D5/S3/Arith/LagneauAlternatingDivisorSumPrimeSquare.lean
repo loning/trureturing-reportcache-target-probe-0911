@@ -2,15 +2,15 @@
    generality: G
    mirror-B: D5/B/S3/Arith/LagneauAlternatingDivisorSumPrimeSquare
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
-   anchors: [mathlib/module/Mathlib.Algebra.BigOperators.Ring.Nat, mathlib/module/Mathlib.Data.Finset.Sort, mathlib/module/Mathlib.Data.Nat.Factorization.Basic, mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.Algebra.BigOperators.Ring.Nat, mathlib/module/Mathlib.Data.Finset.Sort, mathlib/module/Mathlib.Data.Int.ModEq, mathlib/module/Mathlib.NumberTheory.ArithmeticFunction.Misc, mathlib/module/Mathlib.Tactic.IntervalCases]
    utility: none
    digest: A prime alternating sum of decreasing divisors above three forces a square or twice a square. -/
 
 import Mathlib.Algebra.BigOperators.Ring.Nat
 import Mathlib.Data.Finset.Sort
-import Mathlib.Data.Nat.Factorization.Basic
+import Mathlib.Data.Int.ModEq
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
-import Mathlib.Tactic
+import Mathlib.Tactic.IntervalCases
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
