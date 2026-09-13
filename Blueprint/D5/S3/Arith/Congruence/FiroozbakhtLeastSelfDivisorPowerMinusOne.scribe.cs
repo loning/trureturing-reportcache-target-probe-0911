@@ -16,7 +16,8 @@ internal sealed class FiroozbakhtLeastSelfDivisorPowerMinusOneDocument : IScribe
         H("The Least Self-Divisor Exponent"),
         Blocks(
             Node("a", "The A092028 sequence", DefinitionFormula(),
-                "In the natural numbers, the infimum of an empty set is zero. For n greater "
+                "In the natural numbers, `sInf` selects the least element of the set, and `sInf` "
+                + "of the empty set is zero. For n greater "
                 + "than two, the defining set is nonempty. Every subtraction in the formula "
                 + "is truncated natural-number subtraction.",
                 DescribeRole.Definition, AssessedProvenance.FromLiterature(Source)),
@@ -50,7 +51,7 @@ internal sealed class FiroozbakhtLeastSelfDivisorPowerMinusOneDocument : IScribe
             Parenthesized(greaterThanOne), FormulaLogicOperator.And, Parenthesized(divides));
         var witnesses = Seq(OpenBrace, m, Sp, InMacro, Sp, Naturals(), Sp, Mid, Sp,
             conditions, CloseBrace);
-        return Disp(Universal("n", Equal(Call("a", n), Call("inf", witnesses))));
+        return Disp(Universal("n", Equal(Call("a", n), Call("sInf", witnesses))));
     }
 
     private static Formula TheoremFormula()

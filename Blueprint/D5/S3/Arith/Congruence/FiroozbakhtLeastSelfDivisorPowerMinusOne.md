@@ -6,7 +6,7 @@ The least self-divisor exponent in OEIS A092028 is the least prime factor of n m
 
 **Definition 1.1 (The A092028 sequence).**
 
-$$\forall n \in \mathbb{N},\; a\left(n\right) = inf\left(\{m \in \mathbb{N} \mid (1 < m) \land (m \mid n^{m} - 1)\}\right)$$
+$$\forall n \in \mathbb{N},\; a\left(n\right) = sInf\left(\{m \in \mathbb{N} \mid (1 < m) \land (m \mid n^{m} - 1)\}\right)$$
 
 *Formalization.* `D5/S3/Arith/Congruence/FiroozbakhtLeastSelfDivisorPowerMinusOne.a` (`✓ std3`).
 
@@ -14,7 +14,7 @@ $$\forall n \in \mathbb{N},\; a\left(n\right) = inf\left(\{m \in \mathbb{N} \mid
 
 *Commentary.*
 
-In the natural numbers, the infimum of an empty set is zero. For n greater than two, the defining set is nonempty. Every subtraction in the formula is truncated natural-number subtraction.
+In the natural numbers, `sInf` selects the least element of the set, and `sInf` of the empty set is zero. For n greater than two, the defining set is nonempty. Every subtraction in the formula is truncated natural-number subtraction.
 
 **Theorem 1.2 (Firoozbakht's second conjecture).**
 
