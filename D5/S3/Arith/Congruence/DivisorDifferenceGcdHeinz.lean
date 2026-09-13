@@ -137,6 +137,57 @@ private theorem sorted_list_gcd_sub_one_eq_gaps
     have hoff := dvd_sub_base_of_dvd_gaps 1 rest hs _ hgap
     exact hoff d (by simpa using hd)
 
+private theorem positive_gaps :
+    ∀ (l : List ℕ), l.Pairwise (· < ·) →
+      ∀ d ∈ l.zipWith (fun x y => y - x) l.tail, 0 < d := by
+  intro l
+  induction l with
+  | nil =>
+      intro _ d hd
+      simp at hd
+  | cons x xs ih =>
+      cases xs with
+      | nil =>
+          intro _ d hd
+          simp at hd
+      | cons y ys =>
+          intro hs d hd
+          have hxy : x < y := (List.pairwise_cons.mp hs).1 y (by simp)
+          have htail := ih (List.pairwise_cons.mp hs).2
+          simp only [List.zipWith, List.tail, List.mem_cons] at hd
+          rcases hd with rfl | hd
+          · exact Nat.sub_pos_of_lt hxy
+          · exact htail d hd
+
+private theorem primeFactors_map_prod_eq_image
+    (f : ℕ → ℕ) : ∀ (l : List ℕ),
+      (∀ x ∈ l, Nat.Prime (f x)) →
+        ((l.map f).prod).primeFactors = l.toFinset.image f := by
+  intro l
+  induction l with
+  | nil =>
+      intro _
+      simp
+  | cons x xs ih =>
+      intro hf
+      have hfx : Nat.Prime (f x) := hf x (by simp)
+      have htail : ∀ y ∈ xs, Nat.Prime (f y) := by
+        intro y hy
+        exact hf y (by simp [hy])
+      have hprod0 : (xs.map f).prod ≠ 0 := by
+        apply List.prod_ne_zero
+        intro hz
+        rcases List.mem_map.mp hz with ⟨y, hy, hfy⟩
+        exact (htail y hy).ne_zero hfy
+      rw [List.map_cons, List.prod_cons, Nat.primeFactors_mul hfx.ne_zero hprod0,
+        hfx.primeFactors, ih htail]
+      simp [Finset.image_insert]
+
+private theorem prime_counting_nth (k : ℕ) :
+    Nat.primeCounting (Nat.nth Nat.Prime k) = k + 1 := by
+  simpa [Nat.primeCounting, Nat.primeCounting'] using
+    Nat.count_nth_succ_of_infinite Nat.infinite_setOfPred_prime k
+
 theorem wiseman_a258409 : ∀ n, 2 ≤ n →
     a n = primeIndexGcd (heinzDifferences n) ∧
       a n = consecutiveDifferenceGcd n := by
