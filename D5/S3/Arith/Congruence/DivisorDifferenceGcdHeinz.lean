@@ -182,11 +182,6 @@ private theorem primeFactors_map_prod_eq_image
         hfx.primeFactors, ih htail]
       simp [Finset.image_insert]
 
-private theorem prime_counting_nth (k : ℕ) :
-    Nat.primeCounting (Nat.nth Nat.Prime k) = k + 1 := by
-  simpa [Nat.primeCounting, Nat.primeCounting'] using
-    Nat.count_nth_succ_of_infinite Nat.infinite_setOfPred_prime k
-
 theorem wiseman_a258409 : ∀ n, 2 ≤ n →
     a n = primeIndexGcd (heinzDifferences n) ∧
       a n = consecutiveDifferenceGcd n := by
@@ -253,9 +248,11 @@ theorem wiseman_a258409 : ∀ n, 2 ≤ n →
       Nat.primeCounting (Nat.nth Nat.Prime (d - 1)) = d := by
     intro d hd
     have hdpos : 0 < d := hgap_pos d hd
+    have hnth : Nat.primeCounting (Nat.nth Nat.Prime (d - 1)) = (d - 1) + 1 := by
+      simpa [Nat.primeCounting, Nat.primeCounting'] using
+        Nat.count_nth_succ_of_infinite Nat.infinite_setOfPred_prime (d - 1)
     calc
-      Nat.primeCounting (Nat.nth Nat.Prime (d - 1)) = (d - 1) + 1 :=
-        prime_counting_nth (d - 1)
+      Nat.primeCounting (Nat.nth Nat.Prime (d - 1)) = (d - 1) + 1 := hnth
       _ = d := Nat.sub_add_cancel (by omega)
   have hprimeeq : primeIndexGcd (heinzDifferences n) = gaps.toFinset.gcd id := by
     rw [primeIndexGcd, hsupport, Finset.gcd_image]
