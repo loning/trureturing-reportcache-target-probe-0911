@@ -181,4 +181,44 @@ private theorem block_invariant (r : ℕ) :
                 Nat.mul_le_mul_left _ hden_le
               _ < (r + 2) * T (r + 2) := hproduct_cut
 
+/-- For every positive value `m`, the first index carrying `m` is the
+`(m - 1)`-st term of A000522. -/
+theorem alkan_a335925 : ∀ m : ℕ, 1 ≤ m →
+    a (T (m - 1)) = m ∧
+      ∀ k : ℕ, 1 ≤ k → a k = m → T (m - 1) ≤ k := by
+  have prefix_bound : ∀ r n : ℕ, 1 ≤ n → n < T (r + 1) → a n ≤ r + 1 := by
+    intro r
+    induction r with
+    | zero =>
+        intro n hn hn_upper
+        have hn_eq : n = 1 := by
+          simp [T] at hn_upper
+          omega
+        subst n
+        simp [a]
+    | succ r ih =>
+        intro n hn hn_upper
+        by_cases hprev : n < T (r + 1)
+        · exact (ih n hn hprev).trans (by omega)
+        · have hmem := (block_invariant (r + 1)).2 n
+            (Nat.le_of_not_gt hprev) (by simpa only [Nat.add_assoc] using hn_upper)
+          rcases hmem.1 with h | h <;> omega
+  intro m hm
+  obtain ⟨p, rfl⟩ := Nat.exists_eq_add_of_le hm
+  constructor
+  · have hind : 1 + p - 1 = p := by omega
+    rw [hind]
+    simpa [Nat.add_comm] using (block_invariant p).1
+  · intro k hk hak
+    cases p with
+    | zero => simpa [T] using hk
+    | succ p =>
+        have hind : 1 + (p + 1) - 1 = p + 1 := by omega
+        rw [hind]
+        by_contra hnot
+        have hbound := prefix_bound p k hk (Nat.lt_of_not_ge hnot)
+        omega
+
+#print axioms alkan_a335925
+
 end D5.S1.Recurrence.Invariants.SelfReferentialQuotientFirstOccurrence
