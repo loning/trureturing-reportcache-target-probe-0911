@@ -2,12 +2,11 @@
    generality: G
    mirror-B: D5/B/S3/Arith/Congruence/FiroozbakhtLeastSelfDivisorPowerMinusOne
    mirror-E: none(waiver:evidence-not-specified-by-formal-manifest)
-   anchors: [mathlib/module/Mathlib.FieldTheory.Finite.Basic, mathlib/module/Mathlib.Tactic]
+   anchors: [mathlib/module/Mathlib.FieldTheory.Finite.Basic]
    utility: none
-   digest: The least m greater than one dividing n to the m minus one is the least prime factor of n minus one. -/
+   digest: The least self-divisor exponent is the least prime factor of n minus one. -/
 
 import Mathlib.FieldTheory.Finite.Basic
-import Mathlib.Tactic
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
