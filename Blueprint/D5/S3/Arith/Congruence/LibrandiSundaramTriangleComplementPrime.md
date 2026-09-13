@@ -34,6 +34,10 @@ $$\forall h \in {\mathbb N},\; \left(\neg InTriangle\left(h\right)\right) \Right
 
 *Proof.* Machine-checked in Lean as `D5/S3/Arith/Congruence/LibrandiSundaramTriangleComplementPrime.librandi_a140869` (`✓ std3`). ∎
 
+*Resolves.* `Problems/oeis-a140869-sundaram-triangle-complement-prime` (proved) by `D5/S3/Arith/Congruence/LibrandiSundaramTriangleComplementPrime.librandi_a140869`.
+
+<!-- scribe-open-problem-resolution-v1 {"problem_slug":"oeis-a140869-sundaram-triangle-complement-prime","declaration_gid":"D5/S3/Arith/Congruence/LibrandiSundaramTriangleComplementPrime.librandi_a140869","resolution_kind":"proved"} -->
+
 *Source.* Repository-derived.
 
 *Commentary.*

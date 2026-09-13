@@ -29,7 +29,10 @@ internal sealed class LibrandiSundaramTriangleComplementPrimeDocument : IScribeD
                     + "theorem gives two odd factors. Writing them as 2a+1 and 2b+1, ordering the "
                     + "half-factors, and normalizing their product identity produces T(a,b)=h, a "
                     + "contradiction. The converse is false at h = 2, 8, and 12.",
-                DescribeRole.Theorem, AssessedProvenance.FromRepo()))));
+                DescribeRole.Theorem, AssessedProvenance.FromRepo(),
+                new OpenProblemResolutionClaim(
+                    ProblemSlugRef.Create("oeis-a140869-sundaram-triangle-complement-prime"),
+                    ResolutionKind.Proved)))));
 
     private static DocumentBlock Node(string name, string title, Formula formula,
         string prose, DescribeRole role, AssessedProvenance provenance,
