@@ -16,7 +16,7 @@ lake_runner="$TREE/tools/scripts/worktree/lean-cache-run.sh"
 [ -x "$lake_runner" ] || fail "no-cache-runner"
 
 missing=$(comm -23 \
-  <(git -C "$TREE" ls-tree -r --name-only HEAD D5 | grep '\.lean$' \
+  <("$lake_runner" --git -C "$TREE" ls-tree -r --name-only HEAD D5 | grep '\.lean$' \
       | sed 's|^D5/||; s|\.lean$||' | sort) \
   <(cd "$TREE/.lake/build/lib/lean/D5" 2>/dev/null && find . -name '*.olean' \
       | sed 's|^\./||; s|\.olean$||' | sort))

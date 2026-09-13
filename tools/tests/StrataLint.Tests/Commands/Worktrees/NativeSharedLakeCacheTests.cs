@@ -15,6 +15,8 @@ public sealed partial class NativeSharedLakeCacheTests(ITestOutputHelper output)
     [InlineData("death")]
     [InlineData("hardlinks")]
     [InlineData("traces")]
+    [InlineData("report-traces")]
+    [InlineData("serial-traces")]
     [InlineData("dependencies")]
     [InlineData("stale-session")]
     public void RealEntrypointsPreserveCacheBoundaries(string scenario)
@@ -23,7 +25,7 @@ public sealed partial class NativeSharedLakeCacheTests(ITestOutputHelper output)
         // Other platforms execute the private/fail-closed controls in the same program.
         Assert.True(LeanLakeExecutable.TryResolve(out var lake, out var reason), reason);
         var script = Path.Combine(temporary.Path, "native.py");
-        File.WriteAllText(script, NativeProgram + "\n" + RepairScenarios + "\n" + NativeScenarios);
+        File.WriteAllText(script, NativeProgram + "\n" + RepairScenarios + "\n" + TraceScenarios + "\n" + NativeScenarios);
         var result = TestProcessRunner.Run("python3", [script, scenario,
             typeof(Program).Assembly.Location, lake, TestRepositoryLayout.FindRoot()],
             temporary.Path, TestBudgets.ReportSupervisorHangGuard, 1024 * 1024);

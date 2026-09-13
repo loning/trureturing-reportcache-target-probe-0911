@@ -135,15 +135,19 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
 
     internal static string Git(string root, IWorktreeProcessRunner runner, params string[] arguments)
     {
-        var result = runner is LeanProcessPolicy policy
-            ? policy.Run("git", arguments, root, BoundedProcessRunner.HangDetectionBudget)
-            : runner.RunWithEnvironment("git", ["-c", "trace2.normalTarget=0", "-c", "trace2.eventTarget=0",
-                "-c", "trace2.perfTarget=0", .. arguments], root, BoundedProcessRunner.HangDetectionBudget,
-                PhysicalGitEnvironment());
+        var result = RunGit(root, runner, arguments);
         if (result.ExitCode != 0)
             throw new InvalidOperationException("git " + arguments[0] + ": " + Encoding.UTF8.GetString(result.StandardError));
         return Encoding.UTF8.GetString(result.StandardOutput).Trim();
     }
+
+    // Shell fingerprint/serial callers share the bootstrap policy without acquiring
+    // a Lake writer guard or materializing dependencies. Preserve Git's bytes and exit.
+    internal static ProcessOutput RunGit(string root, IWorktreeProcessRunner runner,
+        IReadOnlyList<string> arguments) => runner is LeanProcessPolicy policy
+            ? policy.Run("git", arguments, root, BoundedProcessRunner.HangDetectionBudget)
+            : runner.RunWithEnvironment("git", arguments, root, BoundedProcessRunner.HangDetectionBudget,
+                PhysicalGitEnvironment());
 
     private static Dictionary<string, string> PhysicalGitEnvironment()
     {
@@ -151,7 +155,8 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
             .ToDictionary(entry => (string)entry.Key, entry => (string)entry.Value!, StringComparer.Ordinal);
         // Git's repository-local variables (git rev-parse --local-env-vars), plus discovery
         // and config-selection overrides. Disable diagnostic destinations before bootstrap
-        // discovery can write them; raw Git also disables config-based Trace2 targets above.
+        // discovery can write them. Trace2 ignores -c and repository-local config;
+        // explicit environment zeros override its system/global configuration.
         // Transport, credentials and optional locks remain the caller's environment.
         // The same context reaches Lake's child Git calls.
         foreach (var name in child.Keys.Where(name => name.StartsWith("GIT_CONFIG_", StringComparison.Ordinal)
@@ -162,6 +167,9 @@ internal sealed class LeanProcessPolicy : IWorktreeProcessRunner
                 or "GIT_PREFIX" or "GIT_SHALLOW_FILE" or "GIT_COMMON_DIR"
                 or "GIT_CEILING_DIRECTORIES" or "GIT_DISCOVERY_ACROSS_FILESYSTEM").ToArray())
             child.Remove(name);
+        child["GIT_TRACE2"] = "0";
+        child["GIT_TRACE2_EVENT"] = "0";
+        child["GIT_TRACE2_PERF"] = "0";
         return child;
     }
 

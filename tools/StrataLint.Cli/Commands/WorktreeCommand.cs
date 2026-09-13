@@ -30,6 +30,7 @@ internal static class WorktreeCommand
     internal static string Usage { get; } =
         "USAGE: StrataLint worktree ensure-cache [--path DIR] | "
         + "StrataLint worktree with-cache-reader [--path DIR] -- COMMAND [ARG ...] | StrataLint worktree warm-cache [--path DIR] | "
+        + "StrataLint worktree cache-git [--path DIR] -- ARG [ARG ...] | "
         + "StrataLint worktree validate-branch --branch NAME | "
         + "StrataLint worktree remove --names \"NAME [NAME ...]\" | "
         + "StrataLint worktree --kind KIND --name TASK_CODE --path DIR "
@@ -63,6 +64,8 @@ internal static class WorktreeCommand
         ArgumentNullException.ThrowIfNull(arguments);
         ArgumentNullException.ThrowIfNull(runner);
         ArgumentNullException.ThrowIfNull(cloner);
+        if (arguments.Count > 0 && arguments[0] == "cache-git")
+            return LeanCacheEnsureCommand.RunGit(repositoryRoot, arguments.Skip(1).ToArray(), runner);
         if (arguments.Count > 0
             && string.Equals(arguments[0], "remove", StringComparison.Ordinal))
         {

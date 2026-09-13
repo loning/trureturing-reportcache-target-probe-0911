@@ -39,38 +39,6 @@ if scenario == 'hardlinks':
     before = snapshot(shared_root)
     assert 'hardlink' in command(reader, 'ensure-cache', expected=2).stderr
     unchanged(shared_root, before)
-elif scenario == 'traces':
-    command(main, 'warm-cache')
-    trace_directory = shared_root / 'diagnostics'
-    trace_directory.mkdir()
-    destinations = ['GIT_TRACE', 'GIT_TRACE_SETUP', 'GIT_TRACE_PERFORMANCE',
-        'GIT_TRACE2', 'GIT_TRACE2_EVENT', 'GIT_TRACE2_PERF']
-    for verb in ['ensure-cache', 'with-cache-reader', 'warm-cache']:
-        for name in destinations + ['config:trace2.normalTarget', 'config:trace2.eventTarget', 'config:trace2.perfTarget']:
-            for preexisting in [False, True]:
-                trace = trace_directory / 'trace'
-                if preexisting: trace.write_text('existing diagnostic\n')
-                elif trace.exists(): trace.unlink()
-                extra = {}
-                if name.startswith('config:'):
-                    git(main, 'config', name[7:], str(trace))
-                else:
-                    extra[name] = str(trace)
-                before = snapshot(shared_root)
-                try:
-                    args = ['--', '/usr/bin/true'] if verb == 'with-cache-reader' else []
-                    result = command(reader, verb, *args, extra=extra, expected=2 if verb == 'warm-cache' else 0)
-                    after = snapshot(shared_root)
-                    changes = [p for p in before.keys() | after.keys() if before.get(p) != after.get(p)]
-                    print(json.dumps(dict(trace=name, verb=verb, preexisting=preexisting, exit=result.returncode, changed=changes)))
-                    unchanged(shared_root, before)
-                finally:
-                    if name.startswith('config:'): git(main, 'config', '--unset', name[7:])
-    keys = ['GIT_SSH_COMMAND', 'GIT_ASKPASS', 'SSH_AUTH_SOCK', 'GIT_TERMINAL_PROMPT', 'GIT_OPTIONAL_LOCKS']
-    values = dict(zip(keys, ['ssh -o BatchMode=yes', '/fixture/askpass', '/fixture/agent', '0', '0']))
-    probe = 'import os,json; print(json.dumps({k:os.environ.get(k) for k in ' + repr(keys) + '}))'
-    result = command(reader, 'with-cache-reader', '--', sys.executable, '-c', probe, extra=values)
-    assert json.loads(result.stdout.splitlines()[-1]) == values
 elif scenario == 'dependencies':
     dependency = P / 'dependency'
     dependency.mkdir()

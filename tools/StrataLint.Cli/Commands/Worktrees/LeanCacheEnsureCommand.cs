@@ -9,6 +9,23 @@ internal static class LeanCacheEnsureCommand
     internal const string ReaderUsage =
         "USAGE: StrataLint worktree with-cache-reader [--path DIR] -- COMMAND [ARG ...]";
 
+    internal static CommandResult RunGit(string repositoryRoot, IReadOnlyList<string> arguments,
+        IWorktreeProcessRunner runner)
+    {
+        if (!TryParse(repositoryRoot, arguments, true, out var root, out var gitArguments))
+            return new(false, string.Empty, "USAGE: StrataLint worktree cache-git [--path DIR] -- ARG [ARG ...]\n");
+        try
+        {
+            var result = LeanProcessPolicy.RunGit(root, runner, gitArguments);
+            return new(result.ExitCode == 0, Encoding.UTF8.GetString(result.StandardOutput),
+                Encoding.UTF8.GetString(result.StandardError), result.ExitCode);
+        }
+        catch (Exception exception)
+        {
+            return new(false, string.Empty, "LEAN_CACHE_GIT " + exception.Message + "\n");
+        }
+    }
+
     internal static CommandResult Run(string repositoryRoot, IReadOnlyList<string> arguments,
         IWorktreeProcessRunner runner, bool runCommand = false)
     {

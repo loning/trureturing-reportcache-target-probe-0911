@@ -68,7 +68,8 @@ public sealed partial class LeanCacheProvisionerTests(Xunit.Abstractions.ITestOu
         Assert.True(cloner.Obstructed);
         var artifactsAfter = Directory.GetFiles(Path.Combine(shared, "artifacts")).Length;
         Assert.True(artifactsAfter > oldArtifacts.Length);
-        foreach (var (path, bytes) in oldMaps) Assert.Equal(bytes, File.ReadAllBytes(path));
+        foreach (var (path, bytes) in oldMaps)
+            Assert.Equal(bytes, TemporaryFileSystem.File.ReadAllBytes(path));
         var beforeRead = Snapshot(shared);
         var reader = fixture.Command(fixture.Reader, "with-cache-reader", "--", "lake", "build", "-v");
         Assert.True(reader.Success, reader.Error);
