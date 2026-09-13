@@ -889,6 +889,42 @@ private theorem rightMarkedValues_glued {n k : ℕ} (D : RestrictionPairingData 
         _ = q.1.1 := congrArg (fun z => z.1.1) (D.2.2.apply_symm_apply q)
         _ = a := hma
 
+private theorem leftMarkedPartition_glued {n k : ℕ} (D : RestrictionPairingData n k) :
+    leftMarkedPartition (gluedMixedPartition D) = D.1 := by
+  classical
+  let L := leftMarkedPartition (gluedMixedPartition D)
+  have marked_heq :
+      ∀ (P Q : SetPartition ((n + 1) / 2)) (hP : P = Q)
+        (M : {M : Finset P.parts // M.card = k})
+        (N : {N : Finset Q.parts // N.card = k}),
+        markedValues M.1 = markedValues N.1 → M ≍ N := by
+    intro P Q hP M N hvalues
+    subst Q
+    apply heq_of_eq
+    apply Subtype.ext
+    exact Finset.image_injective Subtype.val_injective hvalues
+  refine Sigma.ext (leftRestriction_glued D) ?_
+  exact marked_heq L.1 D.1.1 (leftRestriction_glued D) L.2 D.1.2
+    (leftMarkedValues_glued D)
+
+private theorem rightMarkedPartition_glued {n k : ℕ} (D : RestrictionPairingData n k) :
+    rightMarkedPartition (gluedMixedPartition D) = D.2.1 := by
+  classical
+  let R := rightMarkedPartition (gluedMixedPartition D)
+  have marked_heq :
+      ∀ (P Q : SetPartition (n / 2)) (hP : P = Q)
+        (M : {M : Finset P.parts // M.card = k})
+        (N : {N : Finset Q.parts // N.card = k}),
+        markedValues M.1 = markedValues N.1 → M ≍ N := by
+    intro P Q hP M N hvalues
+    subst Q
+    apply heq_of_eq
+    apply Subtype.ext
+    exact Finset.image_injective Subtype.val_injective hvalues
+  refine Sigma.ext (rightRestriction_glued D) ?_
+  exact marked_heq R.1 D.2.1.1 (rightRestriction_glued D) R.2 D.2.1.2
+    (rightMarkedValues_glued D)
+
 #print axioms markedPartitions_eq_A049020
 
 end D5.S1.Recurrence.Partitions.MixedParityBlockPartitionProduct
