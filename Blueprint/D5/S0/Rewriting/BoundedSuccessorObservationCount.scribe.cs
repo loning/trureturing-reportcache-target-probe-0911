@@ -9,14 +9,16 @@ internal sealed class BoundedSuccessorObservationCountDocument : IScribeDocument
         H("Bounded Successor Observation Count"),
         Blocks(
             Describe.Lean(
-                DescribeId.Create("boundedsuccessorobservationcount-bounded-successor-trajectory"),
-                DeclarationHandle.Create("D5/S0/Rewriting/BoundedSuccessorObservationCount.bounded_successor_trajectory"),
-                H("The bounded successor reaches failure at its arithmetic boundary"),
+                DescribeId.Create("boundedsuccessorobservationcount-bounded-successor-observation-count"),
+                DeclarationHandle.Create("D5/S0/Rewriting/BoundedSuccessorObservationCount.bounded_successor_observation_count"),
+                H("First failure times count the finite observations"),
                 StatementSource.WithoutFormula(),
                 AssessedProvenance.FromRepo(),
                 Blocks(Paragraph(Text(
-                    "Iterating the strict successor from a state n yields n+t while the bound B is not exceeded, "
-                    + "and thereafter yields the absorbing failure state. For a starting state n at most B, the "
-                    + "first failure transition therefore occurs after B minus n plus one steps."))),
+                    "The strict successor on the finite interval from zero to B first fails from n at time "
+                    + "B minus n plus one and remains failed thereafter. Through time h, constant successful "
+                    + "readouts give exactly the minimum of B plus one and h plus one observation classes. "
+                    + "Arbitrary readouts give at least that many and at most B plus one classes. "
+                    + "The first failure times and complete observed futures distinguish all starting states."))),
                 DescribeRole.Theorem))));
 }
