@@ -372,7 +372,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PATH="$HOME/.elan/bin:$PATH" make -C candidate lean
+          source candidate/tools/scripts/lib/resource-observation-lib.sh
+          # Disposable probe: label at most 64 sampled descendants without reading argv or environment.
+          eval "$(declare -f resource_observation_process_values | sed '1s/resource_observation_process_values/resource_observation_process_values_unlabelled/')"
+          resource_observation_process_values() {
+            local values status=0 count _cpu tree entry pid executable
+            local -a entries=()
+            values="$(resource_observation_process_values_unlabelled "$@")" || status=$?
+            printf '%s\n' "$values"
+            IFS=$'\t' read -r count _cpu tree <<< "$values"
+            IFS=';' read -r -a entries <<< "$tree"
+            printf 'RESOURCE_EXECUTABLE_SAMPLE root_pid=%s observer_pid=%s process_count=%s limit=64\n' "$1" "${2:-UNAVAILABLE}" "$count" >&2
+            for entry in "${entries[@]:0:64}"; do
+              pid="${entry%%,*}"
+              pid="${pid#pid:}"
+              [[ "$pid" =~ ^[0-9]+$ ]] || continue
+              executable="$(readlink "/proc/$pid/exe" 2>/dev/null)" || executable=UNAVAILABLE
+              printf 'RESOURCE_EXECUTABLE pid=%s executable=%q\n' "$pid" "${executable##*/}" >&2
+            done
+            return "$status"
+          }
+          run_candidate_lean() {
+            PATH="$HOME/.elan/bin:$PATH" make -C candidate lean
+          }
+          resource_observe_run_periodic run_candidate_lean
       - name: Save Lean dependency artifacts (push only)
         if: always() && steps.lean-build.outcome == 'success' && steps.lake-deps-cache.outputs.cache-hit != 'true' && github.event_name == 'push'
         continue-on-error: true
