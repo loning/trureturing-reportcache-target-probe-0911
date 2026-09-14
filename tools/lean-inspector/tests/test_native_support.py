@@ -252,4 +252,3 @@ root = "Cache"
         self.assertIn(hidden['statement_id'],
             {materials.declaration_statement_id(module['source_path'], hidden['kind'], hidden['name_key'], r['statement_material'])
              for r in identities if r['part'] == 'private'})
-

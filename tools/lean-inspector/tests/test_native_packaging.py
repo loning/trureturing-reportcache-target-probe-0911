@@ -142,4 +142,3 @@ class NativePackagingTests:
         result = subprocess.run([str(helper), 'build-snapshot-address', '--repository', str(self.root)],
             cwd=self.root, env=self.env, capture_output=True, timeout=120)
         self.assertNotEqual(result.returncode, 0)
-

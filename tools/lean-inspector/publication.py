@@ -50,6 +50,16 @@ def member(report, suffix):
     return Path(str(report) + suffix)
 
 
+def open_zip_member(archive, info):
+    # CPython raises RuntimeError before decoding when an optional module is
+    # absent. Reject that artifact condition without catching program failures.
+    for method, decoder, name in ((zipfile.ZIP_DEFLATED, zipfile.zlib, 'DEFLATE'),
+            (zipfile.ZIP_BZIP2, zipfile.bz2, 'BZIP2'), (zipfile.ZIP_LZMA, zipfile.lzma, 'LZMA')):
+        if info.compress_type == method and decoder is None:
+            raise ValueError('unavailable ZIP decoder: ' + name)
+    return archive.open(info)
+
+
 def digest(path):
     result = hashlib.sha256()
     with Path(path).open('rb') as source:
@@ -185,7 +195,7 @@ def validate_rows(report, archive_path, verified_materials=None):
                 raise ValueError('encrypted material')
             for row, decl in references[name]:
                 key = (row['source_path'], decl['kind'], decl['name_key'], decl['type_sha256'])
-                with archive.open(info) as source:
+                with open_zip_member(archive, info) as source:
                     if verified_materials is not None and key in verified_materials:
                         # Invocation-local reuse of the expensive canonical
                         # statement encoding. Always read/CRC-check/hash the
@@ -313,7 +323,7 @@ def unpack(artifact, directory, suffixes=SUFFIXES):
                 raise ValueError('nonregular native artifact member')
             if info.flag_bits & 1:
                 raise ValueError('encrypted native artifact member')
-            with archive.open(name) as reader, (Path(directory) / name).open('wb') as writer:
+            with open_zip_member(archive, info) as reader, (Path(directory) / name).open('wb') as writer:
                 shutil.copyfileobj(reader, writer, materials.BUFFER_BYTES)
     return Path(directory) / RAW
 

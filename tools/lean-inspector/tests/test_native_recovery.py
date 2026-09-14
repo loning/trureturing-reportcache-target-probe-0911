@@ -28,6 +28,105 @@ import native
 from test_native_support import *
 
 class NativeRecoveryTests:
+    def test_native_recovers_outer_member_without_lzma(self):
+        self.check_missing_lzma_recovery(nested=False)
+
+    def test_native_recovers_nested_material_without_lzma(self):
+        self.check_missing_lzma_recovery(nested=True)
+
+    def check_missing_lzma_recovery(self, *, nested):
+        self.build()
+        before, expected_report, origins = self.stamps(), self.report(), self.origins()
+        path = self.root / '.lake/build/lean-inspector/modules/D5.Alone.zip'
+        expected = path.read_bytes()
+        # Only child fixture interpreters lack LZMA; the host installation is
+        # unchanged. Lake invokes the actual native.py with this explicit env.
+        self.write('no-lzma/sitecustomize.py', 'import sys\nsys.modules["lzma"] = None\n')
+        self.env['PYTHONPATH'] = str(self.root / 'no-lzma')
+        request, statuses = self.root / 'requests.json', self.root / 'statuses.json'
+        utility = self.root / '.lake/build/lean-inspector/inputs/D5.Alone.json'
+        request.write_text(json.dumps([['validate', [str(self.root), 'module', str(self.root),
+            'D5.Alone', str(utility), str(path)]]]))
+        control = subprocess.run([sys.executable, '-B', '-c',
+            'import sys, zipfile; assert zipfile.lzma is None; sys.path.insert(0, sys.argv[1]); '
+            'import native; assert native.LZMA_ERRORS == (); native.batch(sys.argv[2], sys.argv[3])',
+            str(self.root / 'tools/lean-inspector'), str(request), str(statuses)],
+            env=self.env, cwd=self.root, text=True, capture_output=True, timeout=120)
+        self.assertEqual(control.returncode, 0, control.stdout + control.stderr)
+        self.assertEqual(json.loads(statuses.read_text()), [0])
+
+        def damage(data):
+            with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                offset = archive.start_dir + 10
+            changed = bytearray(data)
+            struct.pack_into('<H', changed, offset, zipfile.ZIP_LZMA)
+            return bytes(changed)
+
+        if nested:
+            output = io.BytesIO()
+            with zipfile.ZipFile(io.BytesIO(expected)) as source, zipfile.ZipFile(output, 'w') as target:
+                for info in source.infolist():
+                    payload = source.read(info)
+                    if info.filename.endswith('.materials.zip'):
+                        # Repack as stored first: every CRC and member is valid
+                        # before changing only the central compression method.
+                        stored = io.BytesIO()
+                        with zipfile.ZipFile(io.BytesIO(payload)) as inner, zipfile.ZipFile(stored, 'w') as dest:
+                            for entry in inner.infolist():
+                                dest.writestr(entry.filename, inner.read(entry), compress_type=zipfile.ZIP_STORED)
+                        payload = damage(stored.getvalue())
+                    target.writestr(info, payload)
+            damaged = output.getvalue()
+        else:
+            damaged = damage(expected)
+        path.unlink()
+        path.write_bytes(damaged)
+        probe = subprocess.run([sys.executable, '-B', '-c',
+            'import io, json, sys, traceback, zipfile\n'
+            'assert zipfile.lzma is None\n'
+            'with zipfile.ZipFile(sys.argv[1]) as outer:\n'
+            '    archive = zipfile.ZipFile(io.BytesIO(outer.read(sys.argv[2]))) if sys.argv[2] else outer\n'
+            '    try: archive.read(archive.infolist()[0])\n'
+            '    except RuntimeError as error:\n'
+            '        assert str(error) == "Compression requires the (missing) lzma module"\n'
+            '        print(json.dumps(dict(exception=type(error).__name__, message=str(error), '
+            'frames=[frame.name for frame in traceback.extract_tb(error.__traceback__)])))\n'
+            '    else: raise AssertionError("missing decoder was not reached")\n',
+            str(path), publication.RAW + '.materials.zip' if nested else ''],
+            env=self.env, cwd=self.root, text=True, capture_output=True, timeout=120)
+        self.assertEqual(probe.returncode, 0, probe.stdout + probe.stderr)
+        failure = json.loads(probe.stdout)
+        self.assertIn('_get_decompressor', failure['frames'])
+        self.record_result('decoder', dict(environment='child fixture blocks lzma import',
+            host_lzma_available=zipfile.lzma is not None, valid_control_statuses=[0],
+            nested=nested, **failure))
+        self.write('activity.jsonl', '')
+        stamp = (path.stat().st_ino, path.stat().st_mtime_ns)
+        rejected = self.run_lake('--no-build', 'build', ':report', success=False)
+        no_build = dict(exit_code=rejected.returncode, no_activity=(self.root / 'activity.jsonl').read_text() == '',
+            artifact_unchanged=path.read_bytes() == damaged and stamp == (path.stat().st_ino, path.stat().st_mtime_ns),
+            needs_rebuild='needs to be rebuilt' in rejected.stdout + rejected.stderr)
+        self.record_result('no-build', no_build)
+        self.assertTrue(no_build['no_activity'])
+        self.assertTrue(no_build['artifact_unchanged'])
+        recovered = self.build(success=None)
+        self.record_result('recovery', dict(exit_code=recovered.returncode,
+            output=recovered.stdout + recovered.stderr))
+        self.assertEqual(recovered.returncode, 0, recovered.stdout + recovered.stderr)
+        self.assertTrue(no_build['needs_rebuild'], rejected.stdout + rejected.stderr)
+        self.assertIn('unavailable ZIP decoder: LZMA', recovered.stdout + recovered.stderr)
+        self.assertEqual((recovered.stdout + recovered.stderr).count('inspector artifact rejected; rebuilding privately'), 1)
+        self.assertEqual({name for name, stamp in self.stamps().items() if stamp != before[name]}, {'D5.Alone'})
+        records = [json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()]
+        self.assertEqual(sum(row['count'] for row in records if row['kind'] == 'extract'), 1)
+        self.assertEqual(path.read_bytes(), expected)
+        self.assertEqual(path.stat().st_nlink, 1)
+        self.assertEqual(self.report(), expected_report)
+        self.assertEqual(self.origins(), origins)
+        self.publish()
+        self.record_result('recovered', dict(activity=records, affected_rows=['D5.Alone'],
+            exact_report_material_origins=True, private_links=path.stat().st_nlink))
+
     def test_native_recovers_only_row_with_damaged_deflate(self):
         def damage(data):
             with zipfile.ZipFile(io.BytesIO(data)) as outer:
@@ -98,6 +197,10 @@ class NativeRecoveryTests:
         result.unlink()
         with patch.object(native, 'validate', side_effect=RuntimeError('unrelated validator failure')):
             with self.assertRaisesRegex(RuntimeError, 'unrelated validator failure'):
+                native.batch(request, result)
+        self.assertFalse(result.exists())
+        with patch.object(zipfile.ZipFile, 'open', side_effect=RuntimeError('unrelated ZIP read failure')):
+            with self.assertRaisesRegex(RuntimeError, 'unrelated ZIP read failure'):
                 native.batch(request, result)
         self.assertFalse(result.exists())
         errors = [ValueError('required producer failure')]
@@ -273,4 +376,3 @@ class NativeRecoveryTests:
         self.write('D5/Alone.lean', (self.root / 'D5/Alone.lean').read_text() + '-- require a new native artifact\n')
         result = self.build(success=False)
         self.assertIn('required fixture producer failure', result.stdout + result.stderr)
-

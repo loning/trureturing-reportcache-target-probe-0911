@@ -135,6 +135,7 @@ class NativePublicationTests:
                     provenance['report_sha256'] = sha
                     provenance['module_origins'][row['module']]['report_sha256'] = hashlib.sha256(
                         materials.canonical_json(dict(schema=materials.REPORT_SCHEMA, modules=[row]))).hexdigest()
+                    provenance['module_origins'][row['module']]['input_sources'][row['source_path']] = '0' * 64
                     payloads[publication.RAW] = raw
                     payloads[publication.RAW + '.provenance.json'] = json.dumps(provenance).encode()
                     payloads[publication.RAW + '.sha256'] = f'{sha}  {publication.RAW}\n'.encode()
@@ -145,13 +146,21 @@ class NativePublicationTests:
                 artifact.unlink()
                 with zipfile.ZipFile(artifact, 'w') as archive:
                     for info, data in entries: archive.writestr(info, data)
+                if damage == 'source':
+                    with tempfile.TemporaryDirectory(dir=self.root) as directory:
+                        report = publication.unpack(artifact, directory)
+                        expected = publication.coordinates(self.root)
+                        publication.validate_bundle(report, expected)  # Includes all material and origin checks.
+                        with self.assertRaisesRegex(ValueError, '^report source binding mismatch$'):
+                            publication.validate_bundle(report, expected, self.root)
                 for activity in ['', '{"kind":"extract","count":1}\n']:
                     self.write('activity.jsonl', activity)
                     result = subprocess.run([sys.executable, str(self.root / 'tools/lean-inspector/native.py'),
                         'publish', str(self.root), str(destination)], env=self.env,
                         text=True, capture_output=True, timeout=120)
                     self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
-                    if damage == 'source': self.assertIn('source binding mismatch', result.stderr)
+                    if damage == 'source':
+                        self.assertIn('lean-inspector-native: report source binding mismatch\n', result.stderr)
                     self.assertEqual(before, {suffix: publication.member(destination, suffix).read_bytes()
                                              for suffix in publication.SUFFIXES})
     def test_publication_snapshot_integrity_and_replace_failure(self):
@@ -326,4 +335,3 @@ class NativePublicationTests:
             self.assertIn('report_semantic_version', result.stdout + result.stderr)
             self.assertEqual(before, self.stamps())
             self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
-

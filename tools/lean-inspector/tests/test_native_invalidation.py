@@ -323,4 +323,3 @@ class NativeInvalidationTests:
         self.build()
         self.assertEqual((self.root / 'activity.jsonl').read_text(), '',
                          'successfully reconstructed legacy artifacts must be reusable')
-
