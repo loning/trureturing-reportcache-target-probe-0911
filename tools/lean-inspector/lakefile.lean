@@ -174,11 +174,13 @@ private def prepareNativeModuleReport (mod : Module) : FetchM (Job PreparedArtif
   let env := #[ ("LEAN_PATH", some workspace.leanPath.toString) ]
   let file := pkg.buildDir / "lean-inspector" / "modules" / s!"{mod.name}.zip"
   (deps.add (Job.mixArray exports) |>.add inspector).mapM fun _ => do
-    -- Inspector reads private declarations and values, including the complete
-    -- transitive closure of external utility claims.
+    -- Inspector's private import mode reads transitive private values, also
+    -- through public imports. Lake's legacy trace follows that same closure;
+    -- allTransTrace follows each import's visibility and can omit those values.
+    -- Apply this to the module and every external utility claim.
     for exportJob in exports do
       let info ← exportJob.await
-      addTrace (info.allArtsTrace.mix info.allTransTrace)
+      addTrace (info.allArtsTrace.mix info.legacyTransTrace)
     let executable ← inspector.await
     let args := #[pkg.dir.toString, mod.name.toString, mod.leanFile.toString,
       utility.toString, executable.toString, file.toString]
