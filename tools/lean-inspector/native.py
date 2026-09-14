@@ -14,6 +14,15 @@ import tempfile
 import zipfile
 import zlib
 
+# Match zipfile's optional LZMA support; importing the producer must also work
+# on Python installations without that decoder.
+try:
+    from lzma import LZMAError
+except ImportError:
+    LZMA_ERRORS = ()
+else:
+    LZMA_ERRORS = (LZMAError,)
+
 import materials
 import publication as public
 
@@ -227,7 +236,7 @@ def batch(request_file, result_file):
                 validate(*args[1:], verified_materials=verified_materials)
                 statuses.append(0)
             except (OSError, UnicodeError, ValueError, KeyError, TypeError,
-                    zipfile.BadZipFile, zlib.error, NotImplementedError) as error:
+                    zipfile.BadZipFile, zlib.error, NotImplementedError) + LZMA_ERRORS as error:
                 print(f'LEAN_INSPECTOR_REJECT {error}', file=sys.stderr)
                 statuses.append(1)
         elif kind == 'aggregate':

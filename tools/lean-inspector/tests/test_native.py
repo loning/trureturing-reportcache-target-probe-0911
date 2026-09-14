@@ -17,6 +17,7 @@ import zlib
 
 HERE = Path(__file__).resolve().parents[1]
 ROOT = HERE.parents[1]
+ROOT = Path(os.environ.get('STRATALINT_NATIVE_SOURCE_ROOT', ROOT)).resolve()
 sys.path.insert(0, str(HERE))
 import publication
 import materials
@@ -26,14 +27,17 @@ import native
 class NativeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.lake = subprocess.check_output(['elan', 'which', 'lake'], cwd=ROOT, text=True).strip()
+        cls.lake = os.environ.get('STRATALINT_NATIVE_LAKE_BIN') or subprocess.check_output(
+            ['elan', 'which', 'lake'], cwd=ROOT, text=True).strip()
         cls.dotnet = shutil.which('dotnet')
-        cls.cli = ROOT / 'tools/StrataLint.Cli/bin/Release/net10.0/StrataLint.dll'
+        cls.cli = Path(os.environ.get('STRATALINT_NATIVE_DOTNET_CLI',
+            ROOT / 'tools/StrataLint.Cli/bin/Release/net10.0/StrataLint.dll'))
         if not cls.dotnet or not cls.cli.is_file():
             raise RuntimeError('native fixtures require make -C tools dotnet first')
 
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='inspector-native.')
+        self.temporary = tempfile.TemporaryDirectory(prefix='inspector-native.',
+            dir=os.environ.get('STRATALINT_NATIVE_TMPDIR'))
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.write('lakefile.toml', '''name = "fixture"
@@ -137,7 +141,7 @@ root = "Cache"
         result = subprocess.run([self.lake, *args], cwd=self.root, env=self.env, text=True, capture_output=True, timeout=120)
         if success:
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        else:
+        elif success is False:
             self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         return result
 
@@ -204,6 +208,92 @@ root = "Cache"
     def origins(self):
         with zipfile.ZipFile(self.root / '.lake/build/lean-inspector/report.zip') as archive:
             return json.loads(archive.read(publication.RAW + '.provenance.json'))['module_origins']
+
+    def record_result(self, phase, result, paths=()):
+        """Optional external, reviewable fixture data; never a test oracle."""
+        if output := os.environ.get('STRATALINT_NATIVE_RESULT_DIR'):
+            output = Path(output) / self._testMethodName / phase
+            output.mkdir(parents=True, exist_ok=True)
+            for path in paths:
+                destination = output / path.relative_to(self.root)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, destination)
+            (output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+
+    def test_reported_module_proof_axioms_invalidate_public_trace(self):
+        # Both registered modules use module headers. The public theorem body
+        # in B is not exposed to A's ordinary public import, but Inspector reads
+        # it through Lean's private import mode when computing A's axioms.
+        self.write('D5/A.lean', 'module\npublic import D5.B\npublic section\n'
+            'theorem value : True := D5.support\n')
+        support = 'module\npublic section\nnamespace D5\ntheorem support : True := True.intro\n'
+        self.write('D5/B.lean', support)
+
+        def snapshot(phase):
+            rows, report, material = self.report()
+            artifacts = list((self.root / '.lake/build/lean-inspector/modules').glob('*.zip'))
+            artifacts += [self.root / '.lake/build/lean-inspector/report.zip']
+            artifacts += [self.root / f'.lake/build/lib/lean/D5/{name}.olean{suffix}'
+                          for name in ['A', 'B'] for suffix in ['', '.server', '.private']]
+            artifacts += [self.root / path for path in ['D5/A.lean', 'D5/B.lean', 'activity.jsonl']]
+            data = dict(rows=rows, origins=self.origins(),
+                artifacts={str(p.relative_to(self.root)): publication.digest(p) for p in artifacts},
+                activity=[json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()])
+            self.record_result(phase, data, artifacts)
+            return data, report, material
+
+        self.build()
+        before, _, _ = snapshot('before')
+        stamps = self.stamps()
+        self.build()
+        self.assertEqual(stamps, self.stamps())
+        self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
+        self.write('D5/B.lean', support.replace('True.intro',
+            'Classical.choice (show Nonempty True from ⟨True.intro⟩)'))
+        self.build()
+        warm, warm_report, warm_material = snapshot('warm')
+        changed = {name for name, stamp in self.stamps().items() if stamp != stamps[name]}
+        # Force clean report extraction through the same native owner, retaining
+        # compiled Lean inputs and disabling restoration from the fixture cache.
+        state = self.root / '.lake/build/lean-inspector'
+        for path in [*(state / 'modules').glob('*.zip*'), *state.glob('report.zip*')]:
+            path.unlink()
+        self.env['LAKE_ARTIFACT_CACHE'] = 'false'
+        self.build()
+        clean, clean_report, clean_material = snapshot('clean')
+
+        def declaration(data, module, name):
+            row = next(row for row in data['rows'] if row['module'] == module)
+            return next(decl for decl in row['declarations'] if decl['name'] == name)
+
+        public = '.lake/build/lib/lean/D5/B.olean'
+        private = public + '.private'
+        result = dict(changed=sorted(changed),
+            public_olean_changed=before['artifacts'][public] != warm['artifacts'][public],
+            private_olean_changed=before['artifacts'][private] != warm['artifacts'][private],
+            theorem_type_preserved=declaration(before, 'D5.B', 'D5.support')['type_sha256'] ==
+                declaration(warm, 'D5.B', 'D5.support')['type_sha256'],
+            extracted={phase: sum(r['count'] for r in data['activity'] if r['kind'] == 'extract')
+                       for phase, data in [('before', before), ('warm', warm), ('clean', clean)]},
+            axioms={phase: {name: declaration(data, module, name)['axioms']
+                           for module, name in [('D5.A', 'value'), ('D5.B', 'D5.support')]}
+                    for phase, data in [('before', before), ('warm', warm), ('clean', clean)]},
+            warm_matches_clean=warm_report == clean_report and warm_material == clean_material,
+            unaffected_origin_preserved=before['origins']['D5.Alone'] == warm['origins']['D5.Alone'])
+        self.record_result('comparison', result)
+        self.assertEqual(result['axioms']['before'], {'value': [], 'D5.support': []})
+        self.assertEqual(result['axioms']['clean'],
+                         {'value': ['Classical.choice'], 'D5.support': ['Classical.choice']})
+        # Pinned Lean exports axiom dependencies in exportedAxiomsExt even when
+        # the theorem body is hidden. An axiom-changing proof edit therefore
+        # changes the public olean and reaches ordinary module importers.
+        self.assertTrue(result['public_olean_changed'])
+        self.assertTrue(result['private_olean_changed'])
+        self.assertTrue(result['theorem_type_preserved'])
+        self.assertTrue(result['warm_matches_clean'], json.dumps(result))
+        self.assertEqual(changed, {'D5.A', 'D5.B', 'Fixture'})
+        self.assertEqual(result['extracted'], {'before': 4, 'warm': 3, 'clean': 4})
+        self.assertTrue(result['unaffected_origin_preserved'])
 
     def test_exported_transitive_dependency_binding(self):
         self.build()
@@ -603,13 +693,15 @@ root = "Cache"
             self.assertEqual(before, self.stamps())
             self.assertEqual((self.root / 'activity.jsonl').read_text(), '')
 
-    def check_row_decoder_recovery(self, damage, exception):
+    def check_row_decoder_recovery(self, damage, exception, *, no_build=False):
         self.build()
         before = self.stamps()
         expected_report = self.report()
         origins = self.origins()
         path = self.root / '.lake/build/lean-inspector/modules/D5.Alone.zip'
         expected = path.read_bytes()
+        self.record_result('valid', dict(artifact_sha256=publication.digest(path),
+            rows=expected_report[0], origins=origins), [path])
         damaged = damage(expected)
         # Establish the real decoder failure before testing Lake's optional-row
         # recovery. Replace the private path, never a native-cache hard link.
@@ -619,7 +711,28 @@ root = "Cache"
             with self.assertRaises(exception):
                 report = publication.unpack(path, directory, ('', '.materials.zip', '.provenance.json'))
                 publication.validate_rows(report, publication.member(report, '.materials.zip'))
-        recovered = self.build()
+        self.record_result('damaged', dict(artifact_sha256=publication.digest(path),
+            exception=exception.__name__), [path])
+        if no_build:
+            self.write('activity.jsonl', '')
+            stamp = (path.stat().st_ino, path.stat().st_mtime_ns)
+            rejected = self.run_lake('--no-build', 'build', ':report', success=False)
+            result = dict(exit_code=rejected.returncode,
+                needs_rebuild='needs to be rebuilt' in rejected.stdout + rejected.stderr,
+                no_activity=(self.root / 'activity.jsonl').read_text() == '',
+                artifact_unchanged=path.read_bytes() == damaged and
+                    stamp == (path.stat().st_ino, path.stat().st_mtime_ns))
+            self.record_result('no-build', result)
+            self.assertTrue(result['no_activity'])
+            self.assertTrue(result['artifact_unchanged'])
+        recovered = self.build(success=None)
+        self.record_result('recovery', dict(exit_code=recovered.returncode,
+            private_rebuilds=(recovered.stdout + recovered.stderr).count(
+                'inspector artifact rejected; rebuilding privately'),
+            decoder_escaped='LZMAError:' in recovered.stdout + recovered.stderr))
+        self.assertEqual(recovered.returncode, 0, recovered.stdout + recovered.stderr)
+        if no_build:
+            self.assertTrue(result['needs_rebuild'], rejected.stdout + rejected.stderr)
         self.assertIn('inspector artifact rejected; rebuilding privately', recovered.stdout + recovered.stderr)
         self.assertEqual({name for name, stamp in self.stamps().items() if stamp != before[name]}, {'D5.Alone'})
         records = [json.loads(line) for line in (self.root / 'activity.jsonl').read_text().splitlines()]
@@ -628,6 +741,9 @@ root = "Cache"
         self.assertEqual(path.stat().st_nlink, 1, 'reconstruction must be private')
         self.assertEqual(self.report(), expected_report)
         self.assertEqual(self.origins(), origins)
+        self.record_result('recovered', dict(artifact_sha256=publication.digest(path),
+            extraction_count=sum(row['count'] for row in records if row['kind'] == 'extract'),
+            private_links=path.stat().st_nlink, report_matches_valid=True, origins_preserved=True), [path])
 
     def test_native_recovers_only_row_with_damaged_deflate(self):
         def damage(data):
@@ -663,6 +779,61 @@ root = "Cache"
                     damaged[offset] ^= method
                     return bytes(damaged)
                 self.check_row_decoder_recovery(damage, NotImplementedError)
+
+    @unittest.skipIf(zipfile.lzma is None, 'Python ZIP LZMA support is optional')
+    def test_native_recovers_only_row_with_damaged_lzma(self):
+        # Enough real report bytes for the LZMA decoder to reach the corrupt
+        # properties, rather than stopping earlier on a truncated ZIP member.
+        self.write('D5/Alone.lean', ''.join(
+            f'theorem alone_{index} : True := True.intro\n' for index in range(256)))
+
+        def damage(data):
+            with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                self.assertEqual(archive.infolist()[0].filename, publication.RAW)
+                offset = archive.start_dir + 10
+            damaged = bytearray(data)
+            self.assertEqual(struct.unpack_from('<H', damaged, offset)[0], zipfile.ZIP_STORED)
+            struct.pack_into('<H', damaged, offset, zipfile.ZIP_LZMA)
+            return bytes(damaged)
+
+        self.check_row_decoder_recovery(damage, zipfile.lzma.LZMAError, no_build=True)
+
+    def test_native_optional_lzma_and_batch_failure_boundaries(self):
+        self.build()
+        request = self.root / 'requests.json'
+        result = self.root / 'statuses.json'
+        artifact = self.root / '.lake/build/lean-inspector/modules/D5.Alone.zip'
+        utility = self.root / '.lake/build/lean-inspector/inputs/D5.Alone.json'
+        validation = [str(self.root), 'module', str(self.root), 'D5.Alone', str(utility), str(artifact)]
+        request.write_text(json.dumps([['validate', validation]]))
+        # A fresh interpreter without lzma must still import the real producer
+        # and validate the supported stored/deflated native artifact.
+        control = subprocess.run([sys.executable, '-B', '-c',
+            'import sys; sys.modules["lzma"] = None; sys.path.insert(0, sys.argv[1]); '
+            'import native; native.batch(sys.argv[2], sys.argv[3])',
+            str(self.root / 'tools/lean-inspector'), str(request), str(result)],
+            cwd=self.root, env=self.env, text=True, capture_output=True, timeout=120)
+        self.assertEqual(control.returncode, 0, control.stdout + control.stderr)
+        self.assertEqual(json.loads(result.read_text()), [0])
+        result.unlink()
+        with patch.object(native, 'validate', side_effect=RuntimeError('unrelated validator failure')):
+            with self.assertRaisesRegex(RuntimeError, 'unrelated validator failure'):
+                native.batch(request, result)
+        self.assertFalse(result.exists())
+        errors = [ValueError('required producer failure')]
+        if zipfile.lzma is not None:
+            errors.append(zipfile.lzma.LZMAError('required producer decoder failure'))
+        for kind, owner in [('produce', 'produce_batch'), ('aggregate', 'aggregate')]:
+            request.write_text(json.dumps([[kind, [str(self.root), str(artifact)]]]))
+            for error in errors:
+                with self.subTest(kind=kind, exception=type(error).__name__):
+                    with patch.object(native, owner, side_effect=error):
+                        with self.assertRaises(type(error)):
+                            native.batch(request, result)
+                    self.assertFalse(result.exists())
+        self.record_result('boundaries', dict(without_lzma_valid_control_exit=control.returncode,
+            unrelated_validator_error_propagates=True, required_producer_errors_propagate=True,
+            required_error_types=[type(error).__name__ for error in errors]))
 
     def encrypted_member(self, data):
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
