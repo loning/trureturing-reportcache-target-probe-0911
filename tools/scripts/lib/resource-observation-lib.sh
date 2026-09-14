@@ -267,12 +267,13 @@ resource_observe_sample() {
   process_values="$(resource_observation_process_values "$root_pid" "$observer_pid")"
   IFS=$'\t' read -r process_count process_cpu_seconds process_tree <<< "$process_values"
 
-  printf 'RESOURCE_SAMPLE sequence=%s phase=%s stall_cpu_threshold_percent=5 stall_window_seconds=600 command_exit_status=%s termination_signal=%s utc=%s utc_epoch_seconds=%s cgroup_path=%s memory_current=%s memory_peak=%s memory_max=%s memory_events=%s memory_events_oom=%s memory_events_oom_kill=%s workspace_mount=%s workspace_available_blocks_1k=%s workspace_available_inodes=%s runner_temp_mount=%s runner_temp_available_blocks_1k=%s runner_temp_available_inodes=%s tmp_mount=%s tmp_available_blocks_1k=%s tmp_available_inodes=%s process_count=%s process_cpu_seconds=%s process_tree=%s\n' \
+  printf 'RESOURCE_SAMPLE sequence=%s phase=%s stall_cpu_threshold_percent=5 stall_window_seconds=600 command_exit_status=%s termination_signal=%s utc=%s utc_epoch_seconds=%s cgroup_path=%s memory_current=%s memory_peak=%s memory_max=%s memory_events=%s memory_events_oom=%s memory_events_oom_kill=%s workspace_mount=%s workspace_available_blocks_1k=%s workspace_available_inodes=%s runner_temp_mount=%s runner_temp_available_blocks_1k=%s runner_temp_available_inodes=%s tmp_mount=%s tmp_available_blocks_1k=%s tmp_available_inodes=%s process_count=%s process_cpu_seconds=%s process_tree=%s%s\n' \
     "$sequence" "$phase" "$command_exit_status" "$termination_signal" "$timestamp" "$utc_epoch_seconds" "$cgroup_path" "$memory_current" "$memory_peak" "$memory_max" \
     "$memory_events" "$memory_events_oom" "$memory_events_oom_kill" \
     "$workspace_mount" "$workspace_blocks" "$workspace_inodes" \
     "$runner_temp_mount" "$runner_temp_blocks" "$runner_temp_inodes" \
-    "$tmp_mount" "$tmp_blocks" "$tmp_inodes" "$process_count" "$process_cpu_seconds" "$process_tree"
+    "$tmp_mount" "$tmp_blocks" "$tmp_inodes" "$process_count" "$process_cpu_seconds" "$process_tree" \
+    "${resource_observation_sample_id:+ sample_id=$resource_observation_sample_id}"
 
   local value=""
   for value in \

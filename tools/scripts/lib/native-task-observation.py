@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Bounded annotations for existing resource samples, not a scheduler or poller.
 
-Linux stat field 22 identifies a PID lifetime within this boot. Lake 4.33's
-compileLeanModule supplies source/output/--setup operands directly to Lean.
-Only that recognized invocation is mapped; no argv or environment is emitted.
+Operand association, setup-validated module identity and observation-time source
+bytes are separate claims. None identifies compiler-open-time bytes or an OOM
+victim. Only the recognized Lake compiler argv is mapped; argv is never emitted.
 """
 import argparse
 import hashlib
@@ -15,43 +15,60 @@ import sys
 import time
 
 LIMIT = 64
+RECORD_LIMIT = 4096 - len("NATIVE_TASK_SAMPLE \n")
 UNAVAILABLE = "UNAVAILABLE"
 
 
-def read_bounded(path, limit):
+def fingerprint(value):
+    return (value.st_dev, value.st_ino, value.st_size,
+            value.st_mtime_ns, value.st_ctime_ns)
+
+
+def read_bounded(path, limit, measurement=None):
+    measurement = measurement if measurement is not None else {}
+    measurement.update(limit_bytes=limit, status="unavailable")
     with path.open("rb") as stream:
+        before = os.fstat(stream.fileno())
+        measurement["stat_size_bytes"] = before.st_size
         data = stream.read(limit + 1)
+        after = os.fstat(stream.fileno())
+    measurement.update(bytes_read=len(data), length_kind="lower-bound" if len(data) > limit else "exact")
+    if path.name == "cmdline":
+        measurement["nul_complete"] = data.endswith(b"\0") if len(data) <= limit else UNAVAILABLE
+    if fingerprint(before) != fingerprint(after) or fingerprint(after) != fingerprint(path.stat()):
+        measurement["status"] = "read-changed"
+        raise ValueError("read-changed")
     if len(data) > limit:
-        raise ValueError("bounded read exceeded")
+        measurement["status"] = "limit-exceeded"
+        raise ValueError("limit-exceeded")
+    measurement["status"] = "read"
     return data
 
 
-def stat_identity(proc, pid):
-    text = read_bounded(proc / str(pid) / "stat", 4096).decode("utf-8")
+def stat_identity(proc, pid, measurement=None):
+    text = read_bounded(proc / str(pid) / "stat", 4096, measurement).decode("utf-8")
     fields = text[text.rindex(")") + 2:].split()
     if int(text.split(" ", 1)[0]) != pid or len(fields) < 20:
-        raise ValueError("stat identity")
+        raise ValueError("invalid-stat")
     parent, birth = int(fields[1]), int(fields[19])
-    if parent < 0 or birth < 0 or fields[0] not in "RSDZTtXxKWPI":
-        raise ValueError("stat fields")
+    if not 0 <= parent <= 2147483647 or not 0 <= birth <= 18446744073709551615 or fields[0] not in "RSDZTtXxKWPI":
+        raise ValueError("invalid-stat")
     return parent, birth, fields[0]
 
 
-def native_file(repository, cwd, argv):
-    # Recognize the native compiler suffix; unknown prefix options fail closed.
+def native_operands(repository, cwd, argv):
     if len(argv) < 7 or argv[-1] != "--json" or argv[-3] != "--setup":
-        raise ValueError("not a Lake compiler invocation")
+        raise ValueError("unsupported-suffix")
     outputs = {}
     pos = len(argv) - 4
     while pos > 1 and argv[pos - 1] in ("-o", "-i", "-c", "-b"):
         flag = argv[pos - 1]
         if flag in outputs:
-            raise ValueError("duplicate output")
+            raise ValueError("duplicate-output")
         outputs[flag] = argv[pos]
         pos -= 2
     if "-o" not in outputs or pos < 1:
-        raise ValueError("no native olean")
-    source_arg = argv[pos]
+        raise ValueError("missing-output")
     index = 1
     while index < pos:
         arg = argv[index]
@@ -60,39 +77,68 @@ def native_file(repository, cwd, argv):
         elif arg.startswith(("-D", "--root=", "--load-dynlib=", "--plugin=")):
             index += 1
         else:
-            raise ValueError("unknown compiler prefix")
+            raise ValueError("unsupported-prefix")
     if index != pos:
-        raise ValueError("missing prefix operand")
-
-    def local_path(value):
+        raise ValueError("missing-prefix-operand")
+    paths = []
+    for value in (argv[pos], outputs["-o"], argv[-2]):
         path = (cwd / value).resolve()
-        path.relative_to(repository)
-        return path
-
-    source = local_path(source_arg)
-    olean = local_path(outputs["-o"])
-    setup = local_path(argv[-2])
-    # The module name is supplied by Lean's own ModuleSetup, not a timing match.
-    data = json.loads(read_bounded(setup, 2 * 1024 * 1024))
-    module = data["name"]
-    if not isinstance(module, str) or len(module) > 512:
-        raise ValueError("module name")
-    parts = module.split(".")
-    if not all(part.isidentifier() for part in parts):
-        raise ValueError("unsupported module name")
-    tail = "/".join(parts)
+        try:
+            path.relative_to(repository)
+        except ValueError:
+            raise ValueError("outside-repository") from None
+        paths.append(path)
+    source, olean, setup = paths
+    # Derive an operand tail only, never a public module name, before setup I/O.
+    marker = "/.lake/build/lib/lean/"
+    if marker not in str(olean) or not str(olean).endswith(".olean"):
+        raise ValueError("output-path-shape")
+    tail = str(olean).rsplit(marker, 1)[1][:-6]
+    if not tail or not all(part.isidentifier() for part in tail.split("/")):
+        raise ValueError("unsupported-tail")
     if not str(source).endswith("/" + tail + ".lean"):
-        raise ValueError("source/module mismatch")
-    if not str(olean).endswith("/.lake/build/lib/lean/" + tail + ".olean"):
-        raise ValueError("olean/module mismatch")
+        raise ValueError("source-tail-mismatch")
     if not str(setup).endswith("/.lake/build/ir/" + tail + ".setup.json"):
-        raise ValueError("setup/module mismatch")
-    # Source bytes identify what is present at observation time, not proof that
-    # they could not have changed after the compiler opened the input.
-    source_hash = hashlib.sha256(read_bounded(source, 16 * 1024 * 1024)).hexdigest()
-    return {"module": module, "file": str(source.relative_to(repository)),
-            "source_sha256_at_sample": source_hash,
-            "facet": UNAVAILABLE, "package": UNAVAILABLE}
+        raise ValueError("setup-tail-mismatch")
+    return paths, tail
+
+
+def setup_module(data, tail):
+    value = json.loads(data)
+    module = value.get("name") if isinstance(value, dict) else None
+    if not isinstance(module, str) or len(module) > 512:
+        raise ValueError("invalid-module-name")
+    if not all(part.isidentifier() for part in module.split(".")):
+        raise ValueError("invalid-module-name")
+    if module.replace(".", "/") != tail:
+        raise ValueError("module-tail-mismatch")
+    return module
+
+
+# Only these bounded reason tokens can reach the output. Exception text cannot.
+REASONS = frozenset(("read-changed", "limit-exceeded", "invalid-stat", "unsupported-suffix",
+    "duplicate-output", "missing-output", "unsupported-prefix", "missing-prefix-operand",
+    "outside-repository", "output-path-shape", "unsupported-tail", "source-tail-mismatch",
+    "setup-tail-mismatch", "invalid-module-name", "module-tail-mismatch", "sampled-parent-mismatch",
+    "parent-toolchain-mismatch", "nul-incomplete", "cwd-changed", "cmdline-changed",
+    "parent-executable-changed", "process-changed", "parent-changed", "executable-changed",
+    "operands-changed", "source-changed", "setup-changed", "not-lean"))
+ERRORS = (OSError, ValueError, KeyError, TypeError, RuntimeError, RecursionError)
+
+
+def failure(stage, error):
+    result = {"stage": stage, "reason": "invalid-data"}
+    if isinstance(error, OSError):
+        result["reason"] = "os-error"
+        if error.errno is not None:
+            result["errno"] = error.errno
+    elif isinstance(error, UnicodeError):
+        result["reason"] = "invalid-utf8"
+    elif isinstance(error, json.JSONDecodeError):
+        result["reason"] = "invalid-json"
+    elif str(error) in REASONS:
+        result["reason"] = str(error)
+    return result
 
 
 def annotate(proc, repository, pid, sampled_parent):
@@ -103,69 +149,163 @@ def annotate(proc, repository, pid, sampled_parent):
               "file": UNAVAILABLE, "source_sha256_at_sample": UNAVAILABLE,
               "facet": UNAVAILABLE, "package": UNAVAILABLE,
               "identity_status": "unavailable", "utc_epoch_ns": time.time_ns()}
+    diagnostic = {"stability": "unavailable", "operand_status": "unavailable",
+                  "setup_name_status": "not-attempted", "source_hash_status": "not-attempted",
+                  "reads": {}, "failures": []}
+    record["diagnostic"] = diagnostic
+    stage = "process-before"
+
+    def read(path, bound):
+        return read_bounded(path, bound, diagnostic["reads"].setdefault(stage, {}))
+
+    def stat(pid):
+        return stat_identity(proc, pid, diagnostic["reads"].setdefault(stage, {}))
+
+    def require(condition, reason):
+        if not condition:
+            raise ValueError(reason)
+
     try:
-        before = stat_identity(proc, pid)
-        if before[0] != sampled_parent:
-            return record
+        before = stat(pid)
+        require(before[0] == sampled_parent, "sampled-parent-mismatch")
         directory = proc / str(pid)
+        stage = "executable-before"
         executable = os.readlink(directory / "exe")
-        parent_before = stat_identity(proc, before[0])
-        native = None
-        # A real toolchain executable with a Lake parent, not an argv[0] label.
-        if Path(executable).name == "lean":
-            try:
-                parent_exe = os.readlink(proc / str(before[0]) / "exe")
-                if Path(parent_exe).name != "lake" or Path(parent_exe).parent != Path(executable).parent:
-                    raise ValueError("not the toolchain Lake parent")
-                cwd = os.readlink(directory / "cwd")
-                command = read_bounded(directory / "cmdline", 65536)
-                if not command.endswith(b"\0"):
-                    raise ValueError("truncated cmdline")
-                argv = command[:-1].decode("utf-8").split("\0")
-                native = native_file(repository, Path(cwd), argv)
-                if (os.readlink(directory / "cwd") != cwd
-                        or read_bounded(directory / "cmdline", 65536) != command
-                        or os.readlink(proc / str(before[0]) / "exe") != parent_exe):
-                    native = None
-            except (OSError, ValueError, KeyError, TypeError):
-                native = None
-        after = stat_identity(proc, pid)
-        parent_after = stat_identity(proc, before[0])
-        if (before[:2] != after[:2] or parent_before[:2] != parent_after[:2]
-                or os.readlink(directory / "exe") != executable):
-            return record
-        record.update(birth_ticks=before[1], ppid=before[0],
-                      parent_birth_ticks=parent_before[1], state=after[2],
-                      executable=Path(executable).name if Path(executable).name in ("lean", "lake") else "other")
-        if native is not None:
-            record.update(native)
-            record["identity_status"] = "native-file"
-    except (OSError, ValueError, KeyError, TypeError):
-        pass
+        stage = "parent-before"
+        parent_before = stat(before[0])
+        paths = command = cwd = parent_exe = module = source_hash = None
+        file_tokens = {}
+        try:
+            stage = "invocation"
+            require(Path(executable).name == "lean", "not-lean")
+            stage = "parent-executable-before"
+            parent_exe = os.readlink(proc / str(before[0]) / "exe")
+            require(Path(parent_exe).name == "lake" and Path(parent_exe).parent == Path(executable).parent,
+                    "parent-toolchain-mismatch")
+            stage = "cwd-before"
+            cwd = os.readlink(directory / "cwd")
+            stage = "cmdline-before"
+            command = read(directory / "cmdline", 65536)
+            require(command.endswith(b"\0"), "nul-incomplete")
+            argv = command[:-1].decode("utf-8").split("\0")
+            stage = "operands"
+            paths, tail = native_operands(repository, Path(cwd), argv)
+            diagnostic["argv_shape"] = "native-compiler"
+            # Setup and source observations are independent after operand checks.
+            for kind, path, bound in (("setup", paths[2], 2097152), ("source", paths[0], 16777216)):
+                try:
+                    stage = kind + "-read"
+                    diagnostic["reads"][stage] = {"limit_bytes": bound, "status": "unavailable"}
+                    token = fingerprint(path.stat())
+                    diagnostic["reads"][stage]["stat_size_bytes"] = token[2]
+                    data = read(path, bound)
+                    require(fingerprint(path.stat()) == token, kind + "-changed")
+                    file_tokens[kind] = (path, token)
+                    if kind == "setup":
+                        stage = "setup-name"
+                        module = setup_module(data, tail)
+                        diagnostic["setup_name_status"] = "validated"
+                    else:
+                        source_hash = hashlib.sha256(data).hexdigest()
+                        diagnostic["source_hash_status"] = "hashed"
+                except ERRORS as error:
+                    diagnostic["failures"].append(failure(stage, error))
+                    diagnostic[kind + ("_name_status" if kind == "setup" else "_hash_status")] = "failed"
+        except ERRORS as error:
+            diagnostic["failures"].append(failure(stage, error))
+
+        # Always revalidate captured identity, including after a later read failed.
+        stage = "process-after"
+        after = stat(pid)
+        require(before[:2] == after[:2], "process-changed")
+        stage = "parent-after"
+        require(parent_before[:2] == stat(before[0])[:2], "parent-changed")
+        stage = "executable-after"
+        require(os.readlink(directory / "exe") == executable, "executable-changed")
+        record.update(birth_ticks=before[1], ppid=before[0], parent_birth_ticks=parent_before[1],
+                      state=after[2], executable=Path(executable).name if Path(executable).name in ("lean", "lake") else "other")
+        if parent_exe is not None:
+            stage = "parent-executable-after"
+            require(os.readlink(proc / str(before[0]) / "exe") == parent_exe, "parent-executable-changed")
+        if cwd is not None:
+            stage = "cwd-after"
+            require(os.readlink(directory / "cwd") == cwd, "cwd-changed")
+        if command is not None:
+            stage = "cmdline-after"
+            require(read(directory / "cmdline", 65536) == command, "cmdline-changed")
+        if paths is not None:
+            stage = "operands-after"
+            require(native_operands(repository, Path(cwd), argv)[0] == paths, "operands-changed")
+            for kind, (path, token) in file_tokens.items():
+                stage = kind + "-after"
+                require(fingerprint(path.stat()) == token, kind + "-changed")
+            diagnostic.update(operand_status="operand-only", operands=dict(zip(
+                ("source", "output", "setup"), (str(p.relative_to(repository)) for p in paths))))
+            if source_hash is not None:
+                diagnostic["source_sha256_at_sample"] = source_hash
+            if module is not None and source_hash is not None:
+                record.update(module=module, file=str(paths[0].relative_to(repository)),
+                              source_sha256_at_sample=source_hash, identity_status="native-file")
+        diagnostic["stability"] = "stable"
+    except ERRORS as error:
+        diagnostic["failures"].append(failure(stage, error))
+        diagnostic["stability"] = "unverified"
+        if diagnostic["source_hash_status"] == "hashed":
+            diagnostic["source_hash_status"] = "discarded-unstable"
+        if diagnostic["setup_name_status"] == "validated":
+            diagnostic["setup_name_status"] = "discarded-unstable"
     return record
+
+
+def encode_record(record, sample_id):
+    record["sample_id"] = sample_id
+    diagnostic = record.get("diagnostic", {})
+    # Cap the entire emitted line (hence also the added fields), including prefix,
+    # newline, escaping and join identifier. Normal full identities stay raw.
+    # Omitted paths are never emitted as deceptively complete truncated operands.
+    def size():
+        return len(json.dumps(record, separators=(",", ":")).encode())
+    if size() > RECORD_LIMIT:
+        diagnostic.pop("operands", None)
+        diagnostic["operand_status"] = "truncated"
+        diagnostic["truncation"] = "operands-omitted"
+    if size() > RECORD_LIMIT:
+        for key in ("module", "file", "source_sha256_at_sample"):
+            record[key] = UNAVAILABLE
+        record["identity_status"] = "unavailable"
+        diagnostic.pop("source_sha256_at_sample", None)
+        diagnostic["source_hash_status"] = "omitted-truncated"
+        diagnostic["truncation"] = "identity-omitted"
+    if size() > RECORD_LIMIT:
+        diagnostic.pop("reads", None)
+        diagnostic["truncation"] = "identity-and-read-measurements-omitted"
+    return json.dumps(record, separators=(",", ":"))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--proc-root", type=Path, required=True)
     parser.add_argument("--repository", type=Path, required=True)
+    parser.add_argument("--sample-id", required=True)
     args = parser.parse_args()
+    if not re.fullmatch(r"[0-9a-f]{32}", args.sample_id):
+        parser.error("sample-id must be 32 lowercase hex characters")
     repository = args.repository.resolve()
-    # Input is the existing resource observer's tree, never process arguments.
-    tree = sys.stdin.buffer.read(1024 * 1024 + 1)
-    if len(tree) > 1024 * 1024:
-        print('NATIVE_TASK_SAMPLE {"schema":1,"identity_status":"unavailable"}', flush=True)
-        return
-    entries = tree.decode("ascii", errors="replace").strip().split(";")
+    tree = sys.stdin.buffer.read(1048576 + 1)
+    entries = tree.decode("ascii", errors="replace").strip().split(";") if len(tree) <= 1048576 else []
     emitted = False
     for entry in entries[:LIMIT]:
-        match = re.match(r"^pid:([0-9]+),ppid:([0-9]+),", entry)
+        match = re.match(r"^pid:([0-9]{1,10}),ppid:([0-9]{1,10}),", entry)
         if match:
             record = annotate(args.proc_root, repository, int(match[1]), int(match[2]))
-            print("NATIVE_TASK_SAMPLE " + json.dumps(record, separators=(",", ":")), flush=True)
+            print("NATIVE_TASK_SAMPLE " + encode_record(record, args.sample_id), flush=True)
             emitted = True
     if not emitted:
-        print('NATIVE_TASK_SAMPLE {"schema":1,"identity_status":"unavailable"}', flush=True)
+        record = {"schema": 1, "identity_status": "unavailable", "diagnostic": {
+            "failures": [{"stage": "tree", "reason": "limit-exceeded" if len(tree) > 1048576 else "no-process-entry"}],
+            "limit_bytes": 1048576, "bytes_read": len(tree),
+            "length_kind": "lower-bound" if len(tree) > 1048576 else "exact"}}
+        print("NATIVE_TASK_SAMPLE " + encode_record(record, args.sample_id), flush=True)
 
 
 if __name__ == "__main__":
