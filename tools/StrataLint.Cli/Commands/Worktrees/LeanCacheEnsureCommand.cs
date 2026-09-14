@@ -179,7 +179,8 @@ internal static partial class LeanCacheEnsureCommand
                 "canonical cache writer guard is busy");
         }
 
-        var ensured = EnsureLocked(
+        CacheState? cacheState = null;
+        var ensured = NativeTaskObservation.Run(NativeTaskObservation.Phase.Ensure, () => EnsureLocked(
             root,
             pins,
             command[0],
@@ -189,7 +190,7 @@ internal static partial class LeanCacheEnsureCommand
             removePartial: null,
             continueOnCacheGetFailure: true,
             stateProbe,
-            out var cacheState);
+            out cacheState), static result => result.Success ? 0 : 1);
         if (!ensured.Success) return ensured;
 
         var receipt = ensured.Output;
@@ -226,11 +227,11 @@ internal static partial class LeanCacheEnsureCommand
 
         try
         {
-            var invoked = runner.Run(
+            var invoked = NativeTaskObservation.Run(NativeTaskObservation.Phase.NativeCommand, () => runner.Run(
                 command[0],
                 command.Skip(1).ToArray(),
                 root,
-                LeanCacheProvisioner.LeanCommandBudget);
+                LeanCacheProvisioner.LeanCommandBudget), static result => result.ExitCode);
             return new CommandResult(
                 invoked.ExitCode == 0,
                 receipt + Encoding.UTF8.GetString(invoked.StandardOutput),

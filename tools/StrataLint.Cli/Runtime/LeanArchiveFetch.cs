@@ -64,11 +64,11 @@ internal static class LeanArchiveFetch
         ProcessOutput output;
         try
         {
-            output = runner.Run(
+            output = NativeTaskObservation.Run(NativeTaskObservation.Phase.ArchiveFetch, () => runner.Run(
                 "/bin/bash",
                 [script, "fetch", "--repository", worktreeRoot],
                 worktreeRoot,
-                budget);
+                budget), static result => result.ExitCode);
         }
         catch (Exception exception) when (exception is IOException
             or UnauthorizedAccessException

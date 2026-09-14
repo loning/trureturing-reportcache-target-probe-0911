@@ -369,10 +369,22 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STRATALINT_ACCEPT_COLD_BUILD: '1'
+          STRATALINT_NATIVE_TASK_OBSERVATION: '1'
         shell: bash
         run: |
           set -euo pipefail
-          PATH="$HOME/.elan/bin:$PATH" make -C candidate lean
+          # Keep observation traps off the step shell; root-only signals have no observer receipt.
+          "$BASH" --noprofile --norc -euo pipefail <<'RESOURCE_OBSERVED_BUILD'
+          source candidate/tools/scripts/lib/resource-observation-lib.sh
+          trap 'resource_observation_handle_signal QUIT "$?" "$$" "${GITHUB_WORKSPACE:-}" "${RUNNER_TEMP:-}" "${sampler_pid:-}"' QUIT
+          source candidate/tools/scripts/lib/native-task-observation.sh "$GITHUB_WORKSPACE/candidate" /proc
+          run_candidate_lean() {
+            PATH="$HOME/.elan/bin:$PATH" make -C candidate lean
+          }
+          resource_observe_run_periodic run_candidate_lean
+          RESOURCE_OBSERVED_BUILD
+          # Keep the outer shell present to receive its own signals.
+          exit
       - name: Save Lean dependency artifacts (push only)
         if: always() && steps.lean-build.outcome == 'success' && steps.lake-deps-cache.outputs.cache-hit != 'true' && github.event_name == 'push'
         continue-on-error: true

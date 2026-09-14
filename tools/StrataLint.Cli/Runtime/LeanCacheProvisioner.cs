@@ -562,11 +562,11 @@ internal static class LeanCacheProvisioner
             ProcessOutput result;
             try
             {
-                result = runner.Run(
+                result = NativeTaskObservation.Run(NativeTaskObservation.Phase.DependencyCacheGet, () => runner.Run(
                     lakeExecutable,
                     ["exe", "cache", "get"],
                     worktreeRoot,
-                    DependencyFetchBudget);
+                    DependencyFetchBudget), static output => output.ExitCode);
             }
             catch (Exception exception)
             {
