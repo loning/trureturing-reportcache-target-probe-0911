@@ -4,6 +4,10 @@
 Operand association, setup-validated module identity and observation-time source
 bytes are separate claims. None identifies compiler-open-time bytes or an OOM
 victim. Only the recognized Lake compiler argv is mapped; argv is never emitted.
+The earlier ps tree has no lifetime binding to these annotations. Its RSS must
+not be attributed through sample_id/PID. Separately typed proc-stat RSS shares
+the birth read used for revalidation; only stable annotations publish it. These
+per-process read intervals are not an atomic process-family census.
 """
 import argparse
 import hashlib
@@ -45,14 +49,28 @@ def read_bounded(path, limit, measurement=None):
     return data
 
 
-def stat_identity(proc, pid, measurement=None):
+def stat_identity(proc, pid, measurement=None, memory=None):
+    started = time.time_ns() if memory is not None else None
     text = read_bounded(proc / str(pid) / "stat", 4096, measurement).decode("utf-8")
+    finished = time.time_ns() if memory is not None else None
     fields = text[text.rindex(")") + 2:].split()
     if int(text.split(" ", 1)[0]) != pid or len(fields) < 20:
         raise ValueError("invalid-stat")
     parent, birth = int(fields[1]), int(fields[19])
     if not 0 <= parent <= 2147483647 or not 0 <= birth <= 18446744073709551615 or fields[0] not in "RSDZTtXxKWPI":
         raise ValueError("invalid-stat")
+    if memory is not None:
+        # Linux stat field 24 is resident pages, from this same birth/parent
+        # read. Missing/invalid memory must not erase otherwise valid identity.
+        try:
+            pages = int(fields[21]) if len(fields) > 21 else -1
+            page_bytes = os.sysconf("SC_PAGE_SIZE")
+            if not 0 <= pages <= 9223372036854775807 or not 0 < page_bytes <= 2147483647:
+                raise ValueError("invalid-rss")
+            memory.update(rss_pages=pages, page_size_bytes=page_bytes, rss_bytes=pages * page_bytes,
+                          read_started_utc_epoch_ns=started, read_finished_utc_epoch_ns=finished)
+        except (OSError, ValueError):
+            memory["reason"] = "invalid-rss"
     return parent, birth, fields[0]
 
 
@@ -148,6 +166,8 @@ def annotate(proc, repository, pid, sampled_parent):
               "executable": UNAVAILABLE, "module": UNAVAILABLE,
               "file": UNAVAILABLE, "source_sha256_at_sample": UNAVAILABLE,
               "facet": UNAVAILABLE, "package": UNAVAILABLE,
+              "resource_tree_rss_association": "unverified",
+              "memory": {"kind": "proc-stat-rss", "association": "unavailable"},
               "identity_status": "unavailable", "utc_epoch_ns": time.time_ns()}
     diagnostic = {"stability": "unavailable", "operand_status": "unavailable",
                   "setup_name_status": "not-attempted", "source_hash_status": "not-attempted",
@@ -158,8 +178,8 @@ def annotate(proc, repository, pid, sampled_parent):
     def read(path, bound):
         return read_bounded(path, bound, diagnostic["reads"].setdefault(stage, {}))
 
-    def stat(pid):
-        return stat_identity(proc, pid, diagnostic["reads"].setdefault(stage, {}))
+    def stat(pid, memory=None):
+        return stat_identity(proc, pid, diagnostic["reads"].setdefault(stage, {}), memory)
 
     def require(condition, reason):
         if not condition:
@@ -216,7 +236,8 @@ def annotate(proc, repository, pid, sampled_parent):
 
         # Always revalidate captured identity, including after a later read failed.
         stage = "process-after"
-        after = stat(pid)
+        memory = dict(record["memory"])
+        after = stat(pid, memory)
         require(before[:2] == after[:2], "process-changed")
         stage = "parent-after"
         require(parent_before[:2] == stat(before[0])[:2], "parent-changed")
@@ -247,6 +268,9 @@ def annotate(proc, repository, pid, sampled_parent):
                 record.update(module=module, file=str(paths[0].relative_to(repository)),
                               source_sha256_at_sample=source_hash, identity_status="native-file")
         diagnostic["stability"] = "stable"
+        if "rss_bytes" in memory:
+            memory["association"] = "process-lifetime"
+        record["memory"] = memory
     except ERRORS as error:
         diagnostic["failures"].append(failure(stage, error))
         diagnostic["stability"] = "unverified"

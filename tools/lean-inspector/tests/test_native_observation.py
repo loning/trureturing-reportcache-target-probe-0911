@@ -45,8 +45,8 @@ class NativeObservationTests(unittest.TestCase):
                      '-o', str(self.output), '--setup', str(self.setup), '--json']
         self.command()
 
-    def stat(self, pid, parent, birth):
-        fields = ['S', str(parent)] + ['0'] * 17 + [str(birth)]
+    def stat(self, pid, parent, birth, rss=7):
+        fields = ['S', str(parent)] + ['0'] * 17 + [str(birth), '0', str(rss)]
         (self.proc / str(pid) / 'stat').write_text(str(pid) + ' (name with ) space) ' + ' '.join(fields))
 
     def command(self, argv=None):
@@ -70,6 +70,90 @@ class NativeObservationTests(unittest.TestCase):
         self.assertEqual('operand-only', record['diagnostic']['operand_status'])
         self.assertEqual('stable', record['diagnostic']['stability'])
         self.assertEqual('UNAVAILABLE', record['facet'])
+
+    def test_old_ps_rss_is_not_attributed_after_pid_reuse(self):
+        # Resource capture precedes the first annotation stat; the same live
+        # Lake parent then has a different Lean child at this reused PID.
+        self.stat(100, 50, 1000, rss=900000 * 1024 // os.sysconf('SC_PAGE_SIZE'))
+        old_tree = 'pid:100,ppid:50,rss_kb:900000'
+        self.stat(100, 50, 1001, rss=3)
+        self.source = self.root / 'D5/New.lean'
+        self.setup = self.root / '.lake/build/ir/D5/New.setup.json'
+        self.output = self.root / '.lake/build/lib/lean/D5/New.olean'
+        self.source.write_text('def replacement := 2\n')
+        self.setup.write_text('{"name":"D5.New"}')
+        self.argv = ['/toolchain/bin/lean', str(self.source), '-o', str(self.output),
+                     '--setup', str(self.setup), '--json']
+        self.command()
+        result = subprocess.run([sys.executable, '-B', str(ROOT / 'tools/scripts/lib/native-task-observation.py'),
+            '--repository', str(self.root), '--proc-root', str(self.proc), '--sample-id', 'a' * 32],
+            input=old_tree, capture_output=True, text=True, timeout=30)
+        self.assertEqual(0, result.returncode, result.stderr)
+        record = json.loads(result.stdout.split(' ', 1)[1])
+        self.assertEqual('unverified', record['resource_tree_rss_association'])
+        self.assertEqual('D5.New', record['module'])
+        self.assertEqual(1001, record['birth_ticks'])
+        self.assertEqual('process-lifetime', record['memory']['association'])
+        self.assertEqual(3 * os.sysconf('SC_PAGE_SIZE'), record['memory']['rss_bytes'])
+        self.assertNotEqual(900000 * 1024, record['memory']['rss_bytes'])
+
+    def test_stat_memory_is_independent_and_fails_closed(self):
+        with patch.object(observer.time, 'time_ns', side_effect=[100, 200, 300]):
+            stable = self.annotation()
+        self.assertEqual('proc-stat-rss', stable['memory']['kind'])
+        self.assertEqual(7, stable['memory']['rss_pages'])
+        self.assertEqual((200, 300), (stable['memory']['read_started_utc_epoch_ns'], stable['memory']['read_finished_utc_epoch_ns']))
+        original = observer.read_bounded
+        def changing_rss(path, limit, measurement=None):
+            data = original(path, limit, measurement)
+            if path == self.proc / '100/stat':
+                self.stat(100, 50, 1000, rss=11)
+            return data
+        with patch.object(observer, 'read_bounded', changing_rss):
+            record = self.annotation()
+        self.assertEqual(11, record['memory']['rss_pages'])
+        for value in ('invalid', -1, 2 ** 64):
+            self.stat(100, 50, 1000, rss=value)
+            record = self.annotation()
+            self.assertEqual('native-file', record['identity_status'])
+            self.assertEqual('unavailable', record['memory']['association'])
+            self.assertNotIn('rss_bytes', record['memory'])
+        path = self.proc / '100/stat'
+        path.write_text(path.read_text().rsplit(' ', 2)[0])
+        self.assertEqual('native-file', self.annotation()['identity_status'])
+        self.assertEqual('unavailable', self.annotation()['memory']['association'])
+
+    def test_entropy_exception_is_contained_and_command_status_preserved(self):
+        script = r'''
+source "$1/tools/scripts/lib/resource-observation-lib.sh"
+resource_observation_process_values() { printf '1\t2\tpid:100,ppid:50,rss_kb:456\n'; }
+resource_observation_cgroup_path() { printf 'UNAVAILABLE'; }
+resource_observation_cgroup_root() { printf 'UNAVAILABLE'; }
+resource_observation_mount_values() { printf 'mount\t100\t200\n'; }
+source "$1/tools/scripts/lib/native-task-observation.sh" "$1" "$3"
+observation_python="$2"
+python3() {
+  "$observation_python" -B -c 'import errno, os, sys, uuid
+from unittest.mock import patch
+with patch.object(os, "urandom", side_effect=OSError(errno.EIO, "QUALITY_ENTROPY_IO_ERROR")):
+    exec(sys.argv[1])' "$2"
+}
+resource_observe_run_periodic /bin/bash -c 'exit 37'
+'''
+        result = subprocess.run(['/bin/bash', '--noprofile', '--norc', '-c', script,
+            'entropy', str(ROOT), sys.executable, str(self.proc)], cwd=self.root,
+            capture_output=True, text=True, timeout=30)
+        self.assertEqual(37, result.returncode, result.stderr)
+        resources = [dict(word.split('=', 1) for word in x.split()[1:]) for x in result.stdout.splitlines() if x.startswith('RESOURCE_SAMPLE ')]
+        self.assertEqual('37', resources[-1]['command_exit_status'])
+        self.assertTrue(all('rss_kb:456' in x['process_tree'] and 'sample_id' not in x for x in resources))
+        lines = result.stderr.splitlines()
+        self.assertTrue(lines)
+        for line in lines:
+            self.assertLessEqual(len((line + '\n').encode()), 4096)
+            self.assertTrue(line.startswith('NATIVE_TASK_SAMPLE '), line)
+            record = json.loads(line.split(' ', 1)[1])
+            self.assertEqual([{'stage': 'sample-id', 'reason': 'unavailable'}], record['diagnostic']['failures'])
 
     def test_setup_source_exact_limits(self):
         original = self.setup.read_bytes()
@@ -186,6 +270,8 @@ class NativeObservationTests(unittest.TestCase):
                     if case != 'source':
                         self.assertEqual('unverified', record['diagnostic']['stability'])
                         self.assertNotIn('operands', record['diagnostic'])
+                        self.assertEqual('unavailable', record['memory']['association'])
+                        self.assertNotIn('rss_bytes', record['memory'])
                 finally:
                     fixture.doCleanups()
 
@@ -287,6 +373,9 @@ resource_observe_sample 0 100 "$3" "$3" final '' 143 TERM || true
         for row in resources:
             self.assertEqual(100, by_id[row['sample_id']]['pid'])
             self.assertEqual('native-file', by_id[row['sample_id']]['identity_status'])
+            self.assertEqual('unverified', by_id[row['sample_id']]['resource_tree_rss_association'])
+            self.assertEqual(7, by_id[row['sample_id']]['memory']['rss_pages'])
+            self.assertEqual('process-lifetime', by_id[row['sample_id']]['memory']['association'])
         self.assertEqual('143', resources[-1]['command_exit_status'])
         self.assertEqual('TERM', resources[-1]['termination_signal'])
 

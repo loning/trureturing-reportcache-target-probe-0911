@@ -6,7 +6,7 @@ eval "$(declare -f resource_observe_sample | sed '1s/resource_observe_sample/res
 resource_observe_sample() {
   # A fresh UUID per call also separates sampler, signal and final lifetimes.
   local resource_observation_sample_id
-  resource_observation_sample_id="$(python3 -c 'import uuid; print(uuid.uuid4().hex)')" || resource_observation_sample_id=""
+  resource_observation_sample_id="$(python3 -c 'import uuid; print(uuid.uuid4().hex)' 2>/dev/null)" || resource_observation_sample_id=""
   resource_observe_sample_unlabelled "$@"
 }
 eval "$(declare -f resource_observation_process_values | sed '1s/resource_observation_process_values/resource_observation_process_values_unlabelled/')"
